@@ -21,7 +21,7 @@ validated_ctx_sizes:
 models:
   qwen3-coder-30b-a3b-q4:
     path: /opt/llm/models/qwen3-coder-30b-a3b-instruct-q4_k_m.gguf
-    sha256: null                  # filled in once the GGUF is downloaded (WP00 step 9)
+    sha256: fadc3e5f8d42bf7e894a785b05082e47daee4df26680389817e2093056f088ad
     served_name: Qwen3-Coder-30B-A3B-Instruct
     ctx_size: 32768
     approx_weights_gib: 17.5      # must stay <= limits.vram_budget_gib

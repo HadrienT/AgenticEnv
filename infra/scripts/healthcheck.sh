@@ -3,7 +3,9 @@
 # stdout, exit 0 if no CRITICAL check failed, 1 otherwise.
 set -uo pipefail
 
-LLAMA_BASE_URL="${AGX_LLM_BASE_URL:-http://127.0.0.1:8000}"
+# AGX_LLM_BASE_URL already ends in /v1 (06-CONFIG.md); strip it so /v1/models isn't doubled.
+LLAMA_BASE_URL="${AGX_LLM_BASE_URL:-http://127.0.0.1:8000/v1}"
+LLAMA_BASE_URL="${LLAMA_BASE_URL%/v1}"
 PG_HOST="${AGX_DB_HOST:-127.0.0.1}"
 PG_PORT="${AGX_DB_PORT:-5432}"
 MIN_DISK_FREE_GIB="${AGX_MIN_DISK_FREE_GIB:-50}"
