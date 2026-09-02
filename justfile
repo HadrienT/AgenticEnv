@@ -31,3 +31,27 @@ db-down:
 
 db-logs:
     docker compose -f infra/docker/compose.yaml logs -f postgres
+
+# Install the uv workspace (all packages + dev tooling).
+setup:
+    uv sync --all-packages
+
+# Apply pending SQL migrations (migrations/*.sql) via corelib.db.
+migrate:
+    uv run python -c "from corelib.db import apply_migrations; print(apply_migrations())"
+
+# ruff (lint + format check), mypy --strict, import-linter.
+lint:
+    uv run ruff check packages
+    uv run ruff format --check packages
+    uv run mypy -p corelib
+    uv run lint-imports
+
+# Unit + contract tests only (no PostgreSQL required).
+test:
+    uv run pytest packages -m "not integration and not e2e" -q
+
+# Full test suite, including integration tests (requires `just db-up`).
+test-integration:
+    uv run pytest packages -m "not e2e" -q
+

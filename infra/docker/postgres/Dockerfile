@@ -17,3 +17,5 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY initdb/00-extensions.sql /docker-entrypoint-initdb.d/00-extensions.sql
+COPY initdb/01-roles.sh /docker-entrypoint-initdb.d/01-roles.sh
+RUN chmod +x /docker-entrypoint-initdb.d/01-roles.sh

@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: ${AGX_DB_NAME:-agenticenv}
       POSTGRES_USER: ${AGX_DB_ADMIN_USER:-postgres}
       POSTGRES_PASSWORD: ${AGX_DB_ADMIN_PASSWORD:?set AGX_DB_ADMIN_PASSWORD in .env}
+      AGX_DB_USER: ${AGX_DB_USER:?set AGX_DB_USER in .env}
+      AGX_DB_PASSWORD: ${AGX_DB_PASSWORD:?set AGX_DB_PASSWORD in .env}
     ports:
       - "127.0.0.1:${AGX_DB_PORT:-5432}:5432"
     volumes:

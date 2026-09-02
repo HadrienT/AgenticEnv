@@ -103,12 +103,18 @@ Le service systemd lit `/etc/llm/llama-server.env` via `EnvironmentFile=` et lan
 | `AGX_DB_NAME` | `agenticenv` | non | corelib.db |
 | `AGX_DB_USER` | `app_rw` | non | corelib.db |
 | `AGX_DB_PASSWORD` | — | **oui** | corelib.db |
+| `AGX_DB_ADMIN_USER` | `postgres` | non | infra (bootstrap du rôle `app_rw`) |
+| `AGX_DB_ADMIN_PASSWORD` | — | **oui** | infra (bootstrap du rôle `app_rw`) |
+| `AGX_DB_STATEMENT_TIMEOUT_MS` | `30000` | non | corelib.db |
 | `AGX_LLM_BASE_URL` | `http://127.0.0.1:8000/v1` | non | evalkit, agents |
 | `AGX_LLM_SERVED_MODEL` | `Qwen3-Coder-30B-A3B-Instruct` | non | evalkit |
 | `AGX_LLM_CTX_SIZE` | `32768` | non | budget de contexte applicatif |
+| `AGX_LLM_REQUEST_TIMEOUT_S` | `120` | non | corelib.config |
 | `AGX_PATHS_MODELS_DIR` | `/opt/llm/models` | non | infra |
 | `AGX_PATHS_DOCUMENTS_DIR` | `/srv/knowledge/documents` | non | kbase |
+| `AGX_PATHS_LOGS_DIR` | `/opt/llm/logs` | non | corelib.config |
 | `AGX_PATHS_REPOS_DIR` | `/srv/repos` | non | OpenHands |
+| `AGX_PATHS_DATASETS_DIR` | `/srv/knowledge/datasets` | non | evalkit |
 | `AGX_MCP_QUANTLAB_PORT` | `8201` | non | mcp |
 | `AGX_MCP_KBASE_PORT` | `8202` | non | mcp |
 | `AGX_MCP_AGENTMEM_PORT` | `8203` | non | mcp |

@@ -1,0 +1,52 @@
+[project]
+name = "agenticenv"
+version = "0.1.0"
+description = "AgenticEnv workspace root (no importable code; see packages/*)"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["packages"]
+extend-exclude = ["blueprint", "docs", "infra", "configs", "SYNTHESE-PROJET.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "packages/corelib/src"
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+markers = [
+    "numeric: property-based / reference-value tests",
+    "contract: MCP schema and dependency-rule contract tests",
+    "integration: tests requiring a real PostgreSQL instance",
+    "e2e: full-system tests, GPU/llama-server/OpenHands/Docker required, not run in CI",
+]
+
+[tool.importlinter]
+root_packages = ["corelib"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "D1: corelib depends on no other repo package"
+type = "forbidden"
+source_modules = ["corelib"]
+forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit"]
+
+[dependency-groups]
+dev = [
+    "import-linter>=2.14",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.5",
+    "types-pyyaml>=6.0.12.20260815",
+]
