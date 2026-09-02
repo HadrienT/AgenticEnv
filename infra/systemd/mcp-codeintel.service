@@ -1,0 +1,17 @@
+[Unit]
+Description=MCP server — codeintel (clangd-backed C++ code intelligence)
+After=network-online.target
+
+[Service]
+Type=simple
+User=agents
+Group=agents
+EnvironmentFile=-/etc/agenticenv/mcp-codeintel.env
+ExecStart=/opt/agents/venvs/codeintel-mcp/bin/python -m codeintel_mcp.server
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=MCP server — cppdev (C++ build/test/sanitizers toolchain)
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=agents
+Group=agents
+EnvironmentFile=-/etc/agenticenv/mcp-cppdev.env
+ExecStart=/opt/agents/venvs/cppdev-mcp/bin/python -m cppdev_mcp.server
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

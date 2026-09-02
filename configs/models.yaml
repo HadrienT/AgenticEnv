@@ -1,0 +1,34 @@
+# Model registry — single source of truth for the served LLM and its context size.
+# Changing model/context = edit this file + `sudo infra/scripts/render-llama-env.sh`
+# + `sudo systemctl restart llama-server`. Never edit code to change these values.
+
+active: qwen3-coder-30b-a3b-q4
+
+defaults:
+  host: 127.0.0.1
+  port: 8000
+  split_mode: layer        # never "tensor" without a prior benchmark
+  n_gpu_layers: all
+  flash_attn: on
+  cont_batching: true
+  no_cpu_offload: true     # guard: refuse to start if CPU offload would be required
+
+# ctx_size values that passed infra/scripts/bench-context.sh. render-llama-env.sh
+# refuses any ctx_size not listed here. 32768 is the mandated bootstrap default.
+validated_ctx_sizes:
+  - 32768
+
+models:
+  qwen3-coder-30b-a3b-q4:
+    path: /opt/llm/models/qwen3-coder-30b-a3b-instruct-q4_k_m.gguf
+    sha256: null                  # filled in once the GGUF is downloaded (WP00 step 9)
+    served_name: Qwen3-Coder-30B-A3B-Instruct
+    ctx_size: 32768
+    approx_weights_gib: 17.5      # must stay <= limits.vram_budget_gib
+    chat_template: null           # null = template embedded in the GGUF
+    extra_args: []
+
+limits:
+  vram_budget_gib: 20             # locked decision, do not raise without validation
+  vram_total_gib: 32
+  reserve_for_kv_and_buffers_gib: 10

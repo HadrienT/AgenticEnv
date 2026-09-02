@@ -1,0 +1,18 @@
+[Unit]
+Description=MCP server — agentmem (episodic & procedural memory)
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=agents
+Group=agents
+EnvironmentFile=-/etc/agenticenv/mcp-agentmem.env
+ExecStart=/opt/agents/venvs/agentmem-mcp/bin/python -m agentmem_mcp.server
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

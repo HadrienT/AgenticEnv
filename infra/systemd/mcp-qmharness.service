@@ -1,0 +1,17 @@
+[Unit]
+Description=MCP server — qmharness (numerical non-regression via pybind11 bindings)
+After=network-online.target
+
+[Service]
+Type=simple
+User=agents
+Group=agents
+EnvironmentFile=-/etc/agenticenv/mcp-qmharness.env
+ExecStart=/opt/agents/venvs/qmharness-mcp/bin/python -m qmharness_mcp.server
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

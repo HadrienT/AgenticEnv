@@ -1,0 +1,29 @@
+services:
+  postgres:
+    build:
+      context: ./postgres
+    image: agenticenv/postgres:16-pgvector
+    container_name: agenticenv-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${AGX_DB_NAME:-agenticenv}
+      POSTGRES_USER: ${AGX_DB_ADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${AGX_DB_ADMIN_PASSWORD:?set AGX_DB_ADMIN_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${AGX_DB_PORT:-5432}:5432"
+    volumes:
+      - agenticenv-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AGX_DB_ADMIN_USER:-postgres} -d ${AGX_DB_NAME:-agenticenv}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agenticenv-internal
+
+networks:
+  agenticenv-internal:
+    driver: bridge
+
+volumes:
+  agenticenv-postgres-data:
