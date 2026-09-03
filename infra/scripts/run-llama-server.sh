@@ -28,6 +28,10 @@ args=(
   --split-mode "${LLAMA_SPLIT_MODE:-layer}"
 )
 
+# Served model name exposed via /v1/models — WP08 needs this stable across GGUF
+# swaps (OpenHands' LLM config references it, never the raw file path).
+[[ -n "${LLAMA_SERVED_NAME:-}" ]] && args+=(--alias "$LLAMA_SERVED_NAME")
+
 [[ "${LLAMA_FLASH_ATTN:-on}" == "on" ]] && args+=(--flash-attn on)
 [[ "${LLAMA_CONT_BATCHING:-on}" == "on" ]] && args+=(--cont-batching)
 [[ -n "${LLAMA_CHAT_TEMPLATE:-}" ]] && args+=(--chat-template "$LLAMA_CHAT_TEMPLATE")

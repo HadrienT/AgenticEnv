@@ -1,0 +1,23 @@
+# Repository Purpose
+
+<!-- One paragraph: what this repository is for. -->
+
+# Setup Instructions
+
+<!-- Exact commands to build/install, e.g. `cmake --preset default && cmake --build build`. -->
+
+# Repository Structure
+
+<!-- Short bullet list of top-level directories and what they contain. -->
+
+# Development Guidelines
+
+- Always run the test suite before committing; do not commit with failing tests.
+- Use the units and numerical conventions already present in the code — never
+  silently reinterpret a rate/vol/price convention.
+- Commit in small, reviewable steps. Never `git push`, merge, or force/reset —
+  those are blocked by `.openhands/hooks.json` and require a human.
+
+# CI/CD Workflows
+
+<!-- List each workflow under .github/workflows/ and what it checks (lint, tests, ...). -->

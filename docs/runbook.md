@@ -48,6 +48,43 @@ infra/scripts/healthcheck.sh
 `ctx_size` must already be present in `configs/models.yaml:validated_ctx_sizes`
 (populate this list by running `infra/scripts/bench-context.sh` first).
 
+## OpenHands (WP08)
+
+One-time install:
+
+```bash
+uv tool install openhands --python 3.12   # ~/.local/bin/openhands (+ openhands-acp)
+export PATH="$HOME/.local/bin:$PATH"      # add to shell profile
+export OPENHANDS_SUPPRESS_BANNER=1        # required for scripted/headless use
+```
+
+Render LLM + MCP config (idempotent, safe to re-run after changing
+`configs/models.yaml` or `configs/mcp/*.yaml`, or after restarting `llama-server`):
+
+```bash
+bash infra/scripts/render-openhands-config.sh
+openhands mcp list      # confirm all 4 servers (agentmem, codeintel, cppdev, kbase) enabled
+```
+
+Run a task (CLI headless — **no Docker sandbox in this mode**, see
+`blueprint/wp/WP08-openhands-integration.md` §5 for why, and what mitigates it):
+
+```bash
+cd /srv/repos/<project>            # never run from a directory with secrets/credentials
+openhands --headless --json -t "..." > /tmp/run.jsonl 2>/tmp/run.err
+```
+
+Apply the reusable hooks/skills template to a new target repo before any
+autonomous task (blocks `git push`/merge/force/`reset --hard`/`rm -rf` and secret
+paths via a `PreToolUse` hook — required since headless mode always auto-approves):
+
+```bash
+cp -r agents/openhands-template/.openhands agents/openhands-template/.agents \
+      agents/openhands-template/AGENTS.md.template /srv/repos/<project>/
+mv /srv/repos/<project>/AGENTS.md.template /srv/repos/<project>/AGENTS.md
+# then edit AGENTS.md with real repo content, per agents/openhands-template/README.md
+```
+
 ## Incidents
 
 | Symptom | Likely cause | Action |
@@ -57,6 +94,8 @@ infra/scripts/healthcheck.sh
 | `healthcheck.sh` reports `no_cpu_offload: critical` | model spilled to CPU/RAM | reduce `ctx_size` or quantization — never enable offload |
 | `docker_gpus: error` | NVIDIA Container Toolkit not configured | `sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker` |
 | `postgres: critical` | container not started | `just db-up`, then `docker compose -f infra/docker/compose.yaml logs postgres` |
+| OpenHands MCP server crashes with `corelib.errors.ConfigError` at startup | registered with `uv run --project` instead of `--directory` — `corelib.config.Settings` resolves `.env` relative to CWD | re-run `render-openhands-config.sh` (uses `--directory`) |
+| OpenHands MCP client raises `pydantic_core.ValidationError` parsing a JSONRPC message | a server logged to stdout, corrupting the stdio JSON-RPC stream | ensure `corelib.logging` writes to stderr (already the case; check for stray `print()` in any new MCP server code) |
 
 ## Absolute prohibitions (see blueprint/00-PRIMER.md §5)
 

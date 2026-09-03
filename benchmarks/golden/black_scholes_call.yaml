@@ -1,0 +1,28 @@
+# Example golden-value cases for a European call under Black-Scholes (WP09 §3.1, §6).
+# Reference price cross-checked independently against `qmharness.oracles.analytic`
+# (Hull 11th ed., eq. 15.20-15.21) -- S=K=100, r=0.03, q=0, vol=0.20, T=1.0.
+#
+# These are illustrative fixtures: `quant-modeling` is not checked out in this
+# workspace, so `instrument`/`model`/`engine` names are placeholders to be aligned
+# with the real repo's registry once available.
+
+- id: bs_call_atm_1y
+  family: golden
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: analytic
+  engine: analytic
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+  expected:
+    price: 9.4134
+  tolerance:
+    abs: 1.0e-4
+  source: "Hull, Options/Futures/Other Derivatives, 11th ed., eq. 15.20-15.21"
+  tags: [black_scholes, european, call]

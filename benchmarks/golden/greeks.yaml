@@ -1,0 +1,24 @@
+# Example greeks cross-method case (WP09 §3.5).
+
+- id: bs_call_delta_cross_method
+  family: greeks
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: pathwise
+  engine: monte_carlo
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+    seed: 42
+    n_paths: 100000
+  family_params:
+    methods: [pathwise, likelihood_ratio, finite_difference, analytic]
+    which: [delta]
+  tolerance:
+    rel: 2.0e-2
+  tags: [black_scholes, greeks, delta]

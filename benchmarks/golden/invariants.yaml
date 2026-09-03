@@ -1,0 +1,61 @@
+# Example financial-invariant cases (WP09 §3.3).
+
+- id: bs_put_call_parity
+  family: invariants
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: analytic
+  engine: analytic
+  inputs:
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+  family_params:
+    invariant: put_call_parity
+  tolerance:
+    abs: 1.0e-6
+  tags: [black_scholes, invariant, parity]
+
+- id: bs_call_no_arbitrage_bounds
+  family: invariants
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: analytic
+  engine: analytic
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+  family_params:
+    invariant: no_arbitrage_bounds
+  tolerance:
+    abs: 1.0e-6
+  tags: [black_scholes, invariant, no_arbitrage]
+
+- id: bs_call_monotonicity_strike
+  family: invariants
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: analytic
+  engine: analytic
+  inputs:
+    option_type: call
+    spot: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+  family_params:
+    invariant: monotonicity_strike
+    low_strike: 90.0
+    high_strike: 110.0
+  tolerance:
+    abs: 1.0e-6
+  tags: [black_scholes, invariant, monotonicity]

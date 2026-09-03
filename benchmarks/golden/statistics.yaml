@@ -1,0 +1,48 @@
+# Example statistical cases (WP09 §3.4): bit-identical determinism + CI coverage.
+
+- id: bs_call_mc_determinism
+  family: statistics
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: monte_carlo
+  engine: monte_carlo
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+    seed: 42
+    n_paths: 100000
+  family_params:
+    kind: determinism
+  tags: [black_scholes, monte_carlo, determinism]
+
+- id: bs_call_mc_ci_coverage
+  family: statistics
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: monte_carlo
+  engine: monte_carlo
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+    n_paths: 20000
+  expected:
+    price: 9.4134
+  family_params:
+    kind: ci_coverage
+    seeds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    z: 1.96
+    expected_coverage: 0.95
+  tolerance:
+    coverage_abs: 0.15
+  source: "Hull, Options/Futures/Other Derivatives, 11th ed., eq. 15.20-15.21"
+  tags: [black_scholes, monte_carlo, ci_coverage]

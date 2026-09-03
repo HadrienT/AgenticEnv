@@ -1,0 +1,47 @@
+role: quant
+description: Choix de modèle, hypothèses, méthode numérique, calibration.
+system_prompt: agents/prompts/system-common.md + agents/prompts/snippets/quant.md
+
+# NOTE: the blueprint's original allowlist here was `quant.*` (an abandoned
+# Python quantlab_mcp tool family). Per blueprint/README.md's substitution
+# table, the real equivalent today is `cpp.*` + `code.*` (qmharness_mcp /
+# `quant.*` proper is WP09, not yet built).
+mcp_tools:                      # allowlist stricte
+  - cpp.build
+  - cpp.test
+  - cpp.bench
+  - cpp.targets
+  - code.find_symbol
+  - code.definition
+  - code.outline
+  - code.signature
+  - kb.search
+  - kb.get_equation
+  - mem.recall
+
+permissions:
+  filesystem: {read: true, write: false, delete: false}
+  terminal:   {execute: false}
+  network:    {enabled: false}
+  git:        {commit: false, push: false}
+
+limits:
+  max_iterations: 30
+  max_tool_calls: 100
+  timeout_seconds: 900
+
+approval_required:
+  - git_push
+  - merge
+  - delete_many
+  - host_install
+
+openhands_mapping:
+  mcp_servers_enabled: [cppdev, codeintel, kbase, agentmem]
+  mcp_servers_disabled: []
+  confirmation_mode: default
+  native_tools: >
+    Same phase-1 limitation as orchestrator.yaml. cpp.build/cpp.test/cpp.bench
+    already run inside the sandbox on the MCP-server side (per
+    configs/mcp/cppdev.yaml's per_tool_timeout_s), so this profile does not
+    need the native terminal tool at all to do useful work.

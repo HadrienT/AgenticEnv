@@ -1,0 +1,18 @@
+# MCP server config for qmharness-mcp (WP09). See blueprint/06-CONFIG.md §4 and
+# blueprint/wp/WP09-numerical-harness.md §7 for the per-tool timeout table.
+name: qmharness
+transport: stdio                # stdio | streamable-http
+host: 127.0.0.1
+port: 8205
+default_timeout_s: 30
+max_result_bytes: 262144
+tools_allowlist:
+  - qm.run
+  - qm.compare
+  - qm.list_cases
+  - qm.explain_failure
+per_tool_timeout_s:
+  qm.run: 1800
+  qm.compare: 1800
+  qm.list_cases: 15
+  qm.explain_failure: 30

@@ -289,12 +289,25 @@ approval_required:
 |---|---|---|---|---|
 | `orchestrator` | tous (délégation) | non | non | non |
 | `research` | `kb.*`, `mem.recall` | non | non | non |
-| `quant` | `quant.*`, `kb.search`, `kb.get_equation` | non | non | non |
-| `coding` | fs, terminal, git, `quant.*` | `/workspace` | oui | commit oui, push non |
-| `validation` | `quant.validate`, terminal (pytest uniquement) | non | restreint | non |
+| `quant` | `cpp.build/test/bench/targets`, `code.find_symbol/definition/outline/signature`, `kb.search/get_equation`, `mem.recall` | non | non | non |
+| `coding` | fs, terminal, git, `cpp.*`, `code.*` | `/workspace` | oui | commit oui, push non |
+| `validation` | `cpp.test`, terminal (pytest uniquement) | non | restreint | non |
 
-> `[À CONFIRMER]` Le mapping exact de ces profils vers la configuration OpenHands
-> (microagents, `config.toml`, allowlist MCP) est traité en [WP08](wp/WP08-openhands-integration.md).
+> Note (WP03/WP06 — cf. [blueprint/README.md](README.md) « Correctif de périmètre ») : le
+> `quant.*` ci-dessus est celui de la maquette d'origine (`quantlab_mcp`, jamais construit).
+> Les serveurs MCP réellement livrés sont `cppdev-mcp` (`cpp.*`) et `codeintel-mcp`
+> (`code.*`) ; le futur équivalent de `quant.*` est `qmharness_mcp`, prévu en WP09.
+
+> **Résolu (WP08)** : le mapping de ces profils vers OpenHands est fait via un bloc
+> `openhands_mapping` ajouté à chaque `agents/profiles/*.yaml`
+> (`mcp_servers_enabled`/`mcp_servers_disabled` → `openhands mcp enable/disable <name>`,
+> `confirmation_mode`). OpenHands CLI 1.x n'a pas de mécanisme natif de restriction
+> fine par session au-delà de l'activation/désactivation de serveurs MCP entiers :
+> les restrictions `filesystem`/`terminal`/`git` de ce tableau ne sont donc pas
+> appliquées techniquement par OpenHands — elles restent des conventions portées par
+> le prompt système et, pour `git push`/merge/force/`reset --hard`/`rm -rf`, par un
+> hook `PreToolUse` qui refuse la commande (voir
+> [WP08](wp/WP08-openhands-integration.md) §5/§9).
 
 ---
 

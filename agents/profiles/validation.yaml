@@ -1,0 +1,37 @@
+role: validation
+description: Lance la suite de tests/lint/build existante et rapporte les résultats (jamais d'édition).
+system_prompt: agents/prompts/system-common.md + agents/prompts/snippets/validation.md
+
+mcp_tools:                      # allowlist stricte
+  - cpp.build
+  - cpp.test
+  - cpp.format_check
+  - cpp.tidy
+  - cpp.coverage
+
+permissions:
+  filesystem: {read: true, write: false, delete: false}
+  terminal:   {execute: true, restricted_to: ["pytest", "ctest"]}
+  network:    {enabled: false}
+  git:        {commit: false, push: false}
+
+limits:
+  max_iterations: 20
+  max_tool_calls: 60
+  timeout_seconds: 900
+
+approval_required:
+  - git_push
+  - merge
+  - delete_many
+  - host_install
+
+openhands_mapping:
+  mcp_servers_enabled: [cppdev]
+  mcp_servers_disabled: [codeintel, kbase, agentmem]
+  confirmation_mode: always-approve   # safe: no write/git tools are enabled for this profile
+  native_tools: >
+    `terminal.restricted_to` is a documented policy only — V1 has no native
+    per-command allowlist for the sandboxed terminal. Because this profile
+    grants no MCP write/git tools, `--always-approve` is acceptable here even
+    though it is not for `coding`.

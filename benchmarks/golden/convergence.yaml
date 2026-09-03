@@ -1,0 +1,27 @@
+# Example Monte Carlo convergence case (WP09 §3.4): error should decay as 1/sqrt(N).
+
+- id: bs_call_mc_convergence
+  family: convergence
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: monte_carlo
+  engine: monte_carlo
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+    seed: 42
+  expected:
+    price: 9.4134
+  family_params:
+    sizes: [1000, 4000, 16000, 64000, 256000]
+    size_field: n_paths
+    expected_slope: -0.5
+  tolerance:
+    slope_abs: 0.15
+  source: "Hull, Options/Futures/Other Derivatives, 11th ed., eq. 15.20-15.21"
+  tags: [black_scholes, monte_carlo, convergence]
