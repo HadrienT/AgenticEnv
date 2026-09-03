@@ -47,7 +47,13 @@ def _configure_root() -> None:
     global _configured
     if _configured:
         return
-    handler = logging.StreamHandler(stream=sys.stdout)
+    # stderr, never stdout: stdio-transport MCP servers (agentmem-mcp,
+    # codeintel-mcp, cppdev-mcp, kbase-mcp) reserve stdout exclusively for
+    # JSON-RPC frames — any log line written to stdout corrupts the MCP
+    # transport (confirmed failure mode during WP08's OpenHands smoke test).
+    # journald/systemd capture stderr identically to stdout, so this is a
+    # no-op for the non-MCP (systemd-managed) call sites.
+    handler = logging.StreamHandler(stream=sys.stderr)
     handler.setFormatter(_JSONFormatter())
     root = logging.getLogger()
     root.handlers = [handler]
