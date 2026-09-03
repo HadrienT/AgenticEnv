@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="AsianOptionTest" tests="2" failures="1" errors="1" skipped="0">
+    <testcase name="PriceMatchesReferenceWithinTolerance" classname="AsianOptionTest" time="0.012">
+      <failure message="The difference between val1 and val2 is 1.5, which exceeds tol, where&#10;val1 evaluates to 5.5,&#10;val2 evaluates to 4,&#10;tol evaluates to 0.1.">
+mc_asian_test.cpp:42: Failure
+The difference between val1 and val2 is 1.5, which exceeds tol, where
+val1 evaluates to 5.5,
+val2 evaluates to 4,
+tol evaluates to 0.1.
+      </failure>
+    </testcase>
+    <testcase name="SegfaultsOnMalformedSchedule" classname="AsianOptionTest" time="0.003">
+      <error message="Subprocess aborted with signal SIGSEGV">Subprocess aborted with signal SIGSEGV</error>
+    </testcase>
+  </testsuite>
+</testsuites>

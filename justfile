@@ -45,6 +45,8 @@ lint:
     uv run ruff check packages
     uv run ruff format --check packages
     uv run mypy -p corelib
+    uv run mypy -p cppdev
+    uv run mypy -p cppdev_mcp
     uv run lint-imports
 
 # Unit + contract tests only (no PostgreSQL required).

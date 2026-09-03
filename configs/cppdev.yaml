@@ -1,0 +1,22 @@
+# cppdev tuning: build/test/diagnostics parameters (WP02).
+# No hardcoded values live in packages/cppdev — everything tunable is here.
+
+diagnostics:
+  max_warnings: 20             # warnings truncated beyond this; errors never are
+
+timeouts_s:
+  configure: 300
+  build: 900
+  test: 900
+  format_check: 60
+  tidy: 600
+  sanitize: 1800
+  coverage: 1800
+  bench: 1800
+
+build:
+  parallelism_max: null        # null = let cmake/make pick (nproc)
+
+bench:
+  gpu_busy_threshold_pct: 5.0  # above this, bench results are flagged llama_server_busy
+  default_threshold_pct: 10.0  # regression if slower than reference by more than this

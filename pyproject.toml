@@ -21,7 +21,7 @@ python_version = "3.12"
 strict = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = "packages/corelib/src"
+mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
@@ -33,13 +33,31 @@ markers = [
 ]
 
 [tool.importlinter]
-root_packages = ["corelib"]
+root_packages = ["corelib", "cppdev", "cppdev_mcp"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "D1: corelib depends on no other repo package"
 type = "forbidden"
 source_modules = ["corelib"]
+forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit"]
+
+[[tool.importlinter.contracts]]
+name = "D2: cppdev depends on corelib only"
+type = "forbidden"
+source_modules = ["cppdev"]
+forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit", "cppdev_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D3: cppdev carries no business logic"
+type = "forbidden"
+source_modules = ["cppdev"]
+forbidden_modules = ["numpy", "scipy"]
+
+[[tool.importlinter.contracts]]
+name = "D4: cppdev_mcp depends on corelib and cppdev only"
+type = "forbidden"
+source_modules = ["cppdev_mcp"]
 forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit"]
 
 [dependency-groups]

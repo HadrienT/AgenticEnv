@@ -228,7 +228,9 @@ thresholds:
 
 ```yaml
 name: quantlab
-transport: http                # http | stdio  [À CONFIRMER côté OpenHands]
+transport: stdio                # stdio | streamable-http (confirmed via the
+                                 # official MCP Python SDK docs; "http" alone
+                                 # is not a valid literal)
 host: 127.0.0.1
 port: 8201
 default_timeout_s: 30

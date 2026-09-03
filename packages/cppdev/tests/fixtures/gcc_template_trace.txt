@@ -1,0 +1,6 @@
+In file included from src/main.cpp:3:
+include/quantModeling/utils/vector_ops.hpp: In instantiation of 'T sum(const std::vector<T>&) [with T = int]':
+src/main.cpp:12:18:   required from here
+include/quantModeling/utils/vector_ops.hpp:15:12: error: no match for 'operator+' (operand types are 'int' and 'std::__cxx11::basic_string<char>')
+   15 |     return a + b;
+      |            ~~^~~

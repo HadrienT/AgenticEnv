@@ -1,0 +1,26 @@
+# MCP server config for cppdev-mcp (WP02). See blueprint/06-CONFIG.md §4.
+name: cppdev
+transport: stdio                # stdio | streamable-http
+host: 127.0.0.1
+port: 8201
+default_timeout_s: 30
+max_result_bytes: 262144
+tools_allowlist:
+  - cpp.configure
+  - cpp.build
+  - cpp.test
+  - cpp.targets
+  - cpp.format_check
+  - cpp.tidy
+  - cpp.sanitize
+  - cpp.coverage
+  - cpp.bench
+per_tool_timeout_s:
+  cpp.configure: 300
+  cpp.build: 900
+  cpp.test: 900
+  cpp.format_check: 60
+  cpp.tidy: 600
+  cpp.sanitize: 1800
+  cpp.coverage: 1800
+  cpp.bench: 1800
