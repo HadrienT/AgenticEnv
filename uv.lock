@@ -15,6 +15,7 @@ members = [
     "corelib",
     "cppdev",
     "cppdev-mcp",
+    "kbase",
 ]
 
 [[package]]
@@ -772,6 +773,32 @@ sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
 ]
+
+[[package]]
+name = "kbase"
+version = "0.1.0"
+source = { editable = "packages/kbase" }
+dependencies = [
+    { name = "corelib" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "corelib", editable = "packages/corelib" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+]
+provides-extras = ["test"]
 
 [[package]]
 name = "librt"

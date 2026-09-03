@@ -161,6 +161,10 @@ retrieval:
 provenance:
   require_page: false          # certains formats n'ont pas de pagination
   require_section: true
+
+ingestion:
+  max_file_size_mb: 50          # WP04 §14 : anti-DoS, limite de taille de fichier source
+  parse_timeout_s: 60           # WP04 §14 : timeout de parsing
 ```
 
 ### `configs/quantlab.yaml`

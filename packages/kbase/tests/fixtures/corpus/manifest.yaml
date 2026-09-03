@@ -1,0 +1,17 @@
+documents:
+  - doc_key: sample-notes
+    path: raw/sample-notes.md
+    title: Sample Notes on Risk Models
+    authors: [Jane Doe]
+    year: 2024
+    doc_type: notes
+    topic: risk
+    asset_class: equities
+  - doc_key: sample-paper
+    path: raw/sample-paper.md
+    title: A Small Paper on Volatility
+    authors: [John Smith, Ada Lovelace]
+    year: 2023
+    doc_type: research_paper
+    topic: volatility
+    asset_class: options

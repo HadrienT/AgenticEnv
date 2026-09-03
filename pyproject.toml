@@ -21,7 +21,7 @@ python_version = "3.12"
 strict = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src"
+mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
@@ -34,7 +34,7 @@ markers = [
 ]
 
 [tool.importlinter]
-root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp"]
+root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -78,6 +78,12 @@ name = "D7: codeintel_mcp depends on corelib and codeintel only"
 type = "forbidden"
 source_modules = ["codeintel_mcp"]
 forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit", "cppdev", "cppdev_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D8: kbase depends on corelib only"
+type = "forbidden"
+source_modules = ["kbase"]
+forbidden_modules = ["quantlab", "agentmem", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp"]
 
 [dependency-groups]
 dev = [
