@@ -1,0 +1,36 @@
+embeddings:
+  provider: local
+  model_name: hashing-bow
+  model_version: "1"
+  dim: 1024                    # DOIT correspondre à la migration vector(D)
+  batch_size: 32
+  normalize: true
+
+chunking:
+  strategy: structural
+  target_tokens: 800
+  max_tokens: 1200
+  overlap_tokens: 100
+  keep_equation_with_context: true
+  never_split_within: [equation, table]
+
+retrieval:
+  default_k: 8
+  candidates_vector: 50
+  candidates_lexical: 50
+  fusion: rrf
+  rrf_k: 60
+  rerank:
+    enabled: true
+    model_name: <modèle de reranking>
+    top_k: 8
+  fts_config: simple           # pas de stemming : préserve SABR, SOFR, CVA
+  min_score: 0.0
+
+provenance:
+  require_page: false          # certains formats n'ont pas de pagination
+  require_section: true
+
+ingestion:
+  max_file_size_mb: 50
+  parse_timeout_s: 60

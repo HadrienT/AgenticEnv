@@ -366,6 +366,16 @@ class Equation(BaseModel):
     page: int | None
     symbols: list[str]
 
+class ContentBlock(BaseModel):
+    """Ordered unit produced by a `Parser`; the atom `Chunker` groups or never splits."""
+    kind: Literal["text", "equation", "table", "caption"]
+    text: str
+    section_id: str | None
+    page_start: int | None; page_end: int | None
+    equation: Equation | None                # set only when kind == "equation"
+    context_before: str | None; context_after: str | None   # equation-only, WP04 §5
+    table_caption: str | None; table_content_md: str | None # set only when kind == "table"
+
 class ParsedDocument(BaseModel):
     meta: DocumentMeta
     version: str
