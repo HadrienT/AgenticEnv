@@ -1,0 +1,46 @@
+role: orchestrator
+description: >
+  Decomposes a task, delegates to the appropriate single-profile session, and
+  tracks overall progress. Phase 1 (blueprint/01-ARCHITECTURE.md §6): only one
+  profile is ever active at a time, so "delegation" today means the human
+  operator starts the next `openhands` session with the right profile — this
+  profile is not yet a live automated dispatcher.
+system_prompt: agents/prompts/system-common.md
+
+mcp_tools:                      # allowlist stricte — read-only across all domains
+  - kb.search
+  - kb.list_topics
+  - mem.recall
+  - mem.list_procedures
+  - code.outline
+  - code.find_symbol
+
+permissions:
+  filesystem: {read: true, write: false, delete: false}
+  terminal:   {execute: false}
+  network:    {enabled: false}
+  git:        {commit: false, push: false}
+
+limits:
+  max_iterations: 30
+  max_tool_calls: 100
+  timeout_seconds: 900
+
+approval_required:
+  - git_push
+  - merge
+  - delete_many
+  - host_install
+
+# --- OpenHands mapping (resolves blueprint/06-CONFIG.md §5's [À CONFIRMER]) --
+openhands_mapping:
+  mcp_servers_enabled: [kbase, agentmem, codeintel]   # `openhands mcp enable <name>`
+  mcp_servers_disabled: [cppdev]                       # `openhands mcp disable <name>`
+  confirmation_mode: default                           # ask-each-time; never --always-approve
+  native_tools: >
+    OpenHands V1 CLI has no per-session switch to disable its built-in
+    bash/file-edit tools — only MCP servers can be enabled/disabled per
+    session. filesystem.write/terminal.execute=false above is therefore a
+    documented policy, not (yet) a technically enforced one; the only hard
+    technical enforcement available today is the repo-level
+    `.openhands/hooks.json` PreToolUse block on git push/merge/reset --hard.

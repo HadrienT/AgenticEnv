@@ -63,3 +63,7 @@ test:
 test-integration:
     uv run pytest packages -m "not e2e" -q
 
+# Render OpenHands LLM + MCP config from configs/models.yaml + configs/mcp/*.yaml.
+render-openhands-config:
+    bash infra/scripts/render-openhands-config.sh
+

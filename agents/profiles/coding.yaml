@@ -1,0 +1,54 @@
+role: coding
+description: Lit, édite, build, teste le code et crée des commits (jamais de push/merge).
+system_prompt: agents/prompts/system-common.md + agents/prompts/snippets/coding.md
+
+mcp_tools:                      # allowlist stricte
+  - cpp.build
+  - cpp.test
+  - cpp.targets
+  - cpp.format_check
+  - cpp.tidy
+  - cpp.sanitize
+  - cpp.coverage
+  - code.find_symbol
+  - code.definition
+  - code.references
+  - code.outline
+  - code.grep
+  - code.diff_context
+  - kb.search
+  - mem.recall
+  - mem.remember
+
+permissions:
+  filesystem: {read: true, write: true, delete: false}   # write scoped to /workspace only
+  terminal:   {execute: true}                             # sandboxed, see .openhands/hooks.json
+  network:    {enabled: false}
+  git:        {commit: true, push: false}
+
+limits:
+  max_iterations: 50
+  max_tool_calls: 200
+  timeout_seconds: 1800
+
+approval_required:
+  - git_push
+  - merge
+  - delete_many
+  - host_install
+
+openhands_mapping:
+  mcp_servers_enabled: [cppdev, codeintel, kbase, agentmem]
+  mcp_servers_disabled: []
+  confirmation_mode: default                              # interactive: ask each time
+  headless_confirmation_mode_caveat: >
+    `openhands --headless` always runs in always-approve mode (cannot be
+    changed — confirmed via docs.openhands.dev/openhands/usage/cli/headless).
+    This profile MUST NEVER be run headless without the repo's
+    `.openhands/hooks.json` PreToolUse block in place, since headless removes
+    the only other safety net (interactive confirmation) for git push/merge.
+  native_tools: >
+    This is the one profile that genuinely needs OpenHands' native
+    file-edit + terminal tools (fs write, sandboxed bash) in addition to the
+    MCP allowlist above — unlike the other four profiles, whose
+    filesystem/terminal restrictions above remain documentation-only in V1.

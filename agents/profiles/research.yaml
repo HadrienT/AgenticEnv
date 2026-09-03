@@ -1,0 +1,36 @@
+role: research
+description: Finds and summarizes information from the knowledge base and agent memory.
+system_prompt: agents/prompts/system-common.md + agents/prompts/snippets/research.md
+
+mcp_tools:                      # allowlist stricte
+  - kb.search
+  - kb.get_document
+  - kb.get_equation
+  - kb.list_topics
+  - kb.stats
+  - mem.recall
+
+permissions:
+  filesystem: {read: true, write: false, delete: false}
+  terminal:   {execute: false}
+  network:    {enabled: false}
+  git:        {commit: false, push: false}
+
+limits:
+  max_iterations: 30
+  max_tool_calls: 100
+  timeout_seconds: 900
+
+approval_required:
+  - git_push
+  - merge
+  - delete_many
+  - host_install
+
+openhands_mapping:
+  mcp_servers_enabled: [kbase, agentmem]
+  mcp_servers_disabled: [cppdev, codeintel]
+  confirmation_mode: default
+  native_tools: >
+    Same phase-1 limitation as orchestrator.yaml — write/terminal are a
+    documented policy; hard enforcement is the repo's `.openhands/hooks.json`.
