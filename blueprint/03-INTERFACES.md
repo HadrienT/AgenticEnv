@@ -499,22 +499,28 @@ class RetrievalFilters(BaseModel):
 class RetrievalQuery(BaseModel):
     text: str
     k: int
-    filters: RetrievalFilters | None
-    strategy: Literal["hybrid", "vector", "lexical"]
-    rerank: bool
+    filters: RetrievalFilters = Field(default_factory=RetrievalFilters)  # jamais None
+    strategy: Literal["hybrid", "vector", "lexical"] = "hybrid"
+    rerank: bool = True
 
 class RetrievalResult(BaseModel):
     query: RetrievalQuery
     chunks: list[RetrievedChunk]
-    total_candidates: int
+    total_candidates: int          # taille du pool fusionné avant troncature à k
+    strategy_used: Literal["hybrid", "vector", "lexical"]
     latency_ms: int
-    strategy_used: str
+    correlation_id: str            # = kb.retrieval_logs.id (une ligne par appel)
     warnings: list[str]           # ex. "sources contradictoires détectées"
 
 # kbase/retrieval/hybrid.py
 class HybridRetriever:
-    def __init__(self, embedder: Embedder, reranker: Reranker | None,
-                 config: RetrievalConfig) -> None: ...
+    # Constructeur à paramètres explicites, pas `config: RetrievalConfig` — même
+    # convention que `ingestion.pipeline.ingest()` (WP04) : `kbase/config.py` ne sert
+    # qu'à la frontière CLI, jamais importé par la librairie coeur (testabilité).
+    def __init__(self, *, embedder: Embedder, reranker: Reranker | None,
+                 candidates_vector: int, candidates_lexical: int, rrf_k: int,
+                 fts_config: str, min_score: float, rerank_top_k: int,
+                 require_page: bool, require_section: bool) -> None: ...
     def retrieve(self, query: RetrievalQuery) -> RetrievalResult: ...
 ```
 
@@ -523,14 +529,17 @@ class HybridRetriever:
 ```text
 HybridRetriever.retrieve()
  ├─ filters.to_sql_predicate()
- ├─ embedder.embed_query()
+ ├─ embedder.embed_query()        (sauf strategy == "lexical")
  ├─ vector.search()      ──┐
- ├─ lexical.search()     ──┤ (parallèles)
- ├─ fusion.reciprocal_rank_fusion()
- ├─ rerank.rerank()          (si query.rerank)
- ├─ provenance.build_citations()
- └─ obs.record()
+ ├─ lexical.search()     ──┤ (sauf strategy exclue)
+ ├─ fusion.reciprocal_rank_fusion() / rank_single_branch()
+ ├─ store.load_candidates()          (une requête, pas de N+1)
+ ├─ provenance.build_citation() + assert_complete()
+ ├─ rerank.rerank()          (si query.rerank ; dégradation → warning, jamais d'exception)
+ ├─ contradictions.detect()
+ └─ logs.record()  →  kb.retrieval_logs
 ```
+
 
 ### 3.5 Provenance
 
