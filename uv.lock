@@ -10,6 +10,8 @@ resolution-markers = [
 [manifest]
 members = [
     "agenticenv",
+    "codeintel",
+    "codeintel-mcp",
     "corelib",
     "cppdev",
     "cppdev-mcp",
@@ -237,6 +239,58 @@ sdist = { url = "https://files.pythonhosted.org/packages/c7/0e/7fa0ef50764b67090
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/50/6c0d534c5f134586a8e1ba4e330569e32f057e33372ae556463212fb4cd3/click-8.5.0-py3-none-any.whl", hash = "sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360", size = 125251, upload-time = "2026-08-26T13:33:12.928Z" },
 ]
+
+[[package]]
+name = "codeintel"
+version = "0.1.0"
+source = { editable = "packages/codeintel" }
+dependencies = [
+    { name = "corelib" },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "corelib", editable = "packages/corelib" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
+]
+provides-extras = ["test"]
+
+[[package]]
+name = "codeintel-mcp"
+version = "0.1.0"
+source = { editable = "packages/codeintel-mcp" }
+dependencies = [
+    { name = "codeintel" },
+    { name = "corelib" },
+    { name = "mcp", extra = ["cli"] },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "codeintel", editable = "packages/codeintel" },
+    { name = "corelib", editable = "packages/corelib" },
+    { name = "mcp", extras = ["cli"], specifier = ">=2.0" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
+]
+provides-extras = ["test"]
 
 [[package]]
 name = "colorama"

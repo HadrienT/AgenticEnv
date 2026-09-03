@@ -21,10 +21,11 @@ python_version = "3.12"
 strict = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src"
+mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
 markers = [
     "numeric: property-based / reference-value tests",
     "contract: MCP schema and dependency-rule contract tests",
@@ -33,7 +34,7 @@ markers = [
 ]
 
 [tool.importlinter]
-root_packages = ["corelib", "cppdev", "cppdev_mcp"]
+root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -59,6 +60,24 @@ name = "D4: cppdev_mcp depends on corelib and cppdev only"
 type = "forbidden"
 source_modules = ["cppdev_mcp"]
 forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit"]
+
+[[tool.importlinter.contracts]]
+name = "D5: codeintel depends on corelib only"
+type = "forbidden"
+source_modules = ["codeintel"]
+forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit", "cppdev", "cppdev_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D6: codeintel carries no business logic"
+type = "forbidden"
+source_modules = ["codeintel"]
+forbidden_modules = ["numpy", "scipy"]
+
+[[tool.importlinter.contracts]]
+name = "D7: codeintel_mcp depends on corelib and codeintel only"
+type = "forbidden"
+source_modules = ["codeintel_mcp"]
+forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit", "cppdev", "cppdev_mcp"]
 
 [dependency-groups]
 dev = [

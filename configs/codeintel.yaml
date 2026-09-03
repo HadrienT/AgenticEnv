@@ -1,0 +1,17 @@
+# codeintel tuning (WP03). Read via `corelib.config.load_yaml_config("codeintel.yaml", ...)`
+# from codeintel_mcp/tools/registry_matrix.py, then passed into codeintel.registry_matrix()
+# as explicit keyword arguments — the core `codeintel` package never reads YAML itself
+# (06-CONFIG.md: config loading only happens outside the pure business-logic layer).
+
+registry_matrix:
+  # Names of the functions that register a (instrument, model, engine) triplet in
+  # `quant-modeling`'s `PricingRegistry` (10-TARGET-REPO.md §1). `[À CONFIRMER]`: adjust to the
+  # real function name(s) once validated against the target repo.
+  function_names:
+    - registerPricer
+  # Order in which template arguments appear in a registration call, e.g.
+  # `registerPricer<EquityAsianOption, BlackScholes, MonteCarlo>()`.
+  template_param_order:
+    - instrument
+    - model
+    - engine

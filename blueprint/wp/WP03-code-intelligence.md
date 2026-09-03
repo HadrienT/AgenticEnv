@@ -48,9 +48,18 @@ graph LR
     MCP --> OH[OpenHands]
 ```
 
-> `[À CONFIRMER]` Le mode d'interaction avec clangd (protocole LSP en sous-processus,
-> ou `clangd --index-file`) est à valider à l'implémentation. Le contrat des outils
-> ci-dessous ne doit pas en dépendre.
+> **Décision d'implémentation** : `clangd` est lancé comme sous-processus LSP par
+> requête (`ClangdSession`, un `spawn`/`initialize`/`shutdown` par appel d'outil),
+> et non comme service persistant. `clangd` maintient lui-même son index de fond
+> (background index, persistant sur disque entre relances) ; `codeintel` ne le
+> réimplémente pas. Pour `code.registry_matrix`, l'extraction AST utilise
+> `textDocument/ast` (extension clangd) plutôt que `libclang` — ce qui satisfait
+> la règle "jamais par expression régulière sur les sources" du §5 : le nœud AST
+> est visité structurellement, et une regex n'est appliquée qu'aux métadonnées
+> de debug déjà extraites du nœud (`detail`/`arcana`), avec repli sur les enfants
+> `role == "template argument"` si la regex ne matche pas. Ce mécanisme reste
+> heuristique et devra être validé une fois branché sur le vrai `quant-modeling`.
+> Le contrat des outils ci-dessous n'en dépend pas.
 
 ---
 

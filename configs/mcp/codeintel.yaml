@@ -1,0 +1,34 @@
+# MCP server config for codeintel-mcp (WP03). See blueprint/06-CONFIG.md §4 and
+# blueprint/wp/WP03-code-intelligence.md §3 for the per-tool timeout table.
+name: codeintel
+transport: stdio                # stdio | streamable-http
+host: 127.0.0.1
+port: 8204
+default_timeout_s: 30
+max_result_bytes: 262144
+tools_allowlist:
+  - code.find_symbol
+  - code.definition
+  - code.references
+  - code.implementations
+  - code.outline
+  - code.signature
+  - code.callers
+  - code.callees
+  - code.includes
+  - code.grep
+  - code.registry_matrix
+  - code.diff_context
+per_tool_timeout_s:
+  code.find_symbol: 15
+  code.definition: 15
+  code.references: 30
+  code.implementations: 30
+  code.outline: 15
+  code.signature: 10
+  code.callers: 30
+  code.callees: 30
+  code.includes: 15
+  code.grep: 20
+  code.registry_matrix: 30
+  code.diff_context: 30
