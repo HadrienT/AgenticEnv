@@ -1,0 +1,18 @@
+# MCP server config for agentmem-mcp (WP07). Port from blueprint/06-CONFIG.md §3
+# (AGX_MCP_AGENTMEM_PORT=8203).
+name: agentmem
+transport: stdio                # stdio | streamable-http
+host: 127.0.0.1
+port: 8203
+default_timeout_s: 30
+max_result_bytes: 262144
+tools_allowlist:
+  - mem.recall
+  - mem.remember
+  - mem.list_procedures
+  - mem.get_procedure
+per_tool_timeout_s:
+  mem.recall: 15
+  mem.remember: 15
+  mem.list_procedures: 10
+  mem.get_procedure: 10

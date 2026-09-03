@@ -10,6 +10,8 @@ resolution-markers = [
 [manifest]
 members = [
     "agenticenv",
+    "agentmem",
+    "agentmem-mcp",
     "codeintel",
     "codeintel-mcp",
     "corelib",
@@ -43,6 +45,60 @@ dev = [
     { name = "ruff", specifier = ">=0.16.5" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260815" },
 ]
+
+[[package]]
+name = "agentmem"
+version = "0.1.0"
+source = { editable = "packages/agentmem" }
+dependencies = [
+    { name = "corelib" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "corelib", editable = "packages/corelib" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+]
+provides-extras = ["test"]
+
+[[package]]
+name = "agentmem-mcp"
+version = "0.1.0"
+source = { editable = "packages/agentmem-mcp" }
+dependencies = [
+    { name = "agentmem" },
+    { name = "corelib" },
+    { name = "mcp", extra = ["cli"] },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "agentmem", editable = "packages/agentmem" },
+    { name = "corelib", editable = "packages/corelib" },
+    { name = "mcp", extras = ["cli"], specifier = ">=2.0" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
+]
+provides-extras = ["test"]
 
 [[package]]
 name = "annotated-doc"
