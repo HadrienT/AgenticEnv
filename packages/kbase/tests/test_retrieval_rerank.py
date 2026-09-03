@@ -31,6 +31,7 @@ def _retrieved(chunk_id: str, content: str, rank: int) -> RetrievedChunk:
         equation_number=None,
         source_url=None,
         sha256="deadbeef",
+        doc_key="k",
         ingested_at=datetime(2024, 1, 1, tzinfo=UTC),
     )
     return RetrievedChunk(chunk=chunk, citation=citation, scores={"fused": 1.0 / rank}, rank=rank)

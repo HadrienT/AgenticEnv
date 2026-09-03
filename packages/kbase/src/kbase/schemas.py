@@ -98,6 +98,7 @@ class Citation(BaseModel):
     equation_number: str | None
     source_url: str | None
     sha256: str
+    doc_key: str
     ingested_at: datetime
 
 

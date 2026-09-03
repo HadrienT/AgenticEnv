@@ -21,6 +21,7 @@ def build_citation(chunk: Chunk, meta: DocumentMeta, *, source_url: str | None =
         equation_number=chunk.equation.equation_number if chunk.equation else None,
         source_url=source_url if source_url is not None else meta.source_url,
         sha256=chunk.sha256,
+        doc_key=meta.doc_key,
         ingested_at=utc_now(),
     )
 

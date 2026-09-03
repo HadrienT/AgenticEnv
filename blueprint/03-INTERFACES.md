@@ -403,6 +403,7 @@ class Citation(BaseModel):
     section: str | None; page: int | None
     equation_number: str | None
     source_url: str | None; sha256: str
+    doc_key: str                 # added in WP06: needed for kb.search's meta.provenance
     ingested_at: datetime
 
 class RetrievedChunk(BaseModel):
