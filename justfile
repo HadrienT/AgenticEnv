@@ -47,6 +47,8 @@ lint:
     uv run mypy -p corelib
     uv run mypy -p cppdev
     uv run mypy -p cppdev_mcp
+    uv run mypy -p codeintel
+    uv run mypy -p codeintel_mcp
     uv run lint-imports
 
 # Unit + contract tests only (no PostgreSQL required).
