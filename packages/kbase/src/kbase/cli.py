@@ -1,4 +1,4 @@
-"""`kbase` CLI: `ingest`, `reindex`, `stats`, `verify` (WP04 §10)."""
+"""`kbase` CLI: `ingest`, `reindex`, `stats`, `verify`, `search` (WP04 §10, WP05 §10)."""
 
 from __future__ import annotations
 
@@ -18,6 +18,9 @@ from kbase.ingestion.chunking import StructuralChunker
 from kbase.ingestion.parsers.base import Parser
 from kbase.ingestion.parsers.markdown import MarkdownParser
 from kbase.ingestion.pipeline import ingest as run_ingest
+from kbase.retrieval.hybrid import HybridRetriever
+from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
+from kbase.retrieval.rerank import LexicalOverlapReranker
 from kbase.schemas import ChunkPolicy, IngestionRequest
 
 
@@ -100,6 +103,38 @@ def _cmd_verify(_args: argparse.Namespace) -> int:
     return 0 if report.ok else 1
 
 
+def _cmd_search(args: argparse.Namespace) -> int:
+    config = load_kbase_config()
+    embedder = _build_embedder(config.embeddings.dim, config.embeddings.normalize)
+    reranker = LexicalOverlapReranker() if config.retrieval.rerank.enabled else None
+    retriever = HybridRetriever(
+        embedder=embedder,
+        reranker=reranker,
+        candidates_vector=config.retrieval.candidates_vector,
+        candidates_lexical=config.retrieval.candidates_lexical,
+        rrf_k=config.retrieval.rrf_k,
+        fts_config=config.retrieval.fts_config,
+        min_score=config.retrieval.min_score,
+        rerank_top_k=config.retrieval.rerank.top_k,
+        require_page=config.provenance.require_page,
+        require_section=config.provenance.require_section,
+    )
+    query = RetrievalQuery(
+        text=args.query,
+        k=args.k or config.retrieval.default_k,
+        filters=RetrievalFilters(),
+        strategy=args.strategy,
+        rerank=not args.no_rerank,
+    )
+    try:
+        result = retriever.retrieve(query)
+    except AppError as exc:
+        print(f"search failed: {exc.code}: {exc.message}")
+        return 1
+    print(result.model_dump_json(indent=2))
+    return 0
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kbase")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -120,6 +155,15 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
     verify_parser = subparsers.add_parser("verify", help="Check provenance and consistency")
     verify_parser.set_defaults(func=_cmd_verify)
+
+    search_parser = subparsers.add_parser("search", help="Hybrid retrieval over the kbase")
+    search_parser.add_argument("query", help="Free-text query")
+    search_parser.add_argument("--k", type=int, default=None)
+    search_parser.add_argument(
+        "--strategy", choices=["hybrid", "vector", "lexical"], default="hybrid"
+    )
+    search_parser.add_argument("--no-rerank", action="store_true")
+    search_parser.set_defaults(func=_cmd_search)
 
     return parser
 

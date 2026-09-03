@@ -1,8 +1,4 @@
-"""Typed view of `configs/kbase.yaml`, scoped to what WP04 (ingestion) reads.
-
-`retrieval.*` belongs to WP05 and is deliberately not modeled here; `extra="ignore"`
-lets this file validate against the full YAML without WP04 owning WP05's config.
-"""
+"""Typed view of `configs/kbase.yaml` (ingestion + retrieval, WP04 + WP05)."""
 
 from __future__ import annotations
 
@@ -28,6 +24,23 @@ class ChunkingConfig(BaseModel):
     never_split_within: list[str]
 
 
+class RerankConfig(BaseModel):
+    enabled: bool
+    model_name: str
+    top_k: int
+
+
+class RetrievalConfig(BaseModel):
+    default_k: int
+    candidates_vector: int
+    candidates_lexical: int
+    fusion: str
+    rrf_k: int
+    rerank: RerankConfig
+    fts_config: str
+    min_score: float
+
+
 class ProvenanceConfig(BaseModel):
     require_page: bool
     require_section: bool
@@ -43,6 +56,7 @@ class KbaseConfig(BaseModel):
 
     embeddings: EmbeddingsConfig
     chunking: ChunkingConfig
+    retrieval: RetrievalConfig
     provenance: ProvenanceConfig
     ingestion: IngestionConfig
 
