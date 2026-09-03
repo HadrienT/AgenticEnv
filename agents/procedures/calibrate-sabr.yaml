@@ -1,0 +1,32 @@
+name: calibrate-sabr
+version: "1"
+description: >-
+  Calibrate a SABR model on one implied volatility surface slice via the C++
+  pricing engine (driven through qmharness), producing a reproducible calibration
+  run. Illustrative procedure from blueprint/wp/WP07-agentmem.md §3.
+preconditions:
+  - the input surface has at least 3 strikes per expiry
+  - the forward rate is known or derivable from the discount curve
+tags:
+  - calibration
+  - sabr
+  - volatility
+steps:
+  - objective: Validate the input surface is arbitrage-free and has no missing quotes.
+    verification: no arbitrage violation is reported on the raw surface
+  - objective: Compute the forward from the discount/forward curve.
+    verification: the computed forward is strictly positive
+  - objective: Set initial parameter guesses (alpha, beta, rho, nu) within domain bounds.
+    verification: initial guesses satisfy the model's parameter bounds (e.g. |rho| < 1)
+  - objective: Apply parameter bounds before launching the optimizer.
+    verification: the optimizer's search space excludes out-of-bounds guesses
+  - objective: Run the optimizer (a global search, then a local polish).
+    verification: the optimizer reports convergence
+  - objective: Check the calibration residual against the configured tolerance.
+    verification: the RMSE is within the configured warning threshold
+  - objective: Check the calibrated surface is still arbitrage-free.
+    verification: no arbitrage violation is reported on the calibrated surface
+  - objective: Store the calibration with a reproducible run record.
+    verification: the stored run captures model, method, parameters, seed and code commit
+postconditions:
+  - the calibration result and its run record are persisted

@@ -21,7 +21,7 @@ python_version = "3.12"
 strict = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src:packages/kbase-mcp/src"
+mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src:packages/kbase-mcp/src:packages/agentmem/src:packages/agentmem-mcp/src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
@@ -34,7 +34,7 @@ markers = [
 ]
 
 [tool.importlinter]
-root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase", "kbase_mcp"]
+root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase", "kbase_mcp", "agentmem", "agentmem_mcp"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -90,6 +90,18 @@ name = "D9: kbase_mcp depends on corelib and kbase only"
 type = "forbidden"
 source_modules = ["kbase_mcp"]
 forbidden_modules = ["quantlab", "agentmem", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D10: agentmem depends on corelib only"
+type = "forbidden"
+source_modules = ["agentmem"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D11: agentmem_mcp depends on corelib and agentmem only"
+type = "forbidden"
+source_modules = ["agentmem_mcp"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp"]
 
 [dependency-groups]
 dev = [

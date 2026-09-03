@@ -557,20 +557,53 @@ def format_citation(citation: Citation, style: Literal["short", "full"]) -> str:
 
 ## 4. `agentmem` — mémoire
 
+> Implémenté par WP07. Écarts par rapport aux signatures placeholder ci-dessous,
+> même logique que WP05/WP06 : `remember`/`recall` prennent un `embedder` (+ seuil)
+> explicites plutôt que de lire `configs/agentmem.yaml` elles-mêmes (cœur de
+> bibliothèque testable sans config), et `recall` renvoie `EpisodeSummary` — jamais
+> `Episode` complet — pour respecter la règle A6 (jamais la trace complète).
+
 ```python
 # agentmem/schemas.py
+class EpisodeAction(BaseModel):
+    ordinal: int
+    kind: Literal["tool", "llm", "human"]
+    name: str
+    args: dict[str, Any]
+    result_summary: str
+    status: str
+    duration_ms: int
+
+class Artifact(BaseModel):
+    kind: str; path: str; sha256: str
+
 class Episode(BaseModel):
     episode_id: str
-    task_id: str | None
+    task_id: str
     agent_profile: str
     goal: str
-    started_at: datetime; ended_at: datetime | None
+    started_at: datetime; ended_at: datetime
     status: Literal["success", "failure", "partial", "abandoned"]
     summary: str
-    actions: list[ActionRecord]
+    actions: list[EpisodeAction]        # trace complète, jamais renvoyée par recall (A6)
     outcome: dict[str, Any]
     lessons: list[str]
     tags: list[str]
+    branch: str | None
+    last_commit: str | None
+    artifacts: list[Artifact]
+
+class EpisodeSummary(BaseModel):
+    """Ce que `recall` renvoie : tout sauf `actions`, plus `similarity`."""
+    episode_id: str; task_id: str; agent_profile: str; goal: str
+    started_at: datetime; ended_at: datetime
+    status: Literal["success", "failure", "partial", "abandoned"]
+    summary: str; outcome: dict[str, Any]; lessons: list[str]; tags: list[str]
+    branch: str | None; last_commit: str | None
+    similarity: float
+
+class ProcedureStep(BaseModel):
+    objective: str; verification: str
 
 class Procedure(BaseModel):
     name: str; version: str
@@ -581,16 +614,28 @@ class Procedure(BaseModel):
     tags: list[str]
     source_path: str            # chemin Git, source de vérité
 
-# agentmem/episodic.py
-def remember(episode: Episode) -> str: ...
-def recall(query: str, *, k: int, tags: list[str] | None,
-           status: str | None) -> list[Episode]: ...
-def get_episode(episode_id: str) -> Episode: ...
+class ProcedureSummary(BaseModel):
+    name: str; version: str; description: str; tags: list[str]; source_path: str
+
+class SyncReport(BaseModel):
+    synced: int; removed: int; errors: list[str]
+
+# agentmem/embeddings.py
+class Embedder(Protocol):
+    model_name: str; model_version: str; dim: int
+    def embed(self, text: str) -> Sequence[float]: ...
+
+# agentmem/episodic.py — chaque fonction ouvre/ferme sa propre session (corelib.db.session_scope)
+def remember(episode: Episode, *, embedder: Embedder, embed_summary: bool = True) -> str: ...
+def recall(query: str, *, k: int, tags: list[str] | None = None,
+           status: str | None = None, embedder: Embedder,
+           min_similarity: float) -> list[EpisodeSummary]: ...
+def get_episode(episode_id: str) -> Episode: ...   # trace complète — jamais exposé en MCP
 
 # agentmem/procedural.py
-def list_procedures(tags: list[str] | None = ...) -> list[ProcedureSummary]: ...
-def get_procedure(name: str, version: str | None = ...) -> Procedure: ...
-def sync_from_git(root: Path) -> SyncReport: ...
+def list_procedures(tags: list[str] | None = None) -> list[ProcedureSummary]: ...
+def get_procedure(name: str, version: str | None = None) -> Procedure: ...
+def sync_from_git(root: Path, *, source_dir: str = "agents/procedures") -> SyncReport: ...
 ```
 
 **Règle** : `agentmem` ne décide jamais quoi mémoriser. C'est l'agent qui appelle

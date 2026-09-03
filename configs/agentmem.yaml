@@ -1,0 +1,16 @@
+# agentmem config (WP07). See blueprint/06-CONFIG.md §4 and
+# blueprint/wp/WP07-agentmem.md §4/§5.
+embeddings:
+  model_name: hashing-bow
+  model_version: "1"
+  dim: 256                      # DOIT correspondre à mem.episodes.embedding vector(D)
+  normalize: true
+
+episodic:
+  embed_summary: true
+  recall_default_k: 5
+  min_similarity: 0.3
+
+procedural:
+  source_dir: agents/procedures
+  sync_on_start: true
