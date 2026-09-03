@@ -1,0 +1,20 @@
+# MCP server config for kbase-mcp (WP06). See blueprint/06-CONFIG.md §4 and
+# blueprint/wp/WP06-kbase-mcp.md §1 for the per-tool timeout table.
+name: kbase
+transport: stdio                # stdio | streamable-http
+host: 127.0.0.1
+port: 8202
+default_timeout_s: 30
+max_result_bytes: 262144
+tools_allowlist:
+  - kb.search
+  - kb.get_document
+  - kb.get_equation
+  - kb.list_topics
+  - kb.stats
+per_tool_timeout_s:
+  kb.search: 30
+  kb.get_document: 10
+  kb.get_equation: 10
+  kb.list_topics: 5
+  kb.stats: 5

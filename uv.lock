@@ -16,6 +16,7 @@ members = [
     "cppdev",
     "cppdev-mcp",
     "kbase",
+    "kbase-mcp",
 ]
 
 [[package]]
@@ -797,6 +798,34 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
     { name = "pyyaml", specifier = ">=6.0" },
+]
+provides-extras = ["test"]
+
+[[package]]
+name = "kbase-mcp"
+version = "0.1.0"
+source = { editable = "packages/kbase-mcp" }
+dependencies = [
+    { name = "corelib" },
+    { name = "kbase" },
+    { name = "mcp", extra = ["cli"] },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "corelib", editable = "packages/corelib" },
+    { name = "kbase", editable = "packages/kbase" },
+    { name = "mcp", extras = ["cli"], specifier = ">=2.0" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
 ]
 provides-extras = ["test"]
 
