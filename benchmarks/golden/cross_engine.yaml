@@ -1,0 +1,21 @@
+# Example cross-engine cases (WP09 §3.2): the same instrument priced with two engines.
+
+- id: bs_call_atm_1y_analytic_vs_mc
+  family: cross_engine
+  instrument: EquityEuropeanOption
+  model: black_scholes
+  method: analytic
+  engine: analytic
+  inputs:
+    option_type: call
+    spot: 100.0
+    strike: 100.0
+    rate: 0.03
+    dividend: 0.0
+    vol: 0.20
+    maturity_years: 1.0
+  family_params:
+    compare_engine: monte_carlo
+    compare_method: monte_carlo
+    sigma_multiple: 3.0
+  tags: [black_scholes, cross_engine]

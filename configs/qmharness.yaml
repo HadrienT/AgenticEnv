@@ -1,0 +1,25 @@
+# qmharness tuning (WP09). Read via `corelib.config.load_yaml_config("qmharness.yaml", ...)`
+# from qmharness.cli / qmharness_mcp.tools.* only — the core `qmharness` package (runner,
+# compare, checks) never reads YAML itself (06-CONFIG.md: config loading only happens
+# outside the pure business-logic layer).
+
+# Where versioned CaseSpec YAML files live, relative to the target repo root.
+golden_dir: benchmarks/golden
+
+# Where the quant-modeling C++ build directory lives, relative to the target repo root.
+build_dir: build/release
+
+# CMake preset used for the build being harnessed (must match WP02's cppdev presets).
+build_preset: release
+
+tolerances:
+  golden_abs: 1.0e-8
+  cross_engine_rel: 1.0e-3
+  cross_engine_sigma_multiple: 3.0
+  greeks_rel: 1.0e-2
+  # qm.compare: any drift above this is a regression, deterministic cases included.
+  zero_tolerance_abs: 1.0e-10
+
+modes:
+  quick_max_seconds: 60
+  standard_max_seconds: 600

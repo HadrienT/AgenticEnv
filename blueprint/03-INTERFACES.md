@@ -779,6 +779,15 @@ En erreur :
 | `mem.list_procedures` | tags | résumés |
 | `mem.get_procedure` | name, version | procédure complète |
 
+**`qmharness_mcp`** (WP09)
+
+| Outil | Entrée | Sortie | Timeout |
+|---|---|---|---|
+| `qm.run` | root, mode, build_dir, preset, golden_dir, persist | RunReport (verdicts par cas) | 1800 s |
+| `qm.compare` | baseline/candidate report ou run_id | ComparisonReport, refus explicite si builds non comparables | 1800 s |
+| `qm.list_cases` | root, golden_dir | liste des cas par produit et famille | 15 s |
+| `qm.explain_failure` | case_id, report ou run_id | détail complet d'un cas (observed/expected/diff) | 30 s |
+
 ---
 
 ## 7. Contrat de version

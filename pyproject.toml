@@ -21,7 +21,7 @@ python_version = "3.12"
 strict = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src:packages/kbase-mcp/src:packages/agentmem/src:packages/agentmem-mcp/src"
+mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src:packages/kbase-mcp/src:packages/agentmem/src:packages/agentmem-mcp/src:packages/qmharness/src:packages/qmharness-mcp/src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
@@ -34,14 +34,14 @@ markers = [
 ]
 
 [tool.importlinter]
-root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase", "kbase_mcp", "agentmem", "agentmem_mcp"]
+root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase", "kbase_mcp", "agentmem", "agentmem_mcp", "qmharness", "qmharness_mcp"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "D1: corelib depends on no other repo package"
 type = "forbidden"
 source_modules = ["corelib"]
-forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit"]
+forbidden_modules = ["quantlab", "kbase", "agentmem", "evalkit", "qmharness"]
 
 [[tool.importlinter.contracts]]
 name = "D2: cppdev depends on corelib only"
@@ -101,7 +101,19 @@ forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cpp
 name = "D11: agentmem_mcp depends on corelib and agentmem only"
 type = "forbidden"
 source_modules = ["agentmem_mcp"]
-forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "qmharness", "qmharness_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D12: qmharness depends on corelib only"
+type = "forbidden"
+source_modules = ["qmharness"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem", "agentmem_mcp", "qmharness_mcp"]
+
+[[tool.importlinter.contracts]]
+name = "D13: qmharness_mcp depends on corelib and qmharness only"
+type = "forbidden"
+source_modules = ["qmharness_mcp"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem", "agentmem_mcp"]
 
 [dependency-groups]
 dev = [
