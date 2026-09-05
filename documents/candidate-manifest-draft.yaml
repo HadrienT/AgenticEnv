@@ -1,0 +1,103 @@
+# Liste candidate — à valider avant téléchargement/ingestion (pas encore un manifest fonctionnel)
+# Sources arXiv (accès libre, licence arXiv non-exclusive : lecture/usage recherche OK).
+# doc_type/topic/asset_class à ajuster une fois le schéma DocType vérifié.
+
+candidates:
+  # --- Volatilité stochastique : SABR ---
+  - doc_key: sabr-hagan-original-2002-note
+    arxiv_id: "0906.0658"
+    title: "SABR model (survey/derivation note referencing Hagan et al. 2002)"
+    topic: volatility-sabr
+    note: "Article original Hagan 2002 = Wilmott magazine, pas sur arXiv. Ce papier en est un dérivé/complément accessible."
+  - doc_key: sabr-vol-of-vol-expansion
+    arxiv_id: "1812.09904"
+    title: "A volatility-of-volatility expansion of the option prices in the SABR stochastic volatility model"
+    topic: volatility-sabr
+  - doc_key: sabr-libor-market-models
+    arxiv_id: "2408.01470"
+    title: "SABR/LIBOR market models: pricing and calibration for some interest rate derivatives"
+    topic: volatility-sabr
+
+  # --- Volatilité stochastique : Heston ---
+  - doc_key: heston-feller-condition-violated
+    arxiv_id: "1809.10955"
+    title: "Change of Measure in the Heston Model given a violated Feller Condition"
+    topic: volatility-heston
+  - doc_key: heston-analysis
+    arxiv_id: "1502.02963"
+    title: "An Analysis of the Heston Stochastic Volatility Model"
+    topic: volatility-heston
+  - doc_key: heston-fast-calibration
+    arxiv_id: "1511.08718"
+    title: "Full and fast calibration of the Heston stochastic volatility model"
+    topic: volatility-heston
+
+  # --- Volatilité locale (Dupire) ---
+  - doc_key: dupire-local-vol-jumps
+    arxiv_id: "1302.5548"
+    title: "How to make Dupire's local volatility work with jumps"
+    topic: volatility-local
+  - doc_key: volatility-option-pricing-review
+    arxiv_id: "0904.1292"
+    title: "A Review of Volatility and Option Pricing"
+    topic: volatility-survey
+
+  # --- CVA / XVA / risque de contrepartie (Brigo, Pallavicini et al.) ---
+  - doc_key: xva-bilateral-counterparty-risk
+    arxiv_id: "0911.3331"
+    title: "Bilateral counterparty risk valuation for interest-rate products"
+    topic: cva-xva
+  - doc_key: xva-funding-valuation-adjustment
+    arxiv_id: "1112.1521"
+    title: "Funding Valuation Adjustment: a consistent framework including CVA, DVA, collateral, netting, re-hypothecation"
+    topic: cva-xva
+  - doc_key: xva-counterparty-risk-faq
+    arxiv_id: "1111.1331"
+    title: "Counterparty Risk FAQ: Credit VaR, PFE, CVA, DVA, Closeout, Netting, Collateral, WWR, Basel, Funding, CCDS, Margin Lending"
+    topic: cva-xva
+  - doc_key: xva-ccp-central-clearing-faq
+    arxiv_id: "1312.0128"
+    title: "CCPs, Central Clearing, CSA, Credit Collateral and Funding Costs Valuation FAQ"
+    topic: cva-xva
+  - doc_key: xva-unified-csa-initial-margin
+    arxiv_id: "1905.11328"
+    title: "A unified approach to xVA with CSA discounting and initial margin"
+    topic: cva-xva
+  - doc_key: xva-fixed-point-collateral
+    arxiv_id: "1501.06221"
+    title: "Pricing Derivatives with Counterparty Risk and Collateralization: A Fixed Point Approach"
+    topic: cva-xva
+
+  # --- Conventions de marché : SOFR / OIS post-LIBOR ---
+  - doc_key: sofr-interest-rate-modeling
+    arxiv_id: "2112.14033"
+    title: "SOFR and Interest Rate Modeling"
+    topic: market-conventions-sofr
+  - doc_key: sofr-term-structure-futures
+    arxiv_id: "2103.11180"
+    title: "Dynamic Term Structure Models for SOFR Futures"
+    topic: market-conventions-sofr
+  - doc_key: libor-transition-futures-evidence
+    arxiv_id: "2201.06930"
+    title: "Decomposing LIBOR in Transition: Evidence from the Futures Markets"
+    topic: market-conventions-sofr
+
+  # --- Méthodes numériques : Monte Carlo / réduction de variance ---
+  - doc_key: mc-enhanced-derivative-pricing
+    arxiv_id: "2502.17731"
+    title: "Monte Carlo Techniques for Enhanced Derivative Pricing"
+    topic: numerical-monte-carlo
+  - doc_key: mc-stacked-option-pricing
+    arxiv_id: "1903.10795"
+    title: "Stacked Monte Carlo for option pricing"
+    topic: numerical-monte-carlo
+
+  # --- AAD / Grecques (en écho direct au livre de Savine) ---
+  - doc_key: aad-correlation-greeks
+    arxiv_id: "1004.1855"
+    title: "Fast Correlation Greeks by Adjoint Algorithmic Differentiation"
+    topic: numerical-aad
+  - doc_key: aad-adjoints-automatic-diff-finance
+    arxiv_id: "1107.1831"
+    title: "Adjoints and Automatic (Algorithmic) Differentiation in Computational Finance"
+    topic: numerical-aad
