@@ -519,18 +519,26 @@ async def _emit_post_turn(conn: _Connection) -> None:
     await _emit_files_changed(conn)
 
     metrics = session.conversation.conversation_stats.get_combined_metrics()
-    token_usage = metrics.accumulated_token_usage
-    prompt_tokens = token_usage.prompt_tokens if token_usage else 0
-    context_window = token_usage.context_window if token_usage else 0
+    accumulated = metrics.accumulated_token_usage
+    # `context_stats` is the gauge -- "how full is the window right now" -- so it
+    # needs the LAST call's prompt size against the model's real window, NOT the
+    # lifetime sum in `accumulated_token_usage` (that only ever grows and is
+    # meaningless as an occupancy). `usage` keeps the lifetime totals for the
+    # cost / tokens-spent display. llama.cpp reports no window, so use the config.
+    window = session.context_window
+    last_call = metrics.token_usages[-1] if metrics.token_usages else None
+    current_prompt = last_call.prompt_tokens if last_call else 0
+    recent = list(session.conversation.state.events)[-8:]
+    condensed = any(type(e).__name__.startswith("Condensation") for e in recent)
     await conn.send(
-        ContextStats(prompt_tokens=prompt_tokens, context_window=context_window, compacted=False)
+        ContextStats(prompt_tokens=current_prompt, context_window=window, compacted=condensed)
     )
     await conn.send(
         Usage(
             accumulated_cost=metrics.accumulated_cost,
-            prompt_tokens=prompt_tokens,
-            completion_tokens=token_usage.completion_tokens if token_usage else 0,
-            context_window=context_window,
+            prompt_tokens=accumulated.prompt_tokens if accumulated else 0,
+            completion_tokens=accumulated.completion_tokens if accumulated else 0,
+            context_window=window,
         )
     )
 

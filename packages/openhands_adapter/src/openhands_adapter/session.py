@@ -28,6 +28,7 @@ from corelib.config import get_settings
 from corelib.errors import DependencyError
 from corelib.logging import get_logger
 from openhands.sdk import LLM, Agent, Conversation, Event, Tool
+from openhands.sdk.context.condenser import LLMSummarizingCondenser
 from openhands.sdk.conversation.exceptions import ConversationRunError
 from openhands.sdk.conversation.impl.remote_conversation import RemoteConversation
 from openhands.sdk.conversation.response_utils import get_agent_final_response
@@ -92,15 +93,36 @@ def _check_image_present(image: str) -> None:
 def _build_agent(cfg: OpenHandsConfig, mcp_config: dict[str, object] | None) -> tuple[Agent, str]:
     served_model = get_settings().llm.served_model
     model = f"openai/{served_model}"
-    llm = LLM(
-        usage_id="agent",
-        model=model,
-        base_url=cfg.llm.sandbox_base_url,
-        api_key=SecretStr("local-llm"),  # llama-server does not enforce a real key
-        temperature=0.0,
-        timeout=get_settings().llm.request_timeout_s,
+    ctx_size = get_settings().llm.ctx_size
+    timeout_s = get_settings().llm.request_timeout_s
+
+    def _llm(usage_id: str) -> LLM:
+        return LLM(
+            usage_id=usage_id,
+            model=model,
+            base_url=cfg.llm.sandbox_base_url,
+            api_key=SecretStr("local-llm"),  # llama-server does not enforce a real key
+            temperature=0.0,
+            timeout=timeout_s,
+        )
+
+    # Without a condenser OpenHands never trims history: it grows every step
+    # until llama-server rejects the request ("context window exceeded") and the
+    # turn dies. The summarizing condenser folds the oldest events into a summary
+    # once the view approaches the model's window, keeping the working context
+    # bounded. Trigger at ~70% of ctx_size so a turn always has room to finish.
+    condenser = LLMSummarizingCondenser(
+        llm=_llm("condenser"),
+        max_tokens=int(ctx_size * 0.7),
+        max_size=120,
+        keep_first=4,
     )
-    agent = Agent(llm=llm, tools=list(_DEFAULT_TOOLS), mcp_config=mcp_config or {})
+    agent = Agent(
+        llm=_llm("agent"),
+        tools=list(_DEFAULT_TOOLS),
+        mcp_config=mcp_config or {},
+        condenser=condenser,
+    )
     return agent, model
 
 
@@ -205,6 +227,14 @@ class AgentSession:
         uses it to bound how long it waits for a turn to reach a terminal
         status."""
         return self._cfg.run.timeout_s
+
+    @property
+    def context_window(self) -> int:
+        """The served model's real context window (`configs/models.yaml`
+        `ctx_size`). llama.cpp does not report it in its API responses, so the
+        SDK's per-call `context_window` stays 0 -- the bridge uses this instead
+        for the client's context gauge."""
+        return get_settings().llm.ctx_size
 
     @property
     def read_only(self) -> bool:
