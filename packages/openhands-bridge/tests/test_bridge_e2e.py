@@ -30,9 +30,10 @@ async def bridge_url() -> AsyncIterator[str]:
 
 @pytest.fixture
 def project(tmp_path: Path) -> Path:
-    """A minimal git repo to bind-mount as the sandbox project. World-writable so
-    the agent-server (uid 10001) can edit it -- in real use the client surfaces
-    the `setfacl` command instead (PROJECT_READONLY)."""
+    """A minimal git repo to bind-mount READ-ONLY as the sandbox source (WP08d).
+    The agent works on a disposable copy; `apply_changes` is what writes back.
+    World-writable so the `cp -a` copy the agent-server (uid 10001) makes is
+    itself writable."""
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     (tmp_path / "README.md").write_text("# sample\n")
     subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
@@ -54,22 +55,36 @@ async def test_chat_round_trip_over_websocket(bridge_url: str, project: Path) ->
     filter. The "agent actually edits the mounted repo" path is verified
     manually (see WP08c §"Fichiers modifiés")."""
     async with connect(bridge_url) as ws:
+        await ws.send(json.dumps({"type": "hello", "protocol": 2, "client": "e2e/0"}))
+        welcome = json.loads(await ws.recv())
+        assert welcome["type"] == "welcome"
+        assert welcome["protocol"] == 2
+        assert "apply" in welcome["capabilities"]
+
         await ws.send(json.dumps({"type": "start_session", "project_path": str(project)}))
         started = json.loads(await ws.recv())
         assert started["type"] == "session_started"
         assert started["llm_source"] in {"create_payload", "switch_llm"}
+        assert started["mode"] == "agent"
 
         await ws.send(
             json.dumps({"type": "user_message", "text": "Réponds exactement : TEST_FINAL"})
         )
 
         saw_final_text = False
+        saw_turn_started = False
+        turn_finished_reason: str | None = None
         files_changed: list[dict[str, str]] | None = None
         saw_usage = False
+        seqs: list[int] = []
         async with asyncio.timeout(900):
-            while files_changed is None or not saw_usage:
+            while turn_finished_reason is None:
                 message = json.loads(await ws.recv())
-                if message["type"] == "event":
+                if "seq" in message and message["seq"] is not None:
+                    seqs.append(message["seq"])
+                if message["type"] == "turn_started":
+                    saw_turn_started = True
+                elif message["type"] == "event":
                     content = message["event"].get("llm_message", {}).get("content", [])
                     if any("TEST_FINAL" in b.get("text", "") for b in content):
                         saw_final_text = True
@@ -78,9 +93,15 @@ async def test_chat_round_trip_over_websocket(bridge_url: str, project: Path) ->
                 elif message["type"] == "usage":
                     saw_usage = True
                     assert message["accumulated_cost"] >= 0.0
+                elif message["type"] == "turn_finished":
+                    turn_finished_reason = message["reason"]
                 elif message["type"] == "awaiting_confirmation":
                     await ws.send(json.dumps({"type": "confirm_action", "accept": True}))
 
+        assert saw_turn_started
+        assert turn_finished_reason == "completed"
+        assert saw_usage
+        assert seqs == sorted(seqs) and seqs == list(range(seqs[0], seqs[0] + len(seqs)))
         assert saw_final_text
         # A "just answer" turn changes nothing; and crucially the agent-server's
         # own workspace internals never leak into the list.

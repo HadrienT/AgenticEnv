@@ -38,6 +38,7 @@ from pydantic import SecretStr
 
 from openhands_adapter.config import OpenHandsConfig, load_openhands_config
 from openhands_adapter.docker_workspace import AgenticEnvDockerWorkspace
+from openhands_adapter.working_copy import WorkingCopy
 
 logger = get_logger(__name__)
 
@@ -49,11 +50,11 @@ _DEFAULT_TOOLS = (
     Tool(name="task_tracker"),
 )
 
-# When a host project directory is mounted, the agent works here -- a SUBDIR of
-# the container's /workspace, so the agent-server's own persistence
-# (/workspace/conversations/...) stays outside the mount and never shows up as a
-# "changed file" in the user's repo.
-_PROJECT_MOUNT = "/workspace/project"
+# WP08d: the host project is bind-mounted READ-ONLY here; the agent works on a
+# disposable `cp -a` copy at _WORKING_COPY (a subdir of /workspace, so the
+# agent-server's own /workspace/conversations stays out of the copy).
+_PROJECT_SOURCE = "/workspace/source"
+_WORKING_COPY = "/workspace/project"
 
 # Idempotent: `register_default_tools` just re-imports/re-registers on repeat calls.
 _tools_registered = False
@@ -150,16 +151,17 @@ class AgentSession:
         mcp_config: dict[str, object] | None = None,
         callbacks: list[Callable[[Event], None]] | None = None,
         project_path: str | Path | None = None,
+        read_only: bool = False,
     ) -> None:
         self._cfg = oh_config or load_openhands_config()
         self._confirmation_policy = confirmation_policy or NeverConfirm()
         self._mcp_config = mcp_config
         self._callbacks = callbacks or []
-        # Host directory to bind-mount at _PROJECT_MOUNT and run the agent in.
+        # Host directory bind-mounted read-only; the agent works on a copy.
         # None -> the agent works in an empty in-container /workspace.
         self._project_path = Path(project_path).expanduser().resolve() if project_path else None
-        # None until __enter__ has checked; True/False when a project is mounted.
-        self._project_writable: bool | None = None
+        self._read_only = read_only
+        self._working_copy: WorkingCopy | None = None
         self._workspace: AgenticEnvDockerWorkspace | None = None
         self._conversation: RemoteConversation | None = None
         self._llm_source = "create_payload"
@@ -193,12 +195,29 @@ class AgentSession:
         return self._llm_source
 
     @property
-    def project_writable(self) -> bool | None:
-        """Whether the agent-server (uid 10001) can write the bind-mounted project.
-        `None` if no project is mounted or `__enter__` hasn't run. `False` means
-        the host directory needs an ACL/permission grant for uid 10001 --
-        the agent can still read and reason about the code, but not edit it."""
-        return self._project_writable
+    def project_path(self) -> Path | None:
+        """The host directory bound read-only into the sandbox, or None."""
+        return self._project_path
+
+    @property
+    def run_timeout_s(self) -> int:
+        """Per-run wall-clock budget from the OpenHands config -- the bridge
+        uses it to bound how long it waits for a turn to reach a terminal
+        status."""
+        return self._cfg.run.timeout_s
+
+    @property
+    def read_only(self) -> bool:
+        """Ask / Plan mode: the sandbox copy is still writable for the agent to
+        experiment, but `apply_changes` is refused by the bridge."""
+        return self._read_only
+
+    @property
+    def working_copy(self) -> WorkingCopy | None:
+        """The disposable sandbox copy of the project (WP08d), or None when no
+        project is mounted. Raises outside of a `with` block only via
+        `.workspace`."""
+        return self._working_copy
 
     def __enter__(self) -> AgentSession:
         _check_image_present(self._cfg.sandbox.image)
@@ -212,8 +231,8 @@ class AgentSession:
                     f"project_path is not a directory: {self._project_path}",
                     details={"project_path": str(self._project_path)},
                 )
-            working_dir = _PROJECT_MOUNT
-            volumes = [f"{self._project_path}:{_PROJECT_MOUNT}"]
+            working_dir = _WORKING_COPY
+            volumes = [f"{self._project_path}:{_PROJECT_SOURCE}:ro"]
         else:
             working_dir = self._cfg.sandbox.working_dir
             volumes = []
@@ -244,13 +263,9 @@ class AgentSession:
         conversation.set_confirmation_policy(self._confirmation_policy)
 
         if self._project_path is not None:
-            probe = workspace.execute_command(f"test -w {_PROJECT_MOUNT} && echo yes || echo no")
-            self._project_writable = probe.stdout.strip().endswith("yes")
-            if not self._project_writable:
-                logger.warning(
-                    "bind-mounted project is not writable by the sandbox (uid 10001)",
-                    extra={"project_path": str(self._project_path)},
-                )
+            working_copy = WorkingCopy(workspace, _WORKING_COPY)
+            working_copy.initialize()
+            self._working_copy = working_copy
 
         logger.info(
             "agent session started",
@@ -259,6 +274,8 @@ class AgentSession:
                 "llm_source": self._llm_source,
                 "image": self._cfg.sandbox.image,
                 "project_path": str(self._project_path) if self._project_path else None,
+                "working_copy_git": self._working_copy.is_git if self._working_copy else None,
+                "read_only": self._read_only,
             },
         )
         return self
@@ -332,6 +349,7 @@ def run_task(
     confirmation_policy: ConfirmationPolicyBase | None = None,
     mcp_config: dict[str, object] | None = None,
     project_path: str | Path | None = None,
+    read_only: bool = False,
 ) -> AgentResult:
     """Runs a single task end-to-end: open a sandbox, send `message`, tear down."""
     with AgentSession(
@@ -339,6 +357,7 @@ def run_task(
         confirmation_policy=confirmation_policy,
         mcp_config=mcp_config,
         project_path=project_path,
+        read_only=read_only,
     ) as session:
         result = session.send(message, blocking=True)
         assert result is not None  # blocking=True always returns a result
