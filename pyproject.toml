@@ -21,11 +21,14 @@ python_version = "3.12"
 strict = true
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src:packages/kbase-mcp/src:packages/agentmem/src:packages/agentmem-mcp/src:packages/qmharness/src:packages/qmharness-mcp/src"
+mypy_path = "packages/corelib/src:packages/cppdev/src:packages/cppdev-mcp/src:packages/codeintel/src:packages/codeintel-mcp/src:packages/kbase/src:packages/kbase-mcp/src:packages/agentmem/src:packages/agentmem-mcp/src:packages/qmharness/src:packages/qmharness-mcp/src:packages/openhands_adapter/src:packages/openhands-bridge/src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
+# Only openhands-bridge has async tests (its e2e WebSocket round-trip) today;
+# "auto" is a no-op for every sync test elsewhere in the workspace.
+asyncio_mode = "auto"
 markers = [
     "numeric: property-based / reference-value tests",
     "contract: MCP schema and dependency-rule contract tests",
@@ -34,7 +37,7 @@ markers = [
 ]
 
 [tool.importlinter]
-root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase", "kbase_mcp", "agentmem", "agentmem_mcp", "qmharness", "qmharness_mcp"]
+root_packages = ["corelib", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "kbase", "kbase_mcp", "agentmem", "agentmem_mcp", "qmharness", "qmharness_mcp", "openhands_adapter", "openhands_bridge"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -115,11 +118,32 @@ type = "forbidden"
 source_modules = ["qmharness_mcp"]
 forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem", "agentmem_mcp"]
 
+[[tool.importlinter.contracts]]
+name = "D14: openhands_adapter depends on corelib only (openhands.* is its one allowed external exception, WP08b)"
+type = "forbidden"
+source_modules = ["openhands_adapter"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem", "agentmem_mcp", "qmharness", "qmharness_mcp"]
+
+[[tool.importlinter.contracts]]
+# NOTE: "openhands" itself is deliberately NOT in forbidden_modules -- import-linter's
+# "forbidden" contract checks reachability, and openhands_bridge legitimately depends
+# on openhands_adapter, which depends on openhands (D14); that transitive path isn't
+# what this contract polices. What it actually enforces (verified by inspection, no
+# `import openhands` anywhere under packages/openhands-bridge/src) is that
+# openhands_bridge never imports openhands.* DIRECTLY -- only through openhands_adapter's
+# curated re-exports (openhands_adapter/__init__.py) -- and depends on no other domain
+# package.
+name = "D15: openhands_bridge depends on corelib and openhands_adapter only"
+type = "forbidden"
+source_modules = ["openhands_bridge"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem", "agentmem_mcp", "qmharness", "qmharness_mcp"]
+
 [dependency-groups]
 dev = [
     "import-linter>=2.14",
     "mypy>=2.3.1",
     "pytest>=9.1.1",
+    "pytest-asyncio>=0.24",
     "ruff>=0.16.5",
     "types-pyyaml>=6.0.12.20260815",
 ]

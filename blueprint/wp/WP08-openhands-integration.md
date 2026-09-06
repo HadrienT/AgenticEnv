@@ -18,7 +18,9 @@
 > officielle (docs.openhands.dev) et/ou vérifiés empiriquement — voir chaque
 > section. Un écart réel par rapport à l'intention d'origine du blueprint a été
 > découvert et est documenté explicitement en §5/§9 plutôt que masqué : le CLI
-> OpenHands **n'a pas de sandbox Docker en mode headless**.
+> OpenHands **n'a pas de sandbox Docker en mode headless**. Cet écart est traité
+> par [WP08b-openhands-sandbox.md](WP08b-openhands-sandbox.md) (phase 2, SDK +
+> `agent-server` Docker), sans remplacer le chemin CLI headless décrit ici.
 
 ---
 
@@ -149,6 +151,11 @@ appel outil par serveur) : `mem.list_procedures` (agentmem), `code.outline`
 ---
 
 ## 5. Sandbox Docker — écart confirmé par rapport à l'intention d'origine
+
+> **Suite donnée** : voir [WP08b-openhands-sandbox.md](WP08b-openhands-sandbox.md),
+> qui livre cette isolation Docker via le **SDK** OpenHands (chemin de code différent
+> du CLI headless décrit ici) plutôt que par le CLI headless. Ce §5 reste valide tel
+> quel pour le chemin CLI headless décrit dans ce WP.
 
 > **Constat confirmé (pas une hypothèse)** : le CLI OpenHands 1.16.0, en mode
 > `--headless`, **n'a aucune option de sandbox Docker**. `openhands --help` ne liste
