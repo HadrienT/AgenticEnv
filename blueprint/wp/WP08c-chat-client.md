@@ -89,6 +89,9 @@ propriété de la session si un socket d'extension meurt.
   en `uid 10001` : `__enter__` teste `test -w /workspace/project` et expose
   `AgentSession.project_writable` (`False` → le bridge envoie `PROJECT_READONLY`
   avec la commande `setfacl` qui donne l'accès sans changer le propriétaire).
+  > **Remplacé par [WP08d](WP08d-sandbox-working-copy.md)** : le bind-mont
+  > inscriptible et `PROJECT_READONLY` disparaissent au profit d'une copie
+  > sandbox jetable + `apply_changes`. Cette section décrit l'état WP08c.
 - `AgentSession.conversation` / `.workspace` / `.llm_source` — propriétés publiques
   (le bridge lit `workspace.git_changes(".")` et
   `conversation.conversation_stats` directement).

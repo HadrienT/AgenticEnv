@@ -61,6 +61,7 @@ livrables, ses critères d'acceptation. Ils sont ordonnés par dépendance.
 | [WP08](wp/WP08-openhands-integration.md) | Intégration OpenHands, profils d'agents, MCP wiring, Git checkpoints | WP02, WP03, WP06 | — |
 | [WP08b](wp/WP08b-openhands-sandbox.md) | `openhands_adapter` — phase 2 de WP08 : sandbox Docker via le SDK OpenHands | WP08 | WP09 |
 | [WP08c](wp/WP08c-chat-client.md) | `openhands-bridge` + extension VS Code (`agenticenv-chat`) — client de chat interactif | WP08b | — |
+| [WP08d](wp/WP08d-sandbox-working-copy.md) | L'agent développe sur une copie sandbox isolée ; application au repo à la demande (`apply_changes`) | WP08c | — |
 | [WP09](wp/WP09-numerical-harness.md) | `qmharness` — non-régression numérique via les bindings pybind11 existants | WP02 | WP08, WP08b |
 
 > `wp/_archive/` contient trois WP abandonnés (moteur quant Python `quantlab` et son
@@ -89,6 +90,7 @@ graph LR
     WP07 --> WP08
     WP08 --> WP08b[WP08b sandbox Docker]
     WP08b --> WP08c[WP08c chat client]
+    WP08c --> WP08d[WP08d copie sandbox + apply]
 ```
 
 **Chemin critique minimal pour être productif** : WP00 → WP02 → WP03 → WP08.
