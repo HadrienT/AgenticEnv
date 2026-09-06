@@ -20,11 +20,15 @@ Concurrency: the run is triggered non-blocking (`session.send(blocking=False)`
 in a worker thread) and the turn's terminal status is awaited on the event
 loop -- watching the SDK's own `ConversationStateUpdateEvent` callbacks (fired
 from the SDK's internal websocket-listener thread) with a REST poll as a
-fallback. This keeps `cancel_turn` responsive: `conversation.pause()` moves
-the run to `paused`, which the same watcher observes and reports as a
-cancelled turn. A confirmation pause (`waiting_for_confirmation`, from the
-`ConfirmRisky` policy) is *not* terminal -- the turn stays open until the
-client answers with `confirm_action`.
+fallback. This keeps `cancel_turn` responsive: it rejects any pending action
+and calls `conversation.pause()`, moving the run to a terminal/`paused` state
+the same watcher observes and reports as a cancelled turn.
+
+The confirmation policy is `NeverConfirm` (WP08d): the agent works on a
+disposable copy and nothing reaches the real repo without an explicit
+`apply_changes`, so the copy is the safety boundary. `waiting_for_confirmation`
+should not occur; if it ever does, the turn watcher still bounds the wait by
+`run_timeout_s` rather than hanging.
 """
 
 from __future__ import annotations
@@ -45,10 +49,10 @@ from websockets.exceptions import ConnectionClosed
 
 from openhands_adapter import (
     AgentSession,
-    ConfirmRisky,
     ConversationStateUpdateEvent,
     Event,
     GitChange,
+    NeverConfirm,
     load_openhands_config,
 )
 from openhands_bridge import apply as apply_mod
@@ -315,9 +319,13 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
 
 
 async def _start_session(conn: _Connection, request: StartSession) -> bool:
+    # NeverConfirm: under WP08d the agent works on a disposable copy and nothing
+    # reaches the real repo without an explicit `apply_changes`, so the copy is
+    # the safety boundary -- a per-action confirmation pause only wedges the turn
+    # (`ConfirmRisky` also adds a security-analysis LLM call per action).
     session = AgentSession(
         oh_config=load_openhands_config(),
-        confirmation_policy=ConfirmRisky(),
+        confirmation_policy=NeverConfirm(),
         callbacks=[conn.relay.on_event],
         project_path=request.project_path,
         read_only=request.mode == "read_only",
@@ -391,9 +399,11 @@ def _poll_status(session: AgentSession) -> str | None:
 
 async def _await_turn_terminal(conn: _Connection, session: AgentSession) -> str:
     """Wait for the running turn to reach a terminal status. Watches the SDK's
-    status callbacks first, polls REST as a fallback, and keeps waiting through
-    a `waiting_for_confirmation` pause (the user still owes an answer)."""
-    idle_deadline = conn.loop.time() + session.run_timeout_s
+    status callbacks first, polls REST as a fallback. Bounded by
+    `run_timeout_s` -- including a `waiting_for_confirmation` pause: with
+    `NeverConfirm` that never happens, but if a confirmation ever appears with
+    no client answering it, the turn must still end rather than hang forever."""
+    deadline = conn.loop.time() + session.run_timeout_s
     while True:
         try:
             await asyncio.wait_for(conn._turn_terminal.wait(), timeout=5.0)
@@ -402,9 +412,10 @@ async def _await_turn_terminal(conn: _Connection, session: AgentSession) -> str:
             status = _poll_status(session)
             if status in _TERMINAL_TURN_STATUSES:
                 return status or "error"
-            if status == "waiting_for_confirmation":
-                idle_deadline = conn.loop.time() + session.run_timeout_s
-            elif conn.loop.time() > idle_deadline:
+            if conn.loop.time() > deadline:
+                if status == "waiting_for_confirmation":
+                    with contextlib.suppress(Exception):
+                        await asyncio.to_thread(session.conversation.reject_pending_actions)
                 return "timeout"
 
 
@@ -456,8 +467,15 @@ async def _handle_cancel(conn: _Connection, message: CancelTurn) -> None:
     if conn.turn_id != message.turn_id or conn.session is None:
         return
     conn.cancelled = True
+    conversation = conn.session.conversation
+    # `pause()` unwinds a running loop; `reject_pending_actions()` unblocks a
+    # turn parked at `waiting_for_confirmation` (where `pause()` is a no-op).
+    # Do both -- whichever applies produces a terminal/paused status the turn
+    # watcher is waiting on, so "stopping" always resolves.
     with contextlib.suppress(Exception):
-        await asyncio.to_thread(conn.session.conversation.pause)
+        await asyncio.to_thread(conversation.reject_pending_actions)
+    with contextlib.suppress(Exception):
+        await asyncio.to_thread(conversation.pause)
 
 
 async def _handle_confirm_action(conn: _Connection, message: ConfirmAction) -> None:
