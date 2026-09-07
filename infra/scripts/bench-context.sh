@@ -5,6 +5,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 CTX_SIZES=(${AGX_BENCH_CTX_SIZES:-8192 16384 32768 65536})
+# KV cache element types to sweep alongside ctx (WP: "augmenter le contexte").
+#   f16  -> default, 2 bytes/elem
+#   q8_0 -> ~1 byte/elem, needs --flash-attn on (it is), quality ~transparent
+#   q4_0 -> ~0.56 byte/elem, more lossy
+# Each entry is "<label>:<extra llama-server args>" ; label goes in the report.
+KV_TYPES=(${AGX_BENCH_KV_TYPES:-f16 q8_0})
 LLAMA_SERVICE="${AGX_LLAMA_SERVICE:-llama-server}"
 LLAMA_BENCH_HOST="${AGX_BENCH_HOST:-127.0.0.1}"
 LLAMA_BENCH_PORT="${AGX_BENCH_PORT:-8100}"
@@ -22,11 +28,22 @@ PROMPT="${AGX_BENCH_PROMPT:-Write a one-sentence description of a binomial optio
 
 mkdir -p "$(dirname "$OUT_FILE")" 2>/dev/null || true
 
+kv_extra_for() {
+  case "$1" in
+    f16) printf '' ;;
+    q8_0) printf -- '--cache-type-k q8_0 --cache-type-v q8_0' ;;
+    q4_0) printf -- '--cache-type-k q4_0 --cache-type-v q4_0' ;;
+    *) printf -- '%s' "$1" ;;  # allow a raw arg string
+  esac
+}
+
 {
   echo "# Context size benchmark — $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "| ctx_size | startup_s | vram_gpu0_mib | vram_gpu1_mib | ram_used_mib | prompt_tok_s | gen_tok_s |"
-  echo "|---|---|---|---|---|---|---|"
+  echo "ctx sizes: ${CTX_SIZES[*]}  ·  KV types: ${KV_TYPES[*]}"
+  echo
+  echo "| ctx_size | kv | startup_s | vram_gpu0_mib | vram_gpu1_mib | ram_used_mib | prompt_tok_s | gen_tok_s |"
+  echo "|---|---|---|---|---|---|---|---|"
 } > "$OUT_FILE"
 
 cleanup() {
@@ -67,21 +84,24 @@ wait_ready() {
   return 1
 }
 
-for ctx in "${CTX_SIZES[@]}"; do
-  echo "=== ctx_size=$ctx ===" >&2
+for kv in "${KV_TYPES[@]}"; do
+ kv_extra="$(kv_extra_for "$kv")"
+ for ctx in "${CTX_SIZES[@]}"; do
+  echo "=== ctx_size=$ctx kv=$kv ===" >&2
 
   scratch_env="$(mktemp)"
 
   sed \
     -e "s/^LLAMA_CTX_SIZE=.*/LLAMA_CTX_SIZE=${ctx}/" \
     -e "s/^LLAMA_PORT=.*/LLAMA_PORT=${LLAMA_BENCH_PORT}/" \
+    -e "s|^LLAMA_EXTRA_ARGS=.*|LLAMA_EXTRA_ARGS=${kv_extra}|" \
     "$AGX_LLAMA_ENV_FILE" > "$scratch_env"
 
   start_ts=$SECONDS
 
   AGX_LLAMA_ENV_FILE="$scratch_env" \
     "$SCRIPT_DIR/run-llama-server.sh" \
-    >"/tmp/llama-bench-${ctx}.log" 2>&1 &
+    >"/tmp/llama-bench-${ctx}-${kv}.log" 2>&1 &
 
   server_pid=$!
 
@@ -149,11 +169,12 @@ for ctx in "${CTX_SIZES[@]}"; do
       )"
     fi
 
-    echo "| $ctx | $startup_s | ${vram0:-n/a} | ${vram1:-n/a} | ${ram_used_mib:-n/a} | $prompt_tok_s | $gen_tok_s |" \
+    echo "| $ctx | $kv | $startup_s | ${vram0:-n/a} | ${vram1:-n/a} | ${ram_used_mib:-n/a} | $prompt_tok_s | $gen_tok_s |" \
       >> "$OUT_FILE"
 
   else
-    echo "| $ctx | timeout | - | - | - | - | - |" >> "$OUT_FILE"
+    # Almost always an OOM at this ctx/kv combo -- the log has the CUDA error.
+    echo "| $ctx | $kv | timeout/oom | - | - | - | - | - |" >> "$OUT_FILE"
   fi
 
   kill "$server_pid" 2>/dev/null || true
@@ -162,6 +183,7 @@ for ctx in "${CTX_SIZES[@]}"; do
   rm -f "$scratch_env"
 
   sleep 3
+ done
 done
 
 echo "written: $OUT_FILE"
