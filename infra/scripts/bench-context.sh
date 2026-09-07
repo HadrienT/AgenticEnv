@@ -94,7 +94,7 @@ for kv in "${KV_TYPES[@]}"; do
   sed \
     -e "s/^LLAMA_CTX_SIZE=.*/LLAMA_CTX_SIZE=${ctx}/" \
     -e "s/^LLAMA_PORT=.*/LLAMA_PORT=${LLAMA_BENCH_PORT}/" \
-    -e "s|^LLAMA_EXTRA_ARGS=.*|LLAMA_EXTRA_ARGS=${kv_extra}|" \
+    -e "s|^LLAMA_EXTRA_ARGS=.*|LLAMA_EXTRA_ARGS='${kv_extra}'|" \
     "$AGX_LLAMA_ENV_FILE" > "$scratch_env"
 
   start_ts=$SECONDS
