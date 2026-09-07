@@ -48,3 +48,24 @@ authentifié (compte `HadrienT`).
   rayon d'impact. Cf. issue #8.
 - Commits : passer par une branche, pas directement sur `main`. Terminer les
   messages de commit par `Co-Authored-By: Claude <noreply@anthropic.com>`.
+
+## Sandbox OpenHands (l'agent qui tourne dans le conteneur)
+
+Image `ghcr.io/openhands/agent-server:1.21.0-python` (Debian 13), **neuve à chaque
+session, jetée à la fin**. Fournie : Python 3.13 + `uv`/pip/poetry, Node 20 + npm,
+`gcc`/`g++`/`make`, git, `curl`/`wget`/`jq`, tmux, **`sudo` sans mot de passe**,
+Internet sortant. Pas de : `cmake`, `rg`/`fd`, `vim`, rust/go/java, ni **CUDA**.
+
+L'agent installe ce qui manque lui-même (ça disparaît en fin de session) :
+
+- **nvcc / CUDA** : le composant `contrib non-free` n'est pas activé par défaut.
+  ```sh
+  sudo sed -i 's/Components: main/Components: main contrib non-free/' \
+    /etc/apt/sources.list.d/debian.sources
+  sudo apt-get update && sudo apt-get install -y --no-install-recommends nvidia-cuda-toolkit
+  ```
+  ⚠️ ~2 Go, retéléchargé à chaque session. nvcc **compile** sans GPU ; exécuter du
+  code CUDA exige `enable_gpu: true` dans `configs/openhands.yaml` (contention VRAM
+  avec `llama-server`).
+- **Web** : pas d'outil de navigation (`enable_browser=False`) ; passer par
+  `curl`/`wget`/`pip` dans le terminal.
