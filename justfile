@@ -85,3 +85,8 @@ test-e2e:
 run-bridge:
     uv run openhands-bridge
 
+# Stop every leftover agent-server-* sandbox container (one at a time). The bridge
+# also does this on startup / around each session; this is the manual escape hatch.
+reap-sandboxes:
+    uv run python -c "from openhands_adapter import reap_orphan_sandboxes as r; print('stopped:', r() or 'nothing')"
+

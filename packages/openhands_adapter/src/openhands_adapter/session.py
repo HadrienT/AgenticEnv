@@ -18,6 +18,7 @@ Flow, matching the SDK's own behaviour (not re-implemented REST calls):
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -235,6 +236,13 @@ class AgentSession:
         return self._cfg.run.timeout_s
 
     @property
+    def container_name(self) -> str | None:
+        """The sandbox container's `agent-server-<uuid>` name, or None outside a
+        `with` block -- the bridge passes it to `reap_orphan_sandboxes` so a
+        sweep never stops the live sandbox."""
+        return self._workspace.container_name if self._workspace is not None else None
+
+    @property
     def context_window(self) -> int:
         """The served model's real context window (`configs/models.yaml`
         `ctx_size`). llama.cpp does not report it in its API responses, so the
@@ -367,15 +375,27 @@ class AgentSession:
         tb: TracebackType | None,
     ) -> None:
         if self._conversation is not None:
-            try:
-                self._conversation.close()
-            except Exception:  # noqa: BLE001 - cleanup must not mask the real error
-                logger.warning("failed to close conversation cleanly", exc_info=True)
+            # `conversation.close()` does a network round-trip to the
+            # agent-server and has been seen to hang -- which used to skip the
+            # container teardown below and leak the sandbox. Bound it, then move
+            # on: `workspace.cleanup()` (the `docker stop`) must always run.
+            closer = threading.Thread(target=self._close_conversation_quietly, daemon=True)
+            closer.start()
+            closer.join(timeout=15.0)
+            if closer.is_alive():
+                logger.warning("conversation.close() did not return in 15s; continuing teardown")
         if self._workspace is not None:
             try:
                 self._workspace.cleanup()
             except Exception:  # noqa: BLE001 - cleanup must not mask the real error
                 logger.warning("failed to clean up sandbox workspace", exc_info=True)
+
+    def _close_conversation_quietly(self) -> None:
+        try:
+            if self._conversation is not None:
+                self._conversation.close()
+        except Exception:  # noqa: BLE001 - cleanup must not mask the real error
+            logger.warning("failed to close conversation cleanly", exc_info=True)
 
 
 def run_task(

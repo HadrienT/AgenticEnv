@@ -15,6 +15,32 @@ from typing import Any
 from openhands.sdk.utils.command import execute_command
 from openhands.workspace import DockerWorkspace
 
+_SANDBOX_NAME_PREFIX = "agent-server-"
+
+
+def reap_orphan_sandboxes(keep_names: set[str] | None = None) -> list[str]:
+    """`docker stop` every running `agent-server-*` container whose name is not
+    in `keep_names`. Since they run with `--rm`, stopping removes them.
+
+    One container at a time, short timeout each, best-effort (a failure on one
+    does not abort the sweep). Deliberately NOT `docker rm -f $(docker ps -q …)`
+    in bulk: on this dev host a veth teardown on the default bridge has frozen
+    the whole box and taken the LAN down (see issue #8).
+    """
+    keep = keep_names or set()
+    listed = execute_command(
+        ["docker", "ps", "--filter", f"name={_SANDBOX_NAME_PREFIX}", "--format", "{{.Names}}"]
+    )
+    if listed.returncode != 0:
+        return []
+    stopped: list[str] = []
+    for name in listed.stdout.split():
+        if name in keep:
+            continue
+        if execute_command(["docker", "stop", "-t", "10", name]).returncode == 0:
+            stopped.append(name)
+    return stopped
+
 
 class AgenticEnvDockerWorkspace(DockerWorkspace):
     """`DockerWorkspace` with access to the host through `host.docker.internal`.
@@ -26,6 +52,13 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
     `configs/openhands.yaml` (`sandbox.image`), pinned to the agent-server tag
     validated against the locally installed `openhands-sdk` version.
     """
+
+    @property
+    def container_name(self) -> str | None:
+        """The `agent-server-<uuid>` name of this sandbox's container, or None
+        before `_start_container` has run. Used by `reap_orphan_sandboxes` to
+        spare the live container."""
+        return getattr(self, "_container_name", None)
 
     def _start_container(self, image: str, context: Any) -> None:
         self._image_name = image
@@ -92,7 +125,8 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
         if self.enable_gpu:
             flags += ["--gpus", "all"]
 
-        container_name = f"agent-server-{uuid.uuid4()}"
+        container_name = f"{_SANDBOX_NAME_PREFIX}{uuid.uuid4()}"
+        object.__setattr__(self, "_container_name", container_name)
 
         run_cmd = [
             "docker",

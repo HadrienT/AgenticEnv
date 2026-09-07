@@ -54,6 +54,7 @@ from openhands_adapter import (
     GitChange,
     NeverConfirm,
     load_openhands_config,
+    reap_orphan_sandboxes,
 )
 from openhands_bridge import apply as apply_mod
 from openhands_bridge.mcp_catalog import list_mcp_servers
@@ -246,6 +247,14 @@ async def _handle_connection(ws: ServerConnection) -> None:
         async with _session_guard:
             if _session_owner is conn:
                 _session_owner = None
+            no_active_session = _session_owner is None
+        if no_active_session:
+            # The session's own teardown normally removes its container (--rm);
+            # sweep here too in case __exit__ failed, and pick up anything a
+            # previous bridge process leaked. One container at a time (issue #8).
+            reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
+            if reaped:
+                logger.info("reaped orphan sandbox containers", extra={"containers": reaped})
 
 
 async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
@@ -319,6 +328,13 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
 
 
 async def _start_session(conn: _Connection, request: StartSession) -> bool:
+    # We hold the session guard and there is no active session, so any existing
+    # agent-server-* container is an orphan -- clear it before spinning up a new
+    # one so leaked sandboxes never pile up on a low-storage host.
+    reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
+    if reaped:
+        logger.info("reaped orphan sandbox containers before start", extra={"containers": reaped})
+
     # NeverConfirm: under WP08d the agent works on a disposable copy and nothing
     # reaches the real repo without an explicit `apply_changes`, so the copy is
     # the safety boundary -- a per-action confirmation pause only wedges the turn
@@ -669,6 +685,11 @@ async def _handle_apply_changes(conn: _Connection, message: ApplyChanges) -> Non
 async def _run_server() -> None:
     host = os.environ.get("AGX_OPENHANDS_BRIDGE_HOST", _DEFAULT_HOST)
     port = int(os.environ.get("AGX_OPENHANDS_BRIDGE_PORT", _DEFAULT_PORT))
+    # A fresh bridge owns no session, so every agent-server-* container is a
+    # leftover from a previous run -- stop them before accepting connections.
+    reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
+    if reaped:
+        logger.info("reaped orphan sandbox containers at startup", extra={"containers": reaped})
     logger.info("openhands-bridge listening", extra={"host": host, "port": port})
     # Short keepalive: when the VS Code extension host restarts, its socket may
     # linger half-open -- a tight ping keeps a stale connection (and, with it,

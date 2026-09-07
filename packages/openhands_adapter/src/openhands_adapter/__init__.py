@@ -22,7 +22,7 @@ from openhands.sdk.security.confirmation_policy import (
 )
 
 from openhands_adapter.config import OpenHandsConfig, load_openhands_config
-from openhands_adapter.docker_workspace import AgenticEnvDockerWorkspace
+from openhands_adapter.docker_workspace import AgenticEnvDockerWorkspace, reap_orphan_sandboxes
 from openhands_adapter.session import AgentResult, AgentSession, run_task
 from openhands_adapter.working_copy import Checkpoint, WorkingCopy
 
@@ -42,5 +42,6 @@ __all__ = [
     "OpenHandsConfig",
     "WorkingCopy",
     "load_openhands_config",
+    "reap_orphan_sandboxes",
     "run_task",
 ]

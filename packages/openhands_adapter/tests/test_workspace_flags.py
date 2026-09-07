@@ -74,3 +74,27 @@ def test_start_container_raises_when_docker_unavailable(monkeypatch: pytest.Monk
 
     with pytest.raises(RuntimeError, match="Docker is not available"):
         AgenticEnvDockerWorkspace(server_image=_IMAGE, host_port=39003, detach_logs=False)
+
+
+def test_reap_orphan_sandboxes_stops_each_but_the_kept_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    from openhands_adapter.docker_workspace import reap_orphan_sandboxes
+
+    calls: list[list[str]] = []
+
+    def fake_execute_command(
+        cmd: list[str], *args: Any, **kwargs: Any
+    ) -> subprocess.CompletedProcess[str]:
+        calls.append(cmd)
+        if cmd[:2] == ["docker", "ps"]:
+            names = "agent-server-live\nagent-server-dead-1\nagent-server-dead-2\n"
+            return subprocess.CompletedProcess(cmd, 0, stdout=names, stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr("openhands_adapter.docker_workspace.execute_command", fake_execute_command)
+
+    stopped = reap_orphan_sandboxes(keep_names={"agent-server-live"})
+
+    assert stopped == ["agent-server-dead-1", "agent-server-dead-2"]
+    stop_targets = [c[-1] for c in calls if c[:3] == ["docker", "stop", "-t"]]
+    assert stop_targets == ["agent-server-dead-1", "agent-server-dead-2"]
+    assert "agent-server-live" not in stop_targets
