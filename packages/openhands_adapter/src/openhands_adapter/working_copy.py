@@ -120,6 +120,35 @@ class WorkingCopy:
             return []
         return [line.strip() for line in out.splitlines() if line.strip()]
 
+    _STATUS_MAP = {
+        "A": "ADDED",
+        "M": "UPDATED",
+        "D": "DELETED",
+        "R": "MOVED",
+        "C": "ADDED",
+        "T": "UPDATED",
+    }
+
+    def changed_files(self) -> list[tuple[str, str]]:
+        """`(status, relpath)` for every file that differs from the **session
+        baseline** -- i.e. what the agent actually changed. Files that were
+        already untracked or ignored in `/workspace/source` at session start are
+        in the baseline tree, so they never show up here (unlike a plain
+        `git status`, which compares against the source repo's HEAD)."""
+        if not self._is_git:
+            return []
+        code, out = self._git(f"add -A -N && git diff --name-status -M {_BASELINE_REF}")
+        if code != 0:
+            return []
+        changes: list[tuple[str, str]] = []
+        for line in out.splitlines():
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+            status = self._STATUS_MAP.get(parts[0][:1], "UPDATED")
+            changes.append((status, parts[-1].strip()))
+        return changes
+
     def file_diff(self, path: str) -> str:
         if not self._is_git:
             raise DependencyError("this working copy is not a git repository; no diff available")

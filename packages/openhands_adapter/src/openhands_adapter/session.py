@@ -94,7 +94,13 @@ def _build_agent(cfg: OpenHandsConfig, mcp_config: dict[str, object] | None) -> 
     served_model = get_settings().llm.served_model
     model = f"openai/{served_model}"
     ctx_size = get_settings().llm.ctx_size
-    timeout_s = get_settings().llm.request_timeout_s
+    # corelib's default per-call timeout (120 s) is fine for a hosted API but far
+    # too short for a local 30B: after a couple of file reads the prompt is tens
+    # of thousands of tokens, and prompt-eval + generating a full answer on the
+    # V100s routinely runs past two minutes (and llama-server serialises, so a
+    # queued request burns the budget too). Floor it at 10 min -- a stalled call
+    # is still caught by the run-level `timeout_s`.
+    llm_timeout_s = max(get_settings().llm.request_timeout_s, 600)
 
     def _llm(usage_id: str) -> LLM:
         return LLM(
@@ -103,7 +109,7 @@ def _build_agent(cfg: OpenHandsConfig, mcp_config: dict[str, object] | None) -> 
             base_url=cfg.llm.sandbox_base_url,
             api_key=SecretStr("local-llm"),  # llama-server does not enforce a real key
             temperature=0.0,
-            timeout=timeout_s,
+            timeout=llm_timeout_s,
         )
 
     # Without a condenser OpenHands never trims history: it grows every step

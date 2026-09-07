@@ -123,6 +123,42 @@ def test_restore_rolls_the_tree_back_to_baseline(repo: Path) -> None:
     assert (repo / "app.py").read_text() == "print('v2')\n"
 
 
+def test_changed_files_reports_agent_edits_by_status(repo: Path) -> None:
+    wc = _wc(repo)
+    (repo / "app.py").write_text("print('v2')\n")  # UPDATED
+    (repo / "new.py").write_text("x = 1\n")  # ADDED
+
+    changes = {p: s for s, p in wc.changed_files()}
+    assert changes == {"app.py": "UPDATED", "new.py": "ADDED"}
+
+
+def test_changed_files_ignores_files_untracked_in_source(tmp_path: Path) -> None:
+    """A `*.bak` / `.claude/…` that was already sitting untracked in the source
+    at session start is folded into the baseline -- it must NOT show up as an
+    agent change (this is the bug where the client flagged `.claude/settings…`)."""
+    root = tmp_path / "project"
+    root.mkdir()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True)
+    (root / "app.py").write_text("v1\n")
+    subprocess.run(["git", "add", "app.py"], cwd=root, check=True)
+    subprocess.run(
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+        cwd=root,
+        check=True,
+    )
+    # present but never committed, exactly like the real repo's state
+    (root / "notes.bak").write_text("scratch\n")
+    (root / ".claude").mkdir()
+    (root / ".claude" / "settings.local.json").write_text("{}\n")
+
+    wc = WorkingCopy(_FakeWorkspace(root), str(root))  # type: ignore[arg-type]
+    wc.initialize()
+    assert wc.changed_files() == []
+
+    (root / "app.py").write_text("v2\n")
+    assert wc.changed_files() == [("UPDATED", "app.py")]
+
+
 def test_read_file_returns_content_then_none(repo: Path) -> None:
     wc = _wc(repo)
     (repo / "app.py").write_text("print('v2')\n")

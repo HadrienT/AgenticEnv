@@ -493,22 +493,42 @@ async def _handle_confirm_action(conn: _Connection, message: ConfirmAction) -> N
         await asyncio.to_thread(session.conversation.reject_pending_actions)
 
 
+def _keep_change(path: str) -> bool:
+    return not path.startswith(_INTERNAL_PREFIXES) and path not in _INTERNAL_NAMES
+
+
+def _cap(changes: list[GitChangeDTO]) -> list[GitChangeDTO]:
+    return [] if len(changes) > _MAX_REPORTED_CHANGES else changes
+
+
 def _map_changes(raw_changes: list[GitChange]) -> list[GitChangeDTO]:
-    changes = [
-        GitChangeDTO(status=c.status.value, path=str(c.path))
-        for c in raw_changes
-        if not str(c.path).startswith(_INTERNAL_PREFIXES) and str(c.path) not in _INTERNAL_NAMES
-    ]
-    if len(changes) > _MAX_REPORTED_CHANGES:
-        return []
-    return changes
+    return _cap(
+        [
+            GitChangeDTO(status=c.status.value, path=str(c.path))
+            for c in raw_changes
+            if _keep_change(str(c.path))
+        ]
+    )
+
+
+async def _current_changes(session: AgentSession) -> list[GitChangeDTO]:
+    """The agent's real changes to the project. Prefers the WP08d working
+    copy's diff against the **session baseline** -- `workspace.git_changes`
+    compares against the source repo's HEAD instead, so it also lists files
+    that were merely untracked or ignored in /workspace/source at session start
+    (`.claude/…`, stray `*.bak`, …) as if the agent had added them."""
+    working_copy = session.working_copy
+    if working_copy is not None and working_copy.is_git:
+        pairs = await asyncio.to_thread(working_copy.changed_files)
+        return _cap([GitChangeDTO(status=s, path=p) for s, p in pairs if _keep_change(p)])
+    raw = await asyncio.to_thread(session.workspace.git_changes, ".")
+    return _map_changes(list(raw))
 
 
 async def _emit_files_changed(conn: _Connection) -> list[GitChangeDTO]:
     session = conn.session
     assert session is not None
-    raw = await asyncio.to_thread(session.workspace.git_changes, ".")
-    changes = _map_changes(list(raw))
+    changes = await _current_changes(session)
     await conn.send(FilesChanged(changes=changes))
     return changes
 
@@ -624,8 +644,7 @@ async def _handle_apply_changes(conn: _Connection, message: ApplyChanges) -> Non
         await conn.send(_no_working_copy())
         return
 
-    raw_changes = await asyncio.to_thread(session.workspace.git_changes, ".")
-    changes = _map_changes(list(raw_changes))
+    changes = await _current_changes(session)
     only_paths = set(message.paths) if message.paths is not None else None
 
     result, new_hashes = await asyncio.to_thread(
