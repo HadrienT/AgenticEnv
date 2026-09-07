@@ -5,11 +5,20 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 CTX_SIZES=(${AGX_BENCH_CTX_SIZES:-8192 16384 32768 65536})
-# KV cache element types to sweep alongside ctx (WP: "augmenter le contexte").
-#   f16  -> default, 2 bytes/elem
-#   q8_0 -> ~1 byte/elem, needs --flash-attn on (it is), quality ~transparent
-#   q4_0 -> ~0.56 byte/elem, more lossy
-# Each entry is "<label>:<extra llama-server args>" ; label goes in the report.
+# Variants to sweep alongside ctx (WP: "augmenter le contexte"). Each entry is
+# either a known shorthand or "<label>:<extra llama-server args>" (the label
+# goes in the report, the args are injected as LLAMA_EXTRA_ARGS). Known:
+#   f16    -> default fp16 KV cache (2 bytes/elem)
+#   q8_0   -> quantised KV (~1 byte/elem), needs --flash-attn (on); ~transparent
+#   q4_0   -> quantised KV (~0.56 byte/elem), more lossy
+#   nkvo   -> --no-kv-offload : KV cache in system RAM, weights stay on GPU.
+#            Frees all KV VRAM but attention streams KV over PCIe every token,
+#            so decode slows down *the more context is filled* -- watch gen_tok_s.
+#   cmoe   -> --cpu-moe : all MoE expert weights in RAM (~14 GiB freed for this
+#            model). 8/128 experts run on CPU per token; flat slowdown that does
+#            NOT grow with context. Best lever for a big KV on the GPU.
+#   ncmoeN -> --n-cpu-moe N : experts of the first N (of 48) layers in RAM.
+#            e.g. AGX_BENCH_KV_TYPES="f16 ncmoe16:--n-cpu-moe 16 cmoe"
 KV_TYPES=(${AGX_BENCH_KV_TYPES:-f16 q8_0})
 LLAMA_SERVICE="${AGX_LLAMA_SERVICE:-llama-server}"
 LLAMA_BENCH_HOST="${AGX_BENCH_HOST:-127.0.0.1}"
@@ -28,12 +37,18 @@ PROMPT="${AGX_BENCH_PROMPT:-Write a one-sentence description of a binomial optio
 
 mkdir -p "$(dirname "$OUT_FILE")" 2>/dev/null || true
 
+# Entries must be space-free. A "<label>:<a,b,c>" entry injects "a b c".
+kv_label_for() { case "$1" in *:*) printf '%s' "${1%%:*}" ;; *) printf '%s' "$1" ;; esac; }
 kv_extra_for() {
   case "$1" in
     f16) printf '' ;;
     q8_0) printf -- '--cache-type-k q8_0 --cache-type-v q8_0' ;;
     q4_0) printf -- '--cache-type-k q4_0 --cache-type-v q4_0' ;;
-    *) printf -- '%s' "$1" ;;  # allow a raw arg string
+    nkvo) printf -- '--no-kv-offload' ;;
+    cmoe) printf -- '--cpu-moe' ;;
+    ncmoe*) printf -- '--n-cpu-moe %s' "${1#ncmoe}" ;;
+    *:*) printf -- '%s' "${1#*:}" | tr ',' ' ' ;;
+    *) printf -- '%s' "$1" ;;
   esac
 }
 
@@ -84,8 +99,9 @@ wait_ready() {
   return 1
 }
 
-for kv in "${KV_TYPES[@]}"; do
- kv_extra="$(kv_extra_for "$kv")"
+for kv_spec in "${KV_TYPES[@]}"; do
+ kv_extra="$(kv_extra_for "$kv_spec")"
+ kv="$(kv_label_for "$kv_spec")"
  for ctx in "${CTX_SIZES[@]}"; do
   echo "=== ctx_size=$ctx kv=$kv ===" >&2
 
