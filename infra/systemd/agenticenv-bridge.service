@@ -1,0 +1,33 @@
+# systemd **user** unit for the openhands-bridge (WP08f).
+#
+# The bridge must run as the interactive user (uid 1000): WP08d has it write
+# files back into the user's repos with the right ownership, and it needs the
+# user's docker socket access, `gh` auth and ~/AgenticEnv checkout -- so this is
+# a `systemctl --user` unit, never a system one.
+#
+# Install:  infra/scripts/install-desktop-stack.sh   (or `just install-stack`)
+# Then:     systemctl --user start agenticenv-bridge
+#
+# `loginctl enable-linger <user>` (the installer does this) keeps it alive
+# across SSH / VS Code disconnects.
+
+[Unit]
+Description=AgenticEnv openhands-bridge (WebSocket bridge for the chat client)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/AgenticEnv
+ExecStart=%h/.local/bin/uv run --frozen openhands-bridge
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=AGX_OPENHANDS_BRIDGE_HOST=127.0.0.1
+Environment=AGX_OPENHANDS_BRIDGE_PORT=8300
+Restart=on-failure
+RestartSec=3
+# The bridge reaps orphaned agent-server-* containers on shutdown paths; give it
+# a moment to stop the live sandbox cleanly before SIGKILL.
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

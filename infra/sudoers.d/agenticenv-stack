@@ -1,0 +1,27 @@
+# Let the interactive user drive exactly the three privileged units the chat
+# client's "Components" panel manages, with no password prompt -- so the
+# extension can bring the stack up silently (`sudo -n systemctl …`) instead of
+# spawning a terminal. WP08f.
+#
+# Installed to /etc/sudoers.d/agenticenv-stack (mode 0440) by
+# infra/scripts/install-desktop-stack.sh. Edit the user name below if it is not
+# `hadriensuper`.
+#
+# Scope is deliberately narrow: only start/stop/restart/is-active, only these
+# units. No shell, no wildcards.
+
+Cmnd_Alias AGENTICENV_STACK = \
+    /usr/bin/systemctl start llama-server.service, \
+    /usr/bin/systemctl stop llama-server.service, \
+    /usr/bin/systemctl restart llama-server.service, \
+    /usr/bin/systemctl is-active llama-server.service, \
+    /usr/bin/systemctl start llama-bridge.socket, \
+    /usr/bin/systemctl stop llama-bridge.socket, \
+    /usr/bin/systemctl start llama-bridge.service, \
+    /usr/bin/systemctl stop llama-bridge.service, \
+    /usr/bin/systemctl restart llama-bridge.service, \
+    /usr/bin/systemctl is-active llama-bridge.service, \
+    /usr/bin/systemctl start docker.service, \
+    /usr/bin/systemctl is-active docker.service
+
+hadriensuper ALL=(root) NOPASSWD: AGENTICENV_STACK

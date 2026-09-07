@@ -90,3 +90,9 @@ run-bridge:
 reap-sandboxes:
     uv run python -c "from openhands_adapter import reap_orphan_sandboxes as r; print('stopped:', r() or 'nothing')"
 
+# One-time: install the bridge as a `systemctl --user` unit + a narrow sudoers
+# rule, so the chat client's "Start Session" brings the stack up without a
+# terminal (WP08f). Asks for sudo once.
+install-stack:
+    bash infra/scripts/install-desktop-stack.sh
+
