@@ -1,0 +1,21 @@
+# Rendered by infra/scripts/render-llama-bridge.sh. Socket-activated by
+# llama-bridge.socket (systemd matches "llama-bridge.socket" to
+# "llama-bridge.service" by name; no explicit Sockets= needed). Replaces the
+# manual `socat` proxy used during exploratory testing — see
+# blueprint/wp/WP08b-openhands-sandbox.md §"Réseau".
+[Unit]
+Description=llama-bridge proxy (Docker sandbox -> llama-server, 127.0.0.1:8000 only)
+After=llama-server.service
+
+[Service]
+ExecStart=/lib/systemd/systemd-socket-proxyd --exit-idle-time=5min 127.0.0.1:{{ LLAMA_PORT }}
+DynamicUser=yes
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_UNIX
+# Defense in depth on top of the bind address itself (llama-bridge.socket):
+# only ever proxy to loopback and only ever accept from private ranges.
+IPAddressDeny=any
+IPAddressAllow=127.0.0.0/8 172.16.0.0/12 192.168.0.0/16

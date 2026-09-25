@@ -1,0 +1,406 @@
+# Source de vérité du corpus kbase (WP04 §7). Versionné dans Git.
+# Les fichiers référencés par `path` vivent sous AGX_PATHS_DOCUMENTS_DIR
+# (host: /srv/knowledge/documents), pas dans le dépôt.
+
+documents:
+  # --- Volatilité stochastique : SABR / Heston / vol locale ---
+  - doc_key: sabr-paulot-second-order-asymptotic
+    path: raw/0906.0658.md
+    title: Asymptotic Implied Volatility at the Second Order With Application to the SABR Model
+    authors: [Louis Paulot]
+    year: 2009
+    doc_type: research_paper
+    topic: volatility-sabr
+    asset_class: options
+    source_url: https://arxiv.org/abs/0906.0658
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: sabr-vol-of-vol-expansion
+    path: raw/1812.09904.md
+    title: A volatility-of-volatility expansion of the option prices in the SABR stochastic volatility model
+    authors: []
+    year: 2018
+    doc_type: research_paper
+    topic: volatility-sabr
+    asset_class: options
+    source_url: https://arxiv.org/abs/1812.09904
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: sabr-libor-market-models
+    path: raw/2408.01470.md
+    title: "SABR/LIBOR market models: pricing and calibration for some interest rate derivatives"
+    authors: []
+    year: 2024
+    doc_type: research_paper
+    topic: volatility-sabr
+    asset_class: rates
+    source_url: https://arxiv.org/abs/2408.01470
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: heston-analysis-calibration-matlab
+    path: raw/1502.02963.md
+    title: "An Analysis of the Heston Stochastic Volatility Model: Implementation and Calibration using Matlab"
+    authors: [Ricardo Crisóstomo]
+    year: 2015
+    doc_type: research_paper
+    topic: volatility-heston
+    asset_class: options
+    source_url: https://arxiv.org/abs/1502.02963
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: heston-fast-calibration
+    path: raw/1511.08718.md
+    title: Full and fast calibration of the Heston stochastic volatility model
+    authors: []
+    year: 2015
+    doc_type: research_paper
+    topic: volatility-heston
+    asset_class: options
+    source_url: https://arxiv.org/abs/1511.08718
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: dupire-local-vol-jumps
+    path: raw/1302.5548.md
+    title: How to make Dupire's local volatility work with jumps
+    authors: [Peter K. Friz, Stefan Gerhold, Marc Yor]
+    year: 2013
+    doc_type: research_paper
+    topic: volatility-local
+    asset_class: options
+    source_url: https://arxiv.org/abs/1302.5548
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: volatility-option-pricing-review
+    path: raw/0904.1292.md
+    title: A Review of Volatility and Option Pricing
+    authors: [Sovan Mitra]
+    year: 2009
+    doc_type: research_paper
+    topic: volatility-survey
+    asset_class: options
+    source_url: https://arxiv.org/abs/0904.1292
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: bergomi-stochastic-volatility-modeling
+    path: raw/bergomi-stochastic-volatility-modeling.md
+    title: Stochastic Volatility Modeling
+    authors: [Lorenzo Bergomi]
+    year: 2016
+    doc_type: book
+    topic: volatility-survey
+    asset_class: options
+    license: propriété personnelle - non redistribué
+    valid_from: null
+    valid_until: null
+
+  - doc_key: gatheral-volatility-surface
+    path: raw/gatheral-volatility-surface.md
+    title: "The Volatility Surface: A Practitioner's Guide"
+    authors: [Jim Gatheral]
+    year: 2006
+    doc_type: book
+    topic: volatility-survey
+    asset_class: options
+    license: propriété personnelle - non redistribué
+
+  # --- CVA / XVA / risque de contrepartie ---
+  - doc_key: xva-bilateral-counterparty-risk
+    path: raw/0911.3331.md
+    title: "Bilateral counterparty risk valuation for interest-rate products: impact of volatilities and correlations"
+    authors: [Damiano Brigo, Andrea Pallavicini, Vasileios Papatheodorou]
+    year: 2009
+    doc_type: research_paper
+    topic: cva-xva
+    asset_class: rates
+    source_url: https://arxiv.org/abs/0911.3331
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: xva-funding-valuation-adjustment
+    path: raw/1112.1521.md
+    title: "Funding Valuation Adjustment: a consistent framework including CVA, DVA, collateral, netting rules and re-hypothecation"
+    authors: [Andrea Pallavicini]
+    year: 2011
+    doc_type: research_paper
+    topic: cva-xva
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1112.1521
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: xva-counterparty-risk-faq
+    path: raw/1111.1331.md
+    title: "Counterparty Risk FAQ: Credit VaR, PFE, CVA, DVA, Closeout, Netting, Collateral, Re-hypothecation, WWR, Basel, Funding, CCDS and Margin Lending"
+    authors: [Damiano Brigo]
+    year: 2011
+    doc_type: research_paper
+    topic: cva-xva
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1111.1331
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: xva-ccp-central-clearing-faq
+    path: raw/1312.0128.md
+    title: "CCPs, Central Clearing, CSA, Credit Collateral and Funding Costs Valuation FAQ"
+    authors: [Damiano Brigo]
+    year: 2013
+    doc_type: research_paper
+    topic: cva-xva
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1312.0128
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: xva-unified-csa-initial-margin
+    path: raw/1905.11328.md
+    title: A unified approach to xVA with CSA discounting and initial margin
+    authors: []
+    year: 2019
+    doc_type: research_paper
+    topic: cva-xva
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1905.11328
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: xva-fixed-point-collateral
+    path: raw/1501.06221.md
+    title: "Pricing Derivatives with Counterparty Risk and Collateralization: A Fixed Point Approach"
+    authors: [Jinbeom Kim, Tim Leung]
+    year: 2015
+    doc_type: research_paper
+    topic: cva-xva
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1501.06221
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: bouzoubaa-osseiran-exotic-options-hybrids
+    path: raw/bouzoubaa-osseiran-exotic-options-hybrids.md
+    title: Exotic Options and Hybrids
+    authors: [Mohamed Bouzoubaa, Adel Osseiran]
+    year: 2010
+    doc_type: book
+    topic: exotic-options
+    asset_class: options
+    license: propriété personnelle - non redistribué
+
+  # --- Conventions de marché : SOFR / OIS post-LIBOR ---
+  - doc_key: sofr-interest-rate-modeling
+    path: raw/2112.14033.md
+    title: SOFR and Interest Rate Modeling
+    authors: []
+    year: 2021
+    doc_type: research_paper
+    topic: market-conventions-sofr
+    asset_class: rates
+    source_url: https://arxiv.org/abs/2112.14033
+    license: arXiv non-exclusive license (open access preprint)
+    valid_from: null
+    valid_until: null
+
+  - doc_key: sofr-term-structure-futures
+    path: raw/2103.11180.md
+    title: Dynamic Term Structure Models for SOFR Futures
+    authors: []
+    year: 2021
+    doc_type: research_paper
+    topic: market-conventions-sofr
+    asset_class: rates
+    source_url: https://arxiv.org/abs/2103.11180
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: libor-transition-futures-evidence
+    path: raw/2201.06930.md
+    title: "Decomposing LIBOR in Transition: Evidence from the Futures Markets"
+    authors: []
+    year: 2022
+    doc_type: research_paper
+    topic: market-conventions-sofr
+    asset_class: rates
+    source_url: https://arxiv.org/abs/2201.06930
+    license: arXiv non-exclusive license (open access preprint)
+
+  # --- Méthodes numériques : Monte Carlo / AAD / optimisation ---
+  - doc_key: mc-enhanced-derivative-pricing
+    path: raw/2502.17731.md
+    title: Monte Carlo Techniques for Enhanced Derivative Pricing
+    authors: []
+    year: 2025
+    doc_type: research_paper
+    topic: numerical-monte-carlo
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/2502.17731
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: mc-stacked-option-pricing
+    path: raw/1903.10795.md
+    title: Stacked Monte Carlo for option pricing
+    authors: []
+    year: 2019
+    doc_type: research_paper
+    topic: numerical-monte-carlo
+    asset_class: options
+    source_url: https://arxiv.org/abs/1903.10795
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: glasserman-monte-carlo-methods-financial-engineering
+    path: raw/glasserman-monte-carlo-methods-financial-engineering.md
+    title: Monte Carlo Methods in Financial Engineering
+    authors: [Paul Glasserman]
+    year: 2003
+    doc_type: book
+    topic: numerical-monte-carlo
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: aad-correlation-greeks
+    path: raw/1004.1855.md
+    title: Fast Correlation Greeks by Adjoint Algorithmic Differentiation
+    authors: [Luca Capriotti, Mike Giles]
+    year: 2010
+    doc_type: research_paper
+    topic: numerical-aad
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1004.1855
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: aad-adjoints-automatic-diff-finance
+    path: raw/1107.1831.md
+    title: Adjoints and automatic (algorithmic) differentiation in computational finance
+    authors: [Cristian Homescu]
+    year: 2011
+    doc_type: research_paper
+    topic: numerical-aad
+    asset_class: multi-asset
+    source_url: https://arxiv.org/abs/1107.1831
+    license: arXiv non-exclusive license (open access preprint)
+
+  - doc_key: savine-modern-computational-finance-aad
+    path: raw/savine-modern-computational-finance-aad.md
+    title: "Modern Computational Finance: AAD and Parallel Simulations"
+    authors: [Antoine Savine]
+    year: 2018
+    doc_type: book
+    topic: numerical-aad
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: joshi-cpp-design-patterns-derivatives-pricing
+    path: raw/joshi-cpp-design-patterns-derivatives-pricing.md
+    title: C++ Design Patterns and Derivatives Pricing
+    authors: [Mark S. Joshi]
+    year: 2008
+    doc_type: book
+    topic: numerical-implementation
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: boyd-vandenberghe-convex-optimization
+    path: raw/boyd-vandenberghe-convex-optimization.md
+    title: Convex Optimization
+    authors: [Stephen Boyd, Lieven Vandenberghe]
+    year: 2004
+    doc_type: book
+    topic: numerical-optimization
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: stochastic-optimization-notes
+    path: raw/stochastic-optimization-notes.md
+    title: Stochastic Optimization (notes)
+    authors: []
+    year: null
+    doc_type: notes
+    topic: numerical-optimization
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  # --- Calcul stochastique fondamental ---
+  - doc_key: shreve-stochastic-calculus-finance-1
+    path: raw/shreve-stochastic-calculus-finance-1.md
+    title: "Stochastic Calculus for Finance I: The Binomial Asset Pricing Model"
+    authors: [Steven E. Shreve]
+    year: 2004
+    doc_type: book
+    topic: stochastic-calculus
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: shreve-stochastic-calculus-finance-2
+    path: raw/shreve-stochastic-calculus-finance-2.md
+    title: "Stochastic Calculus for Finance II: Continuous-Time Models"
+    authors: [Steven E. Shreve]
+    year: 2004
+    doc_type: book
+    topic: stochastic-calculus
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: pham-continuous-time-stochastic-control
+    path: raw/pham-continuous-time-stochastic-control.md
+    title: Continuous-time Stochastic Control and Optimization with Financial Applications
+    authors: [Huyên Pham]
+    year: 2009
+    doc_type: book
+    topic: stochastic-control
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  # --- Hull : référence généraliste pricing/dérivés ---
+  - doc_key: hull-options-futures-other-derivatives-11e
+    path: raw/hull-options-futures-other-derivatives-11e.md
+    title: Options, Futures, and Other Derivatives (11th ed.)
+    authors: [John C. Hull]
+    year: 2021
+    doc_type: book
+    topic: derivatives-general
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  # --- Trading / volatilité pratique ---
+  - doc_key: bennett-trading-volatility
+    path: raw/bennett-trading-volatility.md
+    title: Trading Volatility
+    authors: [Colin Bennett]
+    year: 2014
+    doc_type: book
+    topic: volatility-survey
+    asset_class: options
+    license: propriété personnelle - non redistribué
+
+  # --- Marché / microstructure / econométrie (contexte, hors coeur pricing) ---
+  - doc_key: ohara-market-microstructure-theory
+    path: raw/ohara-market-microstructure-theory.md
+    title: Market Microstructure Theory
+    authors: [Maureen O'Hara]
+    year: 1998
+    doc_type: book
+    topic: market-microstructure
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: tsay-analysis-financial-time-series
+    path: raw/tsay-analysis-financial-time-series.md
+    title: Analysis of Financial Time Series
+    authors: [Ruey S. Tsay]
+    year: 2010
+    doc_type: book
+    topic: financial-time-series
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: wooldridge-introductory-econometrics
+    path: raw/wooldridge-introductory-econometrics.md
+    title: "Introductory Econometrics: A Modern Approach"
+    authors: [Jeffrey M. Wooldridge]
+    year: null
+    doc_type: book
+    topic: econometrics
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué
+
+  - doc_key: zhou-quant-finance-interviews
+    path: raw/zhou-quant-finance-interviews.md
+    title: A Practical Guide to Quantitative Finance Interviews
+    authors: [Xinfeng Zhou]
+    year: 2008
+    doc_type: book
+    topic: interview-prep
+    asset_class: multi-asset
+    license: propriété personnelle - non redistribué

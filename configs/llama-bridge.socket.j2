@@ -1,0 +1,39 @@
+# Rendered by infra/scripts/render-llama-bridge.sh. Listens ONLY on the Docker
+# default-bridge gateway (reachable from a sandbox container via
+# --add-host host.docker.internal:host-gateway, see
+# packages/openhands_adapter/src/openhands_adapter/docker_workspace.py) — never
+# on a LAN-facing address. llama-server itself stays bound to 127.0.0.1 only;
+# see blueprint/wp/WP08b-openhands-sandbox.md §"Réseau".
+[Unit]
+Description=llama-bridge listening socket (Docker sandbox -> llama-server)
+# The listen address is the Docker default-bridge gateway, which only exists
+# once dockerd has created docker0. `Requires=` (not just `After=`) so systemd
+# actually pulls docker.service up and waits for it -- without this the socket
+# silently fails to start at boot (observed 2026-09-05: `inactive (dead)`
+# after a reboot despite being enabled). `PartOf=` so it goes down with docker.
+#
+# `DefaultDependencies=no` breaks an ordering cycle: a socket unit is by
+# default ordered Before=sockets.target, which is before basic.target, which
+# docker.service is After= -- so "socket After=docker" loops back on itself.
+# Observed 2026-09-25: systemd dropped containerd/sockets.target jobs to break
+# the cycle, docker's first start failed, and every unit that Requires= docker
+# (this socket, quant-modeling.service) was left in "dependency failed" after
+# boot. The socket is therefore wanted by docker.service only, not by
+# sockets.target, and keeps the shutdown ordering DefaultDependencies gave it.
+DefaultDependencies=no
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Socket]
+ListenStream={{ BRIDGE_HOST }}:{{ BRIDGE_PORT }}
+Accept=false
+# Belt-and-braces in case docker0's address is briefly absent at bind time.
+FreeBind=yes
+
+[Install]
+# Started alongside docker (at boot, and on `systemctl restart docker`). Not
+# WantedBy=sockets.target: see DefaultDependencies above.
+WantedBy=docker.service

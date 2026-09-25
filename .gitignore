@@ -22,6 +22,8 @@ build/
 documents/raw/
 documents/parsed/
 documents/processed/
+documents/Books/
+documents/**/*.pdf
 datasets/cache/
 benchmarks/results/
 

@@ -1,0 +1,33 @@
+[project]
+name = "openhands-adapter"
+version = "0.1.0"
+description = "OpenHands SDK adapter: Docker agent-server sandbox wired to the local llama-server (WP08b, phase 2 of WP08)."
+requires-python = ">=3.12"
+dependencies = [
+    "corelib",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    # Pinned to the versions validated together against
+    # ghcr.io/openhands/agent-server:1.21.0-python (see blueprint/wp/WP08b-openhands-sandbox.md
+    # §"Câblage LLM" — the agent-server image version and openhands-sdk version must move in
+    # lockstep; do not bump one without the other and re-verifying the smoke test).
+    "openhands-sdk==1.21.0",
+    "openhands-workspace==1.11.1",
+    "openhands-tools==1.21.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0", "pytest-cov>=5.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openhands_adapter"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv.sources]
+corelib = { workspace = true }

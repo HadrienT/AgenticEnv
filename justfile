@@ -55,6 +55,8 @@ lint:
     uv run mypy -p agentmem_mcp
     uv run mypy -p qmharness
     uv run mypy -p qmharness_mcp
+    uv run mypy -p openhands_adapter
+    uv run mypy -p openhands_bridge
     uv run lint-imports
 
 # Unit + contract tests only (no PostgreSQL required).
@@ -68,4 +70,29 @@ test-integration:
 # Render OpenHands LLM + MCP config from configs/models.yaml + configs/mcp/*.yaml.
 render-openhands-config:
     bash infra/scripts/render-openhands-config.sh
+
+# Render infra/systemd/llama-bridge.{socket,service} for the Docker sandbox
+# (WP08b) to reach llama-server, which stays bound to 127.0.0.1 only (needs
+# sudo to install; the script prints the exact commands).
+render-llama-bridge:
+    bash infra/scripts/render-llama-bridge.sh
+
+# End-to-end OpenHands sandbox smoke test (Docker + llama-server required, not run in CI).
+test-e2e:
+    uv run pytest packages/openhands_adapter -m e2e -q
+
+# Start the WebSocket bridge (127.0.0.1:8300 by default) for a chat client, e.g. agenticenv-chat.
+run-bridge:
+    uv run openhands-bridge
+
+# Stop every leftover agent-server-* sandbox container (one at a time). The bridge
+# also does this on startup / around each session; this is the manual escape hatch.
+reap-sandboxes:
+    uv run python -c "from openhands_adapter import reap_orphan_sandboxes as r; print('stopped:', r() or 'nothing')"
+
+# One-time: install the bridge as a `systemctl --user` unit + a narrow sudoers
+# rule, so the chat client's "Start Session" brings the stack up without a
+# terminal (WP08f). Asks for sudo once.
+install-stack:
+    bash infra/scripts/install-desktop-stack.sh
 

@@ -1,0 +1,30 @@
+# Sandbox config for the OpenHands SDK adapter (WP08b). See
+# blueprint/wp/WP08b-openhands-sandbox.md §"Câblage LLM"/§"Réseau" and
+# blueprint/06-CONFIG.md §5. Read via corelib.config.load_yaml_config from
+# openhands_adapter.config only.
+#
+# The served model name itself is NOT duplicated here: it comes from
+# AGX_LLM_SERVED_MODEL (configs/models.yaml -> render-openhands-config.sh),
+# exactly like the host-side AGX_LLM_BASE_URL. This file only carries knobs
+# specific to running OpenHands inside a Docker sandbox.
+sandbox:
+  # Pinned, not "latest": must move in lockstep with the openhands-sdk version
+  # pinned in packages/openhands_adapter/pyproject.toml -- a mismatch reintroduces
+  # the event-parsing incompatibilities noted in the WP08b piège table.
+  image: ghcr.io/openhands/agent-server:1.21.0-python
+  platform: linux/amd64
+  enable_gpu: false
+  working_dir: /workspace
+
+llm:
+  # Base URL for the OpenAI-compatible endpoint, reachable FROM INSIDE the
+  # agent-server container: host.docker.internal (added via --add-host in
+  # AgenticEnvDockerWorkspace) resolves to the docker0 gateway, where the
+  # llama-bridge proxy (infra/systemd/llama-bridge.{socket,service}) forwards
+  # to llama-server, itself bound to 127.0.0.1:8000 only. Port must match
+  # AGX_LLAMA_BRIDGE_PORT used by infra/scripts/render-llama-bridge.sh.
+  sandbox_base_url: http://host.docker.internal:8001/v1
+
+run:
+  max_iterations: 100
+  timeout_s: 1800
