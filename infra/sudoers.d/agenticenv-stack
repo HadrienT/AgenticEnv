@@ -8,7 +8,9 @@
 # `hadriensuper`.
 #
 # Scope is deliberately narrow: only start/stop/restart/is-active, only these
-# units. No shell, no wildcards.
+# units, plus the model-profile switch (issue #16) with each profile named
+# explicitly. No shell, no wildcards. agx-llm-use is installed root-owned in
+# /usr/local/sbin (never under /opt/llm, which the user owns).
 
 Cmnd_Alias AGENTICENV_STACK = \
     /usr/bin/systemctl start llama-server.service, \
@@ -22,6 +24,8 @@ Cmnd_Alias AGENTICENV_STACK = \
     /usr/bin/systemctl restart llama-bridge.service, \
     /usr/bin/systemctl is-active llama-bridge.service, \
     /usr/bin/systemctl start docker.service, \
-    /usr/bin/systemctl is-active docker.service
+    /usr/bin/systemctl is-active docker.service, \
+    /usr/local/sbin/agx-llm-use code, \
+    /usr/local/sbin/agx-llm-use translate
 
 hadriensuper ALL=(root) NOPASSWD: AGENTICENV_STACK

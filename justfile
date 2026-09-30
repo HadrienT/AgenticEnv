@@ -10,9 +10,19 @@ preflight:
 gpu-report:
     bash infra/scripts/gpu-report.sh
 
-# Render /etc/llm/llama-server.env from configs/models.yaml (needs sudo to install).
-render-llama-env:
-    bash infra/scripts/render-llama-env.sh
+# (sudo needed to install; the script prints the command.)
+# Render /etc/llm/profiles/<profile>.env from models.yaml (all profiles by default).
+render-llama-env *profiles:
+    bash infra/scripts/render-llama-env.sh {{profiles}}
+
+# One model loaded at a time; ~10-30 s of llama-server downtime for every client.
+# Switch the served LLM to a profile: code / translate (#16).
+llm-use profile:
+    bash infra/scripts/llm-profile.sh use {{profile}}
+
+# Which profile llama-server is on, and what /v1/models reports.
+llm-profile:
+    bash infra/scripts/llm-profile.sh status
 
 # Aggregated health check, JSON on stdout, exit 0/1.
 healthcheck:

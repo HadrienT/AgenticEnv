@@ -13,7 +13,7 @@ MIN_RAM_FREE_GIB="${AGX_MIN_RAM_FREE_GIB:-4}"
 REQUIRED_COMPUTE_CAP="${AGX_REQUIRED_COMPUTE_CAP:-7.0}"
 REQUIRED_GPU_COUNT="${AGX_REQUIRED_GPU_COUNT:-2}"
 
-# name|status(ok|warning|error|critical)|detail
+# name|status(ok|skipped|warning|error|critical)|detail
 checks=()
 add_check() { checks+=("$1|$2|$3"); }
 
@@ -44,13 +44,20 @@ else
   add_check "llama_server" "critical" "GET /v1/models -> $llama_code"
 fi
 
-# --- VRAM / no CPU offload (heuristic: llama-server must show a compute process on every GPU) ---
+# --- VRAM / no CPU offload: the llama-server process itself must hold VRAM ---
+# (any compute process is not enough: issue #15 had llama-server on CPU while
+# another app used GPU 0, and the old check reported ok).
 if [[ "$llama_code" == "200" ]] && command -v nvidia-smi >/dev/null 2>&1; then
-  procs="$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader 2>/dev/null | grep -c . || true)"
-  if [[ "$procs" -ge 1 ]]; then
-    add_check "no_cpu_offload" "ok" "$procs GPU compute process(es) detected"
+  llama_pid="$(systemctl show -p MainPID --value llama-server.service 2>/dev/null)"
+  [[ -z "$llama_pid" || "$llama_pid" == "0" ]] && llama_pid="$(pgrep -xo llama-server || true)"
+  llama_vram_mib="$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits 2>/dev/null \
+    | awk -F', *' -v pid="$llama_pid" '$1 == pid {s += $2} END {print s + 0}')"
+  if [[ -z "$llama_pid" ]]; then
+    add_check "no_cpu_offload" "critical" "llama-server answers but its PID was not found"
+  elif [[ "$llama_vram_mib" -gt 0 ]]; then
+    add_check "no_cpu_offload" "ok" "llama-server (pid $llama_pid) holds ${llama_vram_mib} MiB VRAM"
   else
-    add_check "no_cpu_offload" "critical" "llama-server is up but no GPU compute process found"
+    add_check "no_cpu_offload" "critical" "llama-server (pid $llama_pid) holds no VRAM: running on CPU"
   fi
 else
   add_check "no_cpu_offload" "critical" "cannot verify: llama-server not reachable"
@@ -64,16 +71,34 @@ else
   add_check "postgres" "critical" "cannot connect to ${PG_HOST}:${PG_PORT}"
 fi
 
-# --- migrations (delegated to corelib once it exists) ---
-add_check "migrations" "critical" "not verifiable yet: corelib.db not installed (WP01)"
-
-# --- embeddings dimension (delegated to kbase once it exists) ---
-add_check "embeddings_dimension" "critical" "not verifiable yet: kbase not installed (WP04/WP05)"
+# --- migrations + embeddings dimension (corelib.db / kbase, via the uv workspace) ---
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if command -v uv >/dev/null 2>&1; then
+  db_lines="$(cd "$REPO_ROOT" && timeout 60 uv run --quiet python infra/scripts/healthcheck_db.py 2>/dev/null)"
+  if [[ -n "$db_lines" ]]; then
+    while IFS='|' read -r name status detail; do
+      [[ -n "$name" ]] && add_check "$name" "$status" "$detail"
+    done <<< "$db_lines"
+  else
+    add_check "migrations" "critical" "infra/scripts/healthcheck_db.py produced no output (just setup?)"
+    add_check "embeddings_dimension" "critical" "infra/scripts/healthcheck_db.py produced no output (just setup?)"
+  fi
+else
+  add_check "migrations" "critical" "uv not found: cannot run corelib checks"
+  add_check "embeddings_dimension" "critical" "uv not found: cannot run kbase checks"
+fi
 
 # --- MCP servers (substitution table: quantlab -> cppdev/codeintel/qmharness) ---
+# The MCP servers normally run over stdio, spawned by OpenHands (configs/mcp/);
+# only probe HTTP /health when the matching systemd unit is installed.
 check_mcp() {
   local name="$1" port="$2"
+  local unit="${name/_/-}.service"
   local code
+  if ! systemctl cat "$unit" >/dev/null 2>&1; then
+    add_check "$name" "skipped" "$unit not installed (stdio via OpenHands)"
+    return
+  fi
   code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${port}/health" 2>/dev/null)"
   code="${code:-000}"
   if [[ "$code" == "200" ]]; then

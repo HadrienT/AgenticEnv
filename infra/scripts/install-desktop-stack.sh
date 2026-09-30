@@ -6,7 +6,9 @@
 #   1. the openhands-bridge as a `systemctl --user` unit (+ linger so it
 #      survives disconnects);
 #   2. a narrow sudoers NOPASSWD rule so the extension can start/stop the
-#      privileged units (llama-server, llama-bridge, docker) silently.
+#      privileged units (llama-server, llama-bridge, docker) silently;
+#   3. /usr/local/sbin/agx-llm-use, the privileged model-profile switch behind
+#      `just llm-use <profile>` (issue #16).
 #
 # Re-runnable. The sudoers step is the only one that needs root and it asks
 # once.
@@ -28,6 +30,10 @@ if [[ "$(loginctl show-user "$USER_NAME" -p Linger --value 2>/dev/null || echo n
   sudo loginctl enable-linger "$USER_NAME"
 fi
 echo "    systemctl --user start agenticenv-bridge   # to start it now"
+
+echo "==> model-profile switch (agx-llm-use)"
+sudo install -m 0755 -o root -g root "$REPO/infra/scripts/agx-llm-use.sh" /usr/local/sbin/agx-llm-use
+echo "    installed /usr/local/sbin/agx-llm-use"
 
 echo "==> sudoers rule for the privileged units"
 if [[ "$USER_NAME" != "hadriensuper" ]]; then
