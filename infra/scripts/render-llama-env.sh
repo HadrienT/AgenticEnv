@@ -155,6 +155,7 @@ context = {
     "LLAMA_SPLIT_MODE": defaults.get("split_mode", "layer"),
     "LLAMA_FLASH_ATTN": render("flash_attn", defaults.get("flash_attn", True)),
     "LLAMA_CONT_BATCHING": render("cont_batching", defaults.get("cont_batching", True)),
+    "LLAMA_NO_CPU_OFFLOAD": render("no_cpu_offload", defaults.get("no_cpu_offload", True)),
     "LLAMA_CHAT_TEMPLATE": model.get("chat_template") or "",
     "LLAMA_EXTRA_ARGS": render("extra_args", model.get("extra_args", [])),
     "LLAMA_BIN": os.environ.get("AGX_LLAMA_BIN", "/opt/llm/llama.cpp/build/bin/llama-server"),

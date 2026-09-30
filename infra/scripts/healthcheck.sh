@@ -44,13 +44,20 @@ else
   add_check "llama_server" "critical" "GET /v1/models -> $llama_code"
 fi
 
-# --- VRAM / no CPU offload (heuristic: llama-server must show a compute process on every GPU) ---
+# --- VRAM / no CPU offload: the llama-server process itself must hold VRAM ---
+# (any compute process is not enough: issue #15 had llama-server on CPU while
+# another app used GPU 0, and the old check reported ok).
 if [[ "$llama_code" == "200" ]] && command -v nvidia-smi >/dev/null 2>&1; then
-  procs="$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader 2>/dev/null | grep -c . || true)"
-  if [[ "$procs" -ge 1 ]]; then
-    add_check "no_cpu_offload" "ok" "$procs GPU compute process(es) detected"
+  llama_pid="$(systemctl show -p MainPID --value llama-server.service 2>/dev/null)"
+  [[ -z "$llama_pid" || "$llama_pid" == "0" ]] && llama_pid="$(pgrep -xo llama-server || true)"
+  llama_vram_mib="$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits 2>/dev/null \
+    | awk -F', *' -v pid="$llama_pid" '$1 == pid {s += $2} END {print s + 0}')"
+  if [[ -z "$llama_pid" ]]; then
+    add_check "no_cpu_offload" "critical" "llama-server answers but its PID was not found"
+  elif [[ "$llama_vram_mib" -gt 0 ]]; then
+    add_check "no_cpu_offload" "ok" "llama-server (pid $llama_pid) holds ${llama_vram_mib} MiB VRAM"
   else
-    add_check "no_cpu_offload" "critical" "llama-server is up but no GPU compute process found"
+    add_check "no_cpu_offload" "critical" "llama-server (pid $llama_pid) holds no VRAM: running on CPU"
   fi
 else
   add_check "no_cpu_offload" "critical" "cannot verify: llama-server not reachable"
