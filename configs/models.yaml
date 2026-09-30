@@ -14,6 +14,7 @@
 default_profile: code
 profiles:
   code: qwen3-coder-30b-a3b-q4
+  translate: plamo-2-translate-q8
 
 defaults:
   host: 127.0.0.1
@@ -43,6 +44,25 @@ models:
     approx_weights_gib: 17.5      # must stay <= limits.vram_budget_gib
     chat_template: null           # null = template embedded in the GGUF
     extra_args: []
+
+  # live-subs `translate` profile (JA -> EN subtitles). PFN's dedicated translator,
+  # PLaMo community license (personal use). NOT a chat model: live-subs sends the
+  # raw `<|plamo:op|>` prompt to /v1/completions (livesubs.mt.plamo), so no chat
+  # template is needed. Source: mitmul/plamo-2-translate-GGUF @ 4d65036c (Q8_0).
+  plamo-2-translate-q8:
+    path: /opt/llm/models/plamo-2-translate-q8_0.gguf
+    sha256: af326c841c4e25d7ba0cf2e433200634744c38cf49f818d096ca2da499bbeb6a
+    served_name: plamo-2-translate
+    ctx_size: 8192                # one subtitle + 6 lines of context: ~1k tokens
+    validated_ctx_sizes:
+      - 8192
+    approx_weights_gib: 9.8
+    chat_template: null
+    extra_args: []
+    # llama.cpp >= fe8156f (rope_set_offset, ggml-org/llama.cpp#27120) hangs on the
+    # first PLaMo 2 decode (issue #18): pinned build at its parent 77acca437.
+    # Remove once upstream is fixed.
+    llama_bin: /opt/llm/llama.cpp-plamo/build/bin/llama-server
 
 limits:
   vram_budget_gib: 20             # locked decision, do not raise without validation

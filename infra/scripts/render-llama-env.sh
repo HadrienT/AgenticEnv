@@ -152,6 +152,10 @@ for profile in requested:
     if approx_weights is None or vram_budget is None or approx_weights > vram_budget:
         fail(profile, f"approx_weights_gib={approx_weights} exceeds limits.vram_budget_gib={vram_budget}")
 
+    llama_bin = model.get("llama_bin")
+    if llama_bin and not os.access(llama_bin, os.X_OK):
+        fail(profile, f"llama_bin {llama_bin} is not an executable file")
+
     model_path = model.get("path")
     if not model_path or not os.path.isfile(model_path):
         fail(profile, f"GGUF not found at {model_path}. Download it and update configs/models.yaml "
@@ -185,7 +189,10 @@ for profile in requested:
         "LLAMA_NO_CPU_OFFLOAD": render("no_cpu_offload", defaults.get("no_cpu_offload", True)),
         "LLAMA_CHAT_TEMPLATE": model.get("chat_template") or "",
         "LLAMA_EXTRA_ARGS": render("extra_args", model.get("extra_args", [])),
-        "LLAMA_BIN": os.environ.get("AGX_LLAMA_BIN", "/opt/llm/llama.cpp/build/bin/llama-server"),
+        # A model may pin its own llama.cpp build (e.g. an architecture broken by a
+        # later llama.cpp); otherwise the shared binary.
+        "LLAMA_BIN": model.get("llama_bin")
+        or os.environ.get("AGX_LLAMA_BIN", "/opt/llm/llama.cpp/build/bin/llama-server"),
     }
     tpl = template
     for k, value in context.items():
