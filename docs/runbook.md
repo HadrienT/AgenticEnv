@@ -26,27 +26,53 @@ sudo chmod +x /opt/llm/scripts/run-llama-server.sh
 # 3. system user for the llama-server service
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin llm || true
 
-# 4. render env + install systemd units
-sudo mkdir -p /etc/llm
-infra/scripts/render-llama-env.sh          # writes /tmp/llama-server.env.generated if not run as root
-sudo install -m 0644 /tmp/llama-server.env.generated /etc/llm/llama-server.env
+# 4. render the model profiles + install systemd units
+sudo install -d -m 0755 /etc/llm/profiles
+infra/scripts/render-llama-env.sh          # writes /tmp/llama-profiles/*.env if not run as root
+sudo install -m 0644 /tmp/llama-profiles/*.env /etc/llm/profiles/
+sudo ln -sfn profiles/code.env /etc/llm/llama-server.env
 sudo cp infra/systemd/llama-server.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now llama-server
+
+# 5. profile switch + sudoers rule (also installs the bridge user unit)
+just install-stack
 ```
 
 ## Changing model or context size
 
 ```bash
-# edit configs/models.yaml: active / ctx_size
-infra/scripts/render-llama-env.sh
-sudo install -m 0644 /tmp/llama-server.env.generated /etc/llm/llama-server.env
-sudo systemctl restart llama-server
-infra/scripts/healthcheck.sh
+# edit configs/models.yaml: models.<key>.ctx_size, or which model a profile uses
+infra/scripts/render-llama-env.sh [profile ...]
+sudo install -m 0644 /tmp/llama-profiles/*.env /etc/llm/profiles/
+sudo systemctl restart llama-server        # only if the edited profile is the live one
+just healthcheck
 ```
 
-`ctx_size` must already be present in `configs/models.yaml:validated_ctx_sizes`
-(populate this list by running `infra/scripts/bench-context.sh` first).
+`ctx_size` must already be present in the model's `validated_ctx_sizes` (or the
+global list in `configs/models.yaml`); populate it by running
+`infra/scripts/bench-context.sh` first.
+
+## Model profiles (issue #16)
+
+One model is loaded at a time. `code` serves the OpenHands agent and the
+quant-modeling assistant; `translate` serves live-subs.
+
+```bash
+just llm-profile          # current profile + what /v1/models reports
+just llm-use translate    # ~10-30 s during which llama-server answers nobody
+just llm-use code
+```
+
+The OpenHands adapter refuses to start a session when `/v1/models` does not list
+the `code` model (`DEPENDENCY_ERROR`, fix: `just llm-use code`).
+
+## llama-server on CPU (issue #15)
+
+`run-llama-server.sh` refuses to start when `llama-server --list-devices` sees no
+CUDA device (`no_cpu_offload: true`), and the unit creates `/dev/nvidia-uvm`
+before starting. `just healthcheck` reports `no_cpu_offload: critical` when the
+llama-server process holds no VRAM.
 
 ## OpenHands (WP08)
 

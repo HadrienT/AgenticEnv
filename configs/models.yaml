@@ -1,8 +1,19 @@
 # Model registry — single source of truth for the served LLM and its context size.
-# Changing model/context = edit this file + `sudo infra/scripts/render-llama-env.sh`
-# + `sudo systemctl restart llama-server`. Never edit code to change these values.
+# Changing model/context = edit this file + `infra/scripts/render-llama-env.sh`
+# (+ the install line it prints) + `just llm-use <profile>`. Never edit code to
+# change these values.
 
-active: qwen3-coder-30b-a3b-q4
+# Profiles (issue #16): ONE model loaded at a time, picked by activity. Each
+# profile renders to /etc/llm/profiles/<profile>.env; `just llm-use <profile>`
+# points /etc/llm/llama-server.env at it and restarts llama-server.
+# `served_name` is what clients see in /v1/models and must stay stable per
+# profile: OpenHands and quant-modeling reference it, never the GGUF.
+#   code      -> OpenHands agent (bridge + agenticenv-chat), quant-modeling assistant
+#   translate -> live-subs (JA -> EN). Model chosen by live-subs' lot 06 bench,
+#                then added here by a PR (models entry + `translate: <key>`).
+default_profile: code
+profiles:
+  code: qwen3-coder-30b-a3b-q4
 
 defaults:
   host: 127.0.0.1
@@ -15,6 +26,8 @@ defaults:
 
 # ctx_size values that passed infra/scripts/bench-context.sh. render-llama-env.sh
 # refuses any ctx_size not listed here. 32768 is the mandated bootstrap default.
+# A model entry may carry its own `validated_ctx_sizes`, which then replaces
+# this list for that model (e.g. a translation model benched at 8192 only).
 validated_ctx_sizes:
   - 8192
   - 16384

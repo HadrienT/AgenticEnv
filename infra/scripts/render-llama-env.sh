@@ -1,22 +1,31 @@
 #!/usr/bin/env bash
-# Translates the active profile of configs/models.yaml into /etc/llm/llama-server.env.
-# Fails (non-zero) if: approx_weights_gib > limits.vram_budget_gib; the GGUF is
-# missing or its sha256 does not match the manifest; ctx_size is not in
-# validated_ctx_sizes. No llama-server argument is hardcoded anywhere else.
+# Translates the profiles of configs/models.yaml into one env file per profile,
+# /etc/llm/profiles/<profile>.env (issue #16). `just llm-use <profile>` then
+# points /etc/llm/llama-server.env at one of them and restarts llama-server.
+#
+# Usage: render-llama-env.sh [PROFILE ...]    (default: every profile)
+#
+# Fails (non-zero) if, for any requested profile: approx_weights_gib >
+# limits.vram_budget_gib; the GGUF is missing or its sha256 does not match the
+# manifest; ctx_size is not in the model's (or the global) validated_ctx_sizes.
+# No llama-server argument is hardcoded anywhere else.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 MODELS_YAML="${REPO_ROOT}/configs/models.yaml"
 TEMPLATE="${REPO_ROOT}/configs/llama-server.env.j2"
-OUT_FILE="${AGX_LLAMA_ENV_FILE:-/etc/llm/llama-server.env}"
+PROFILES_DIR="${AGX_LLAMA_PROFILES_DIR:-/etc/llm/profiles}"
 
 [[ -f "$MODELS_YAML" ]] || { echo "ERROR: $MODELS_YAML not found" >&2; exit 1; }
 [[ -f "$TEMPLATE" ]] || { echo "ERROR: $TEMPLATE not found" >&2; exit 1; }
 
+STAGE_DIR="$(mktemp -d)"
+trap 'rm -rf "$STAGE_DIR"' EXIT
+
 # Minimal indentation-based YAML reader, scoped to the models.yaml grammar
 # (scalars, nested maps, flat lists). No PyYAML dependency at this bootstrap stage.
-rendered="$(MODELS_YAML="$MODELS_YAML" TEMPLATE="$TEMPLATE" python3 <<'PY'
+MODELS_YAML="$MODELS_YAML" TEMPLATE="$TEMPLATE" STAGE_DIR="$STAGE_DIR" python3 - "$@" <<'PY'
 import os
 import re
 import sys
@@ -88,53 +97,27 @@ def parse_yaml_lite(path):
 
 models_yaml = os.environ["MODELS_YAML"]
 template_path = os.environ["TEMPLATE"]
+stage_dir = os.environ["STAGE_DIR"]
 cfg = parse_yaml_lite(models_yaml)
 
-active = cfg.get("active")
-models = cfg.get("models", {})
-defaults = cfg.get("defaults", {})
-limits = cfg.get("limits", {})
-validated_ctx_sizes = cfg.get("validated_ctx_sizes", [])
+models = cfg.get("models") or {}
+profiles = cfg.get("profiles") or {}
+defaults = cfg.get("defaults") or {}
+limits = cfg.get("limits") or {}
+global_ctx_sizes = cfg.get("validated_ctx_sizes") or []
 
-if active not in models:
-    print(f"ERROR: active model '{active}' not found in models.yaml", file=sys.stderr)
-    sys.exit(1)
-model = models[active]
-
-ctx_size = model.get("ctx_size")
-if ctx_size not in validated_ctx_sizes:
-    print(f"ERROR: ctx_size {ctx_size} is not in validated_ctx_sizes {validated_ctx_sizes}. "
-          f"Run infra/scripts/bench-context.sh first.", file=sys.stderr)
+if not profiles:
+    print("ERROR: models.yaml has no `profiles` section", file=sys.stderr)
     sys.exit(1)
 
-approx_weights = model.get("approx_weights_gib")
-vram_budget = limits.get("vram_budget_gib")
-if approx_weights is None or vram_budget is None or approx_weights > vram_budget:
-    print(f"ERROR: approx_weights_gib={approx_weights} exceeds limits.vram_budget_gib={vram_budget}",
-          file=sys.stderr)
-    sys.exit(1)
-
-model_path = model.get("path")
-if not model_path or not os.path.isfile(model_path):
-    print(f"ERROR: GGUF not found at {model_path}. Download it and update configs/models.yaml "
-          f"(see WP00 §3 step 9).", file=sys.stderr)
-    sys.exit(1)
-
-expected_sha = model.get("sha256")
-if not expected_sha:
-    print(f"ERROR: models.yaml has no sha256 for '{active}'. Compute it with "
-          f"'sha256sum {model_path}' and record it in configs/models.yaml.", file=sys.stderr)
-    sys.exit(1)
-
-h = hashlib.sha256()
-with open(model_path, "rb") as fh:
-    for chunk in iter(lambda: fh.read(1 << 20), b""):
-        h.update(chunk)
-actual_sha = h.hexdigest()
-if actual_sha != expected_sha:
-    print(f"ERROR: sha256 mismatch for {model_path}: expected {expected_sha}, got {actual_sha}",
-          file=sys.stderr)
-    sys.exit(1)
+requested = sys.argv[1:] or list(profiles)
+for name in requested:
+    if name not in profiles:
+        print(f"ERROR: unknown profile '{name}' (known: {', '.join(profiles)})", file=sys.stderr)
+        sys.exit(1)
+    if not re.fullmatch(r"[a-z][a-z0-9-]*", name):
+        print(f"ERROR: profile name '{name}' must match [a-z][a-z0-9-]*", file=sys.stderr)
+        sys.exit(1)
 
 def render(key, value):
     if value is None:
@@ -145,40 +128,82 @@ def render(key, value):
         return " ".join(str(v) for v in value)
     return str(value)
 
-context = {
-    "LLAMA_MODEL_PATH": model_path,
-    "LLAMA_SERVED_NAME": model.get("served_name", active),
-    "LLAMA_HOST": defaults.get("host", "127.0.0.1"),
-    "LLAMA_PORT": defaults.get("port", 8000),
-    "LLAMA_CTX_SIZE": ctx_size,
-    "LLAMA_N_GPU_LAYERS": defaults.get("n_gpu_layers", "all"),
-    "LLAMA_SPLIT_MODE": defaults.get("split_mode", "layer"),
-    "LLAMA_FLASH_ATTN": render("flash_attn", defaults.get("flash_attn", True)),
-    "LLAMA_CONT_BATCHING": render("cont_batching", defaults.get("cont_batching", True)),
-    "LLAMA_NO_CPU_OFFLOAD": render("no_cpu_offload", defaults.get("no_cpu_offload", True)),
-    "LLAMA_CHAT_TEMPLATE": model.get("chat_template") or "",
-    "LLAMA_EXTRA_ARGS": render("extra_args", model.get("extra_args", [])),
-    "LLAMA_BIN": os.environ.get("AGX_LLAMA_BIN", "/opt/llm/llama.cpp/build/bin/llama-server"),
-}
+def fail(profile, msg):
+    print(f"ERROR [{profile}]: {msg}", file=sys.stderr)
+    sys.exit(1)
 
 with open(template_path, encoding="utf-8") as fh:
-    tpl = fh.read()
+    template = fh.read()
 
-for key, value in context.items():
-    tpl = tpl.replace("{{ " + key + " }}", render(key, value))
+for profile in requested:
+    key = profiles[profile]
+    if key not in models:
+        fail(profile, f"model '{key}' not found in models.yaml")
+    model = models[key]
 
-sys.stdout.write(tpl)
+    ctx_size = model.get("ctx_size")
+    validated = model.get("validated_ctx_sizes") or global_ctx_sizes
+    if ctx_size not in validated:
+        fail(profile, f"ctx_size {ctx_size} is not in validated_ctx_sizes {validated}. "
+                      f"Run infra/scripts/bench-context.sh first.")
+
+    approx_weights = model.get("approx_weights_gib")
+    vram_budget = limits.get("vram_budget_gib")
+    if approx_weights is None or vram_budget is None or approx_weights > vram_budget:
+        fail(profile, f"approx_weights_gib={approx_weights} exceeds limits.vram_budget_gib={vram_budget}")
+
+    model_path = model.get("path")
+    if not model_path or not os.path.isfile(model_path):
+        fail(profile, f"GGUF not found at {model_path}. Download it and update configs/models.yaml "
+                      f"(see WP00 §3 step 9).")
+
+    expected_sha = model.get("sha256")
+    if not expected_sha:
+        fail(profile, f"models.yaml has no sha256 for '{key}'. Compute it with "
+                      f"'sha256sum {model_path}' and record it in configs/models.yaml.")
+
+    print(f"[{profile}] checking sha256 of {model_path} ...", file=sys.stderr)
+    h = hashlib.sha256()
+    with open(model_path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    actual_sha = h.hexdigest()
+    if actual_sha != expected_sha:
+        fail(profile, f"sha256 mismatch for {model_path}: expected {expected_sha}, got {actual_sha}")
+
+    context = {
+        "LLAMA_PROFILE": profile,
+        "LLAMA_MODEL_PATH": model_path,
+        "LLAMA_SERVED_NAME": model.get("served_name", key),
+        "LLAMA_HOST": defaults.get("host", "127.0.0.1"),
+        "LLAMA_PORT": defaults.get("port", 8000),
+        "LLAMA_CTX_SIZE": ctx_size,
+        "LLAMA_N_GPU_LAYERS": defaults.get("n_gpu_layers", "all"),
+        "LLAMA_SPLIT_MODE": defaults.get("split_mode", "layer"),
+        "LLAMA_FLASH_ATTN": render("flash_attn", defaults.get("flash_attn", True)),
+        "LLAMA_CONT_BATCHING": render("cont_batching", defaults.get("cont_batching", True)),
+        "LLAMA_NO_CPU_OFFLOAD": render("no_cpu_offload", defaults.get("no_cpu_offload", True)),
+        "LLAMA_CHAT_TEMPLATE": model.get("chat_template") or "",
+        "LLAMA_EXTRA_ARGS": render("extra_args", model.get("extra_args", [])),
+        "LLAMA_BIN": os.environ.get("AGX_LLAMA_BIN", "/opt/llm/llama.cpp/build/bin/llama-server"),
+    }
+    tpl = template
+    for k, value in context.items():
+        tpl = tpl.replace("{{ " + k + " }}", render(k, value))
+    with open(os.path.join(stage_dir, f"{profile}.env"), "w", encoding="utf-8") as out:
+        out.write(tpl)
 PY
-)"
 
-out_dir="$(dirname "$OUT_FILE")"
-if [[ -d "$out_dir" && -w "$out_dir" ]]; then
-  printf '%s\n' "$rendered" > "$OUT_FILE"
-  echo "written: $OUT_FILE"
+if [[ -d "$PROFILES_DIR" && -w "$PROFILES_DIR" ]]; then
+  for f in "$STAGE_DIR"/*.env; do
+    install -m 0644 "$f" "$PROFILES_DIR/"
+    echo "written: $PROFILES_DIR/$(basename "$f")"
+  done
 else
-  fallback="/tmp/llama-server.env.generated"
-  printf '%s\n' "$rendered" > "$fallback"
-  echo "WARNING: cannot write to $OUT_FILE (missing dir or permissions)." >&2
-  echo "Generated at $fallback instead. Install it with:" >&2
-  echo "  sudo mkdir -p $out_dir && sudo install -m 0644 $fallback $OUT_FILE" >&2
+  fallback="/tmp/llama-profiles"
+  mkdir -p "$fallback"
+  cp "$STAGE_DIR"/*.env "$fallback/"
+  echo "WARNING: cannot write to $PROFILES_DIR (missing dir or permissions)." >&2
+  echo "Generated in $fallback instead. Install with:" >&2
+  echo "  sudo install -d -m 0755 $PROFILES_DIR && sudo install -m 0644 $fallback/*.env $PROFILES_DIR/" >&2
 fi

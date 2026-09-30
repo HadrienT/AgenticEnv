@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Translates configs/models.yaml (active LLM) and configs/mcp/*.yaml (stdio MCP
+# Translates configs/models.yaml (`code` profile LLM) and configs/mcp/*.yaml (stdio MCP
 # servers) into OpenHands CLI configuration:
 #   - ~/.openhands/agent_settings.json  (llm.model/base_url/api_key)
 #   - MCP server registrations via `openhands mcp add` (one per configs/mcp/*.yaml)
 #
-# This is the single point of change: swapping the active model in
+# This is the single point of change: swapping the `code` profile model in
 # configs/models.yaml + re-running this script (no OpenHands JSON edited by
 # hand). Idempotent — safe to re-run.
 #
@@ -36,8 +36,9 @@ models_yaml, out_path = sys.argv[1], sys.argv[2]
 with open(models_yaml, encoding="utf-8") as fh:
     data = yaml.safe_load(fh)
 
-active = data["active"]
-model = data["models"][active]
+# The agent always runs on the `code` profile (issue #16), whatever profile
+# llama-server currently serves; the adapter refuses to start otherwise.
+model = data["models"][data["profiles"]["code"]]
 defaults = data.get("defaults", {})
 host = defaults.get("host", "127.0.0.1")
 port = defaults.get("port", 8000)

@@ -18,7 +18,10 @@ Flow, matching the SDK's own behaviour (not re-implemented REST calls):
 
 from __future__ import annotations
 
+import json
 import threading
+import urllib.error
+import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -88,6 +91,31 @@ def _check_image_present(image: str) -> None:
         raise DependencyError(
             f"agent-server image not present locally: {image}",
             details={"image": image, "fix": f"docker pull {image}"},
+        )
+
+
+def _check_served_model(base_url: str, served_model: str) -> None:
+    """Refuse to start when llama-server serves another model (issue #16).
+
+    Only one model is loaded at a time and `just llm-use` swaps it by profile
+    (`code` / `translate`). A single-model llama-server ignores the request's
+    `model` field, so without this check the agent would silently run on the
+    translation model.
+    """
+    url = f"{base_url.rstrip('/')}/models"
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            payload = json.load(resp)
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        raise DependencyError(
+            f"llama-server not reachable at {url}: {exc}",
+            details={"url": url, "fix": "sudo systemctl start llama-server"},
+        ) from exc
+    served = [str(m.get("id")) for m in payload.get("data", []) if isinstance(m, dict)]
+    if served_model not in served:
+        raise DependencyError(
+            f"llama-server serves {served or 'no model'}, not {served_model}",
+            details={"served": served, "expected": served_model, "fix": "just llm-use code"},
         )
 
 
@@ -265,6 +293,8 @@ class AgentSession:
 
     def __enter__(self) -> AgentSession:
         _check_image_present(self._cfg.sandbox.image)
+        settings = get_settings()
+        _check_served_model(settings.llm.base_url, settings.llm.served_model)
         _ensure_tools_registered()
 
         agent, model = _build_agent(self._cfg, self._mcp_config)
