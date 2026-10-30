@@ -31,6 +31,11 @@ if [[ "$(loginctl show-user "$USER_NAME" -p Linger --value 2>/dev/null || echo n
 fi
 echo "    systemctl --user start agenticenv-bridge   # to start it now"
 
+echo "==> nightly database backup"
+install -m 0644 "$REPO/infra/systemd/agenticenv-backup.service" "$REPO/infra/systemd/agenticenv-backup.timer" "$USER_UNIT_DIR/"
+systemctl --user daemon-reload
+systemctl --user enable --now agenticenv-backup.timer
+
 echo "==> model-profile switch (agx-llm-use)"
 sudo install -m 0755 -o root -g root "$REPO/infra/scripts/agx-llm-use.sh" /usr/local/sbin/agx-llm-use
 echo "    installed /usr/local/sbin/agx-llm-use"

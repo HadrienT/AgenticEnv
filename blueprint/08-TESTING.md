@@ -27,8 +27,8 @@ graph TB
 | Niveau | Marqueur pytest | Dépendances | Dans la CI |
 |---|---|---|---|
 | unitaire | (aucun) | aucune | oui |
-| propriétés / référence | `@pytest.mark.numeric` | aucune | oui |
-| contrat | `@pytest.mark.contract` | aucune | oui |
+| propriétés / référence | aucun marqueur | aucune | oui |
+| contrat | aucun marqueur | aucune | oui |
 | intégration | `@pytest.mark.integration` | PostgreSQL | oui |
 | e2e | `@pytest.mark.e2e` | GPU, llama-server, OpenHands, Docker | **non** — manuel |
 

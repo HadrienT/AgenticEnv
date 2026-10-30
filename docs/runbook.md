@@ -129,3 +129,25 @@ Never install CUDA 13 or NVIDIA open kernel modules on these V100s. Never enable
 CPU offload for model weights. Never bind `llama-server`, PostgreSQL, or an MCP
 server to `0.0.0.0` without an explicit request. Never mount `/`, `/etc`, `/home`,
 or `~/.ssh` into the sandbox.
+
+## Backups (WP16)
+
+`agenticenv-backup.timer` (user unit, installed by `just install-stack`) dumps the
+database nightly to `~/backups/agenticenv`, keeps 14 days, and prunes `obs` and
+`kb.retrieval_logs` older than 90 days. On demand: `just backup`.
+
+Restore into a scratch database, check it, and only then swap:
+
+```bash
+docker exec -i -e PGPASSWORD="$AGX_DB_ADMIN_PASSWORD" agenticenv-postgres \
+  createdb -U postgres agenticenv_restore
+docker exec -i -e PGPASSWORD="$AGX_DB_ADMIN_PASSWORD" agenticenv-postgres \
+  pg_restore -U postgres -d agenticenv_restore < ~/backups/agenticenv/<file>.dump
+```
+
+One table only: add `-t <table>` to `pg_restore`.
+
+## Tests and the real database
+
+`conftest.py` at the repo root points every test at `agenticenv_test`, dropped and
+rebuilt for each run. `AGX_TEST_DB_NAME` must end in `_test`.

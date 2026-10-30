@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from corelib.config import get_settings, load_yaml_config, reset_settings_cache
+from corelib.config import get_settings, load_yaml_config, repo_root, reset_settings_cache
 from corelib.errors import ConfigError
 from pydantic import BaseModel
 
@@ -26,8 +26,8 @@ REQUIRED_ENV = {
 
 @pytest.fixture()
 def isolated_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[pytest.MonkeyPatch]:
-    """No .env file in cwd; only explicitly-set env vars are visible to Settings."""
-    monkeypatch.chdir(tmp_path)
+    """No .env file at the repo root; only explicitly-set env vars are visible to Settings."""
+    monkeypatch.setenv("AGX_REPO_ROOT", str(tmp_path))
     for key in REQUIRED_ENV:
         monkeypatch.delenv(key, raising=False)
     reset_settings_cache()
@@ -106,3 +106,12 @@ def test_load_yaml_config_rejects_path_traversal(isolated_env: pytest.MonkeyPatc
     _set_all_required(isolated_env)
     with pytest.raises(ConfigError):
         load_yaml_config("../etc/passwd", _SampleConfig)
+
+
+def test_repo_root_does_not_depend_on_the_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("AGX_REPO_ROOT", raising=False)
+    monkeypatch.chdir(tmp_path)
+
+    assert (repo_root() / "configs" / "kbase.yaml").is_file()

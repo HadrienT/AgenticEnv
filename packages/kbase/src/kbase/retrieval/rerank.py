@@ -3,7 +3,7 @@
 Like `HashingEmbedder`, `LexicalOverlapReranker` is deliberately not a real
 cross-encoder — no such model is available/verified on this dev box. It scores
 candidates by token overlap with the query (Jaccard), which is deterministic and
-dependency-free. A real cross-encoder is a config change plus a new `Reranker`.
+dependency-free.
 """
 
 from __future__ import annotations

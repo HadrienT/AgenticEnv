@@ -1,0 +1,9 @@
+# systemd **user** unit: nightly Postgres dump + journal retention (WP16 §3).
+# Installed by infra/scripts/install-desktop-stack.sh.
+[Unit]
+Description=AgenticEnv database backup
+
+[Service]
+Type=oneshot
+ExecStart=%h/AgenticEnv/infra/scripts/backup-postgres.sh
+ExecStartPost=%h/AgenticEnv/infra/scripts/prune-logs.sh

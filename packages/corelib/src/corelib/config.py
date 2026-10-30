@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 from pathlib import Path
 from typing import Literal
@@ -10,6 +11,18 @@ from pydantic import ValidationError as PydanticValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from corelib.errors import ConfigError
+
+
+def repo_root() -> Path:
+    """The checkout this code runs from, whatever the working directory: an MCP
+    client may start a server from anywhere. `AGX_REPO_ROOT` overrides it."""
+    override = os.environ.get("AGX_REPO_ROOT")
+    if override:
+        return Path(override)
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "configs").is_dir() and (parent / "packages").is_dir():
+            return parent
+    return Path.cwd()
 
 
 class DatabaseSettings(BaseModel):
@@ -107,7 +120,7 @@ def get_settings() -> Settings:
     with _settings_lock:
         if _settings_singleton is None:
             try:
-                _settings_singleton = Settings()
+                _settings_singleton = Settings(_env_file=repo_root() / ".env")  # type: ignore[call-arg]
             except PydanticValidationError as exc:
                 missing = [".".join(str(p) for p in err["loc"]) for err in exc.errors()]
                 raise ConfigError(
@@ -129,7 +142,7 @@ def load_yaml_config[T: BaseModel](name: str, model: type[T]) -> T:
     if ".." in name or Path(name).is_absolute():
         raise ConfigError(f"invalid config name: {name}", details={"name": name})
     settings = get_settings()
-    path = settings.configs_dir / name
+    path = repo_root() / settings.configs_dir / name
     if not path.is_file():
         raise ConfigError(f"config file not found: {path}", details={"path": str(path)})
     with path.open("r", encoding="utf-8") as f:

@@ -11,7 +11,7 @@ has no effect on the agent's actual tool access.
 from __future__ import annotations
 
 import yaml
-from corelib.config import get_settings
+from corelib.config import get_settings, repo_root
 from corelib.errors import ConfigError
 from pydantic import BaseModel, ConfigDict
 
@@ -25,7 +25,7 @@ class McpServerSummary(BaseModel):
 
 
 def list_mcp_servers() -> list[McpServerSummary]:
-    mcp_dir = get_settings().configs_dir / "mcp"
+    mcp_dir = repo_root() / get_settings().configs_dir / "mcp"
     if not mcp_dir.is_dir():
         raise ConfigError(
             f"MCP config directory not found: {mcp_dir}", details={"path": str(mcp_dir)}

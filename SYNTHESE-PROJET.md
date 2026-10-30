@@ -1,5 +1,8 @@
 # Synthèse projet — Plateforme d'agents IA locale pour le quant / pricing de dérivés
 
+> **Document historique.** Vision d'origine, antérieure au code. L'état réel est dans
+> `blueprint/` et les GitHub Issues.
+
 > Document de synthèse consolidant :
 > - `LOCAL_LLM_AGENT_SERVER_SETUP.md` (infrastructure serveur)
 > - `Spécification — Plateforme d'Agent IA avec Harness.md` (plateforme d'exécution d'agents)

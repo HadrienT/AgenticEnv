@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from corelib.config import get_settings
+from corelib.config import get_settings, repo_root
 from corelib.logging import get_logger
 
 logger = get_logger(__name__)
@@ -94,7 +94,7 @@ def check_health() -> HealthStatus:
 def apply_migrations(target: str | None = None) -> MigrationReport:
     """Applies `migrations/NNNN_*.sql` in order; idempotent via `public.schema_migrations`."""
     engine = get_engine()
-    migrations_dir = get_settings().migrations_dir
+    migrations_dir = repo_root() / get_settings().migrations_dir
 
     with engine.begin() as conn:
         conn.exec_driver_sql(

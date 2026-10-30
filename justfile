@@ -73,9 +73,14 @@ lint:
 test:
     uv run pytest packages -m "not integration and not e2e" -q
 
-# Full test suite, including integration tests (requires `just db-up`).
+# Full test suite, including integration tests (requires `just db-up`). Runs on
+# a throwaway agenticenv_test database, rebuilt each time (see conftest.py).
 test-integration:
     uv run pytest packages -m "not e2e" -q
+
+# Dump the real database to ~/backups/agenticenv.
+backup:
+    bash infra/scripts/backup-postgres.sh
 
 # Render OpenHands LLM + MCP config from configs/models.yaml + configs/mcp/*.yaml.
 render-openhands-config:

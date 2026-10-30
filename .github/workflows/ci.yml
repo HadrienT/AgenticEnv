@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/roadmap-impl]
+  pull_request:
+
+env:
+  AGX_ENV: dev
+  AGX_DB_HOST: 127.0.0.1
+  AGX_DB_PORT: 5432
+  AGX_DB_NAME: agenticenv_test
+  AGX_DB_USER: postgres
+  AGX_DB_PASSWORD: postgres
+  AGX_DB_ADMIN_USER: postgres
+  AGX_DB_ADMIN_PASSWORD: postgres
+  AGX_LLM_BASE_URL: http://127.0.0.1:8000/v1
+  AGX_LLM_SERVED_MODEL: ci
+  AGX_LLM_CTX_SIZE: 32768
+  AGX_PATHS_MODELS_DIR: /tmp/models
+  AGX_PATHS_DOCUMENTS_DIR: /tmp/documents
+  AGX_PATHS_REPOS_DIR: /tmp/repos
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.7.4-pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: extractions/setup-just@v2
+      - run: uv sync --all-packages --frozen
+      - run: just lint
+      - run: uv run --frozen pytest packages -m "not e2e" -q --cov=packages --cov-report=term --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+
+  protocol-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: AgenticEnv
+      - uses: actions/checkout@v4
+        with:
+          repository: HadrienT/agenticenv-chat
+          path: agenticenv-chat
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+        working-directory: agenticenv-chat
+      - run: npx vitest run test/discipline/protocol-drift.test.ts
+        working-directory: agenticenv-chat
+        env:
+          AGENTICENV_PATH: ${{ github.workspace }}/AgenticEnv

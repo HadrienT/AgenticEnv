@@ -30,8 +30,6 @@ addopts = ["--import-mode=importlib"]
 # "auto" is a no-op for every sync test elsewhere in the workspace.
 asyncio_mode = "auto"
 markers = [
-    "numeric: property-based / reference-value tests",
-    "contract: MCP schema and dependency-rule contract tests",
     "integration: tests requiring a real PostgreSQL instance",
     "e2e: full-system tests, GPU/llama-server/OpenHands/Docker required, not run in CI",
 ]
@@ -142,8 +140,11 @@ forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cpp
 dev = [
     "import-linter>=2.14",
     "mypy>=2.3.1",
+    "psycopg>=3.3.5",
     "pytest>=9.1.1",
     "pytest-asyncio>=0.24",
+    "pytest-cov>=7.1.0",
+    "python-dotenv>=1.2.3",
     "ruff>=0.16.5",
     "types-pyyaml>=6.0.12.20260815",
 ]
