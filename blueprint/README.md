@@ -62,7 +62,16 @@ livrables, ses critères d'acceptation. Ils sont ordonnés par dépendance.
 | [WP08b](wp/WP08b-openhands-sandbox.md) | `openhands_adapter` — phase 2 de WP08 : sandbox Docker via le SDK OpenHands | WP08 | WP09 |
 | [WP08c](wp/WP08c-chat-client.md) | `openhands-bridge` + extension VS Code (`agenticenv-chat`) — client de chat interactif | WP08b | — |
 | [WP08d](wp/WP08d-sandbox-working-copy.md) | L'agent développe sur une copie sandbox isolée ; application au repo à la demande (`apply_changes`) | WP08c | — |
+| [WP08g](wp/WP08g-auto-apply.md) | Écriture automatique dans le repo à chaque fin de tour (abroge l'invariant de WP08d) | WP08d | — |
 | [WP09](wp/WP09-numerical-harness.md) | `qmharness` — non-régression numérique via les bindings pybind11 existants | WP02 | WP08, WP08b |
+| [WP10](wp/WP10-security-hardening.md) | Sécurisation du bridge et du sandbox | WP08g | WP11 |
+| [WP11](wp/WP11-bridge-reliability.md) | Fiabilité du bridge : tours, annulation, erreurs | — | WP10 |
+| [WP12](wp/WP12-agent-wiring.md) | Brancher l'agent : MCP, prompts, profils, garde-fous | WP10 | — |
+| [WP13](wp/WP13-retrieval-quality.md) | Qualité de recherche de `kbase` | WP16 | WP11, WP15 |
+| [WP14](wp/WP14-agentmem-activation.md) | Rendre `agentmem` utile | WP12, WP13 | — |
+| [WP15](wp/WP15-target-alignment.md) | Aligner les outils C++ sur le vrai `quant-modeling` | — | WP11, WP13 |
+| [WP16](wp/WP16-quality-and-ops.md) | CI, base de test, sauvegardes, ménage | — | tous |
+| [WP17](wp/WP17-frontier-parity.md) | Viser le niveau Claude Code / Codex | WP11, WP12 | — |
 
 > `wp/_archive/` contient trois WP abandonnés (moteur quant Python `quantlab` et son
 > MCP, `evalkit`). Ils partaient du principe erroné qu'il fallait **réimplémenter** un

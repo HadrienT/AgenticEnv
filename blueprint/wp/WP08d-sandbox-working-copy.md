@@ -29,6 +29,9 @@
 
 > **État (2026-09-06) : planifié, non implémenté.**
 
+> **Mis à jour (2026-10-31)** : l'invariant « seul `apply_changes` écrit dans le repo »
+> est abrogé par [WP08g](WP08g-auto-apply.md), qui écrit à chaque fin de tour.
+
 ---
 
 ## 1. Le modèle
