@@ -169,6 +169,18 @@ def test_read_file_returns_content_then_none(repo: Path) -> None:
     assert wc.read_file("does-not-exist.py") is None
 
 
+def test_cp_failures_are_reported_not_swallowed(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    workspace = _FakeWorkspace(root)
+    wc = WorkingCopy(workspace, str(root))  # type: ignore[arg-type]
+
+    wc.initialize()  # no /workspace/source on this machine: `cp` must fail, loudly
+
+    assert wc.copy_errors and wc.copy_errors[0].startswith("cp: ")
+    assert wc.is_git is True
+
+
 def test_changed_since_applied_only_lists_what_the_host_has_not_received(repo: Path) -> None:
     wc = _wc(repo)
     (repo / "app.py").write_text("print('v2')\n")

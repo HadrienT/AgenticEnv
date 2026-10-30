@@ -17,13 +17,15 @@ dropping and reopening the socket). Only creating a second concurrent
 `AgentSession` (a second Docker sandbox) is refused, with `SESSION_BUSY`,
 without closing the connection.
 
-Concurrency: the run is triggered non-blocking (`session.send(blocking=False)`
-in a worker thread) and the turn's terminal status is awaited on the event
-loop -- watching the SDK's own `ConversationStateUpdateEvent` callbacks (fired
-from the SDK's internal websocket-listener thread) with a REST poll as a
-fallback. This keeps `cancel_turn` responsive: it rejects any pending action
-and calls `conversation.pause()`, moving the run to a terminal/`paused` state
-the same watcher observes and reports as a cancelled turn.
+Concurrency: a turn runs in its own task, so the read loop stays free for
+`cancel_turn`, diffs and a disconnect (WP11). The run is triggered non-blocking
+(`session.send(blocking=False)` in a worker thread) and the turn's terminal
+status is awaited on the event loop -- watching the SDK's own
+`ConversationStateUpdateEvent` callbacks (fired from the SDK's internal
+websocket-listener thread) with a REST poll as a fallback. `cancel_turn` rejects
+any pending action and calls `conversation.pause()`, moving the run to a
+terminal/`paused` state the same watcher observes and reports as a cancelled
+turn, within `_CANCEL_GRACE_S` even if the agent-server never confirms.
 
 The confirmation policy is `NeverConfirm` (WP08d): the agent works on a
 disposable copy and acts without per-action prompts. `waiting_for_confirmation`
@@ -57,6 +59,7 @@ from openhands_adapter import (
     reap_orphan_sandboxes,
 )
 from openhands_bridge import apply as apply_mod
+from openhands_bridge.auth import ensure_token, serve_options, validate_project_path
 from openhands_bridge.mcp_catalog import list_mcp_servers
 from openhands_bridge.protocol import (
     AppliedEntry,
@@ -115,6 +118,11 @@ _INTERNAL_NAMES = {"owner_lease.json", "meta.json"}
 # not a git repo and the agent-server listed every file -- send nothing rather
 # than a wall of noise.
 _MAX_REPORTED_CHANGES = 200
+# How long a stopped run may take to report it, and how long the agent-server may
+# take to accept the stop itself, before the bridge moves on regardless.
+_CANCEL_GRACE_S = 30.0
+_STOP_CALL_TIMEOUT_S = 10.0
+_DISCONNECT_SYNC_TIMEOUT_S = 60.0
 
 # At most one *AgentSession* (= one Docker sandbox) at a time across the whole
 # process, but connections are NOT gated. `_session_owner` is the connection
@@ -200,6 +208,8 @@ class _Connection:
         self.session: AgentSession | None = None
         self.turn_id: str | None = None
         self.cancelled = False
+        self.cancel_deadline: float | None = None
+        self.turn_task: asyncio.Task[None] | None = None
         self.baseline_hashes: dict[str, str] = {}
         self.conflicts: set[str] = set()
         self._seq = 0
@@ -240,10 +250,20 @@ async def _handle_connection(ws: ServerConnection) -> None:
             except AppError as exc:
                 await conn.send(_error_from(exc))
                 continue
-            await _dispatch_inbound(conn, inbound)
+            try:
+                await _dispatch_inbound(conn, inbound)
+            except AppError as exc:
+                await conn.send(_error_from(exc))
+            except Exception as exc:  # noqa: BLE001 - one bad message must not kill the session
+                logger.exception("unhandled error on %s", type(inbound).__name__)
+                await conn.send(ErrorMessage(code="INTERNAL_ERROR", message=str(exc)))
     finally:
+        await _end_running_turn(conn)
         if conn.session is not None:
-            await asyncio.to_thread(conn.session.__exit__, None, None, None)
+            try:
+                await asyncio.to_thread(conn.session.__exit__, None, None, None)
+            except Exception:  # noqa: BLE001 - ownership below must still be released
+                logger.warning("session teardown failed", exc_info=True)
         async with _session_guard:
             if _session_owner is conn:
                 _session_owner = None
@@ -309,8 +329,12 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
         await conn.send(ErrorMessage(code="NO_SESSION", message="Send start_session first."))
         return
 
-    if isinstance(inbound, UserMessage):
-        await _handle_user_message(conn, inbound)
+    if isinstance(inbound, UserMessage | RestoreCheckpoint | ApplyChanges) and conn.turn_task:
+        await conn.send(
+            ErrorMessage(code="TURN_IN_PROGRESS", message="Wait for the running turn to finish.")
+        )
+    elif isinstance(inbound, UserMessage):
+        conn.turn_task = asyncio.create_task(_handle_user_message(conn, inbound))
     elif isinstance(inbound, CancelTurn):
         await _handle_cancel(conn, inbound)
     elif isinstance(inbound, ConfirmAction):
@@ -336,17 +360,22 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
     # NeverConfirm: the agent works on a disposable copy and a per-action
     # confirmation pause only wedges the turn (`ConfirmRisky` also adds a
     # security-analysis LLM call per action).
-    session = AgentSession(
-        oh_config=load_openhands_config(),
-        confirmation_policy=NeverConfirm(),
-        callbacks=[conn.relay.on_event],
-        project_path=request.project_path,
-        read_only=request.mode == "read_only",
-    )
     try:
+        project_path = validate_project_path(request.project_path) if request.project_path else None
+        session = AgentSession(
+            oh_config=load_openhands_config(),
+            confirmation_policy=NeverConfirm(),
+            callbacks=[conn.relay.on_event],
+            project_path=project_path,
+            read_only=request.mode == "read_only",
+        )
         await asyncio.to_thread(session.__enter__)
     except AppError as exc:
         await conn.send(_error_from(exc))
+        return False
+    except Exception as exc:  # noqa: BLE001 - e.g. Docker refusing to start the container
+        logger.exception("could not start the session")
+        await conn.send(ErrorMessage(code="SESSION_START_FAILED", message=str(exc)))
         return False
 
     # Before `session_started`: an edit made once the client sees the session
@@ -360,6 +389,7 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
             conversation_id=str(session.conversation.id),
             llm_source=session.llm_source,
             mode="read_only" if session.read_only else "agent",
+            copy_warnings=session.working_copy.copy_errors if session.working_copy else [],
         )
     )
     await conn.relay.release(session)
@@ -417,7 +447,8 @@ async def _await_turn_terminal(conn: _Connection, session: AgentSession) -> str:
     status callbacks first, polls REST as a fallback. Bounded by
     `run_timeout_s` -- including a `waiting_for_confirmation` pause: with
     `NeverConfirm` that never happens, but if a confirmation ever appears with
-    no client answering it, the turn must still end rather than hang forever."""
+    no client answering it, the turn must still end rather than hang forever.
+    A timed-out run is stopped, not abandoned: it would keep editing the copy."""
     deadline = conn.loop.time() + session.run_timeout_s
     while True:
         try:
@@ -427,11 +458,42 @@ async def _await_turn_terminal(conn: _Connection, session: AgentSession) -> str:
             status = _poll_status(session)
             if status in _TERMINAL_TURN_STATUSES:
                 return status or "error"
-            if conn.loop.time() > deadline:
-                if status == "waiting_for_confirmation":
-                    with contextlib.suppress(Exception):
-                        await asyncio.to_thread(session.conversation.reject_pending_actions)
+            now = conn.loop.time()
+            if conn.cancel_deadline is not None and now > conn.cancel_deadline:
+                return "paused"
+            if now > deadline:
+                await _stop_agent(session)
                 return "timeout"
+
+
+async def _stop_agent(session: AgentSession) -> None:
+    """`pause()` unwinds a running loop; `reject_pending_actions()` unblocks a turn
+    parked at `waiting_for_confirmation` (where `pause()` is a no-op). Do both,
+    each bounded: a hung agent-server must not hang the bridge with it."""
+    conversation = session.conversation
+    for call in (conversation.reject_pending_actions, conversation.pause):
+        with contextlib.suppress(Exception):
+            await asyncio.wait_for(asyncio.to_thread(call), _STOP_CALL_TIMEOUT_S)
+
+
+async def _end_running_turn(conn: _Connection) -> None:
+    """The client left mid-turn: stop the agent and keep what it did so far, since
+    the copy goes away with the session."""
+    task = conn.turn_task
+    session = conn.session
+    if task is None or session is None:
+        return
+    await _stop_agent(session)
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError, Exception):
+        await task
+    conn.turn_task = None
+    conn.turn_id = None
+    if _auto_applies(session):
+        try:
+            await asyncio.wait_for(_sync_to_host(conn, session), _DISCONNECT_SYNC_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 - teardown must carry on
+            logger.warning("could not sync the working copy after a disconnect", exc_info=True)
 
 
 def _reason_for(conn: _Connection, status: str) -> TurnFinishedReason:
@@ -448,30 +510,31 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
     turn_id = uuid.uuid4().hex
     conn.turn_id = turn_id
     conn.cancelled = False
+    conn.cancel_deadline = None
     conn._turn_terminal.clear()
 
-    if session.working_copy is not None:
-        checkpoint = await asyncio.to_thread(session.working_copy.checkpoint)
-        if checkpoint is not None:
-            await conn.send(
-                CheckpointMessage(
-                    checkpoint_id=checkpoint.checkpoint_id,
-                    turn_id=turn_id,
-                    created_at=_utcnow(),
-                    files=checkpoint.files,
-                )
-            )
-
-    await conn.send(TurnStarted(turn_id=turn_id))
-
-    reason: TurnFinishedReason = "completed"
+    reason: TurnFinishedReason = "error"
     try:
+        if session.working_copy is not None:
+            checkpoint = await asyncio.to_thread(session.working_copy.checkpoint)
+            if checkpoint is not None:
+                await conn.send(
+                    CheckpointMessage(
+                        checkpoint_id=checkpoint.checkpoint_id,
+                        turn_id=turn_id,
+                        created_at=_utcnow(),
+                        files=checkpoint.files,
+                    )
+                )
+
+        await conn.send(TurnStarted(turn_id=turn_id))
         await asyncio.to_thread(_fire_run, session, _compose_prompt(message))
+        reason = _reason_for(conn, await _await_turn_terminal(conn, session))
     except AppError as exc:
         await conn.send(_error_from(exc))
-        reason = "error"
-    else:
-        reason = _reason_for(conn, await _await_turn_terminal(conn, session))
+    except Exception as exc:  # noqa: BLE001 - `turn_finished` must always follow
+        logger.exception("turn failed")
+        await conn.send(ErrorMessage(code="TURN_FAILED", message=str(exc)))
 
     if _auto_applies(session):
         try:
@@ -480,24 +543,22 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
             logger.warning("could not sync the working copy to the host", exc_info=True)
             await conn.send(ErrorMessage(code="APPLY_FAILED", message=str(exc)))
 
-    await _emit_post_turn(conn)
-    await conn.send(TurnFinished(turn_id=turn_id, reason=reason))
+    try:
+        await _emit_post_turn(conn)
+    except Exception:  # noqa: BLE001 - stats are not worth losing `turn_finished` for
+        logger.warning("could not report post-turn stats", exc_info=True)
+
     conn.turn_id = None
+    conn.turn_task = None
+    await conn.send(TurnFinished(turn_id=turn_id, reason=reason))
 
 
 async def _handle_cancel(conn: _Connection, message: CancelTurn) -> None:
     if conn.turn_id != message.turn_id or conn.session is None:
         return
     conn.cancelled = True
-    conversation = conn.session.conversation
-    # `pause()` unwinds a running loop; `reject_pending_actions()` unblocks a
-    # turn parked at `waiting_for_confirmation` (where `pause()` is a no-op).
-    # Do both -- whichever applies produces a terminal/paused status the turn
-    # watcher is waiting on, so "stopping" always resolves.
-    with contextlib.suppress(Exception):
-        await asyncio.to_thread(conversation.reject_pending_actions)
-    with contextlib.suppress(Exception):
-        await asyncio.to_thread(conversation.pause)
+    conn.cancel_deadline = conn.loop.time() + _CANCEL_GRACE_S
+    await _stop_agent(conn.session)
 
 
 async def _handle_confirm_action(conn: _Connection, message: ConfirmAction) -> None:
@@ -721,7 +782,14 @@ async def _run_server() -> None:
     # Short keepalive: when the VS Code extension host restarts, its socket may
     # linger half-open -- a tight ping keeps a stale connection (and, with it,
     # ownership of the active session) from blocking a fresh one for long.
-    async with serve(_handle_connection, host, port, ping_interval=10, ping_timeout=8):
+    async with serve(
+        _handle_connection,
+        host,
+        port,
+        ping_interval=10,
+        ping_timeout=8,
+        **serve_options(ensure_token()),
+    ):
         await asyncio.Future()  # run forever
 
 

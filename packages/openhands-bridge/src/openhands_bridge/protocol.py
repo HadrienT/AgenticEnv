@@ -182,6 +182,8 @@ class SessionStarted(_Out):
     type: Literal["session_started"] = "session_started"
     conversation_id: str
     llm_source: str
+    # Project files the sandbox copy could not take: the agent won't see them.
+    copy_warnings: list[str] = Field(default_factory=list)
     mode: Literal["agent", "read_only"] = "agent"
 
 

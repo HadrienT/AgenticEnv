@@ -43,7 +43,7 @@ def test_start_container_adds_host_docker_internal_gateway(monkeypatch: pytest.M
     assert "--add-host" in run_cmd
     assert run_cmd[run_cmd.index("--add-host") + 1] == "host.docker.internal:host-gateway"
     assert "-p" in run_cmd
-    assert run_cmd[run_cmd.index("-p") + 1] == "39001:8000"
+    assert run_cmd[run_cmd.index("-p") + 1] == "127.0.0.1:39001:8000"
 
 
 def test_start_container_passes_gpu_and_volume_flags(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -62,6 +62,44 @@ def test_start_container_passes_gpu_and_volume_flags(monkeypatch: pytest.MonkeyP
     assert run_cmd[run_cmd.index("--gpus") + 1] == "all"
     assert "-v" in run_cmd
     assert run_cmd[run_cmd.index("-v") + 1] == "/host/path:/container/path"
+
+
+def test_every_published_port_is_loopback_and_the_server_requires_a_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _capture_docker_run(monkeypatch)
+
+    workspace = AgenticEnvDockerWorkspace(
+        server_image=_IMAGE, host_port=39004, detach_logs=False, extra_ports=True
+    )
+
+    run_cmd = calls[-1]
+    published = [run_cmd[i + 1] for i, arg in enumerate(run_cmd) if arg == "-p"]
+    assert len(published) == 3
+    assert all(port.startswith("127.0.0.1:") for port in published)
+    assert f"SESSION_API_KEY={workspace.session_key}" in run_cmd
+    assert workspace.api_key == workspace.session_key
+
+
+def test_start_container_applies_limits_and_tmpfs(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _capture_docker_run(monkeypatch)
+
+    AgenticEnvDockerWorkspace(
+        server_image=_IMAGE,
+        host_port=39005,
+        detach_logs=False,
+        memory="2g",
+        cpus=4,
+        pids_limit=100,
+        tmpfs_dirs=["/workspace/source/secrets"],
+    )
+
+    run_cmd = calls[-1]
+    assert run_cmd[run_cmd.index("--memory") + 1] == "2g"
+    assert run_cmd[run_cmd.index("--memory-swap") + 1] == "2g"
+    assert run_cmd[run_cmd.index("--cpus") + 1] == "4"
+    assert run_cmd[run_cmd.index("--pids-limit") + 1] == "100"
+    assert run_cmd[run_cmd.index("--tmpfs") + 1] == "/workspace/source/secrets:ro"
 
 
 def test_start_container_raises_when_docker_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:

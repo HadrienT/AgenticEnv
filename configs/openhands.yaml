@@ -11,10 +11,30 @@ sandbox:
   # Pinned, not "latest": must move in lockstep with the openhands-sdk version
   # pinned in packages/openhands_adapter/pyproject.toml -- a mismatch reintroduces
   # the event-parsing incompatibilities noted in the WP08b piège table.
-  image: ghcr.io/openhands/agent-server:1.21.0-python
+  # The digest is what is actually trusted; the tag only says which release it is.
+  image: ghcr.io/openhands/agent-server:1.21.0-python@sha256:9853a9eb75dfe42837b64d3b61a05f3c1f25549ecde39a89f703dbf92c87dca9
   platform: linux/amd64
   enable_gpu: false
   working_dir: /workspace
+  # Host has 47 GiB and 56 threads, and llama-server must stay alive.
+  memory: 24g
+  cpus: 32
+  pids_limit: 8192
+  # Basename globs hidden from the sandbox (read-only is not enough: it has sudo).
+  # `!name` keeps a file a glob would catch.
+  mask:
+    - .env
+    - .env.*
+    - "!.env.example"
+    - "!.env.sample"
+    - .netrc
+    - .pgpass
+    - "*.pem"
+    - "*.key"
+    - id_rsa*
+    - id_ed25519*
+    - credentials.json
+    - secrets
 
 llm:
   # Base URL for the OpenAI-compatible endpoint, reachable FROM INSIDE the

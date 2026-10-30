@@ -24,7 +24,7 @@ et, depuis WP08g, une écriture automatique dans ce repo.
 
 | Livrable |
 |---|
-| Jeton aléatoire 256 bits généré au démarrage du bridge, écrit en `0600` dans `$XDG_RUNTIME_DIR/agenticenv/bridge.token`. |
+| Jeton aléatoire 256 bits généré au démarrage du bridge, écrit en `0600` dans `${XDG_STATE_HOME:-~/.local/state}/agenticenv/bridge.token`. |
 | Connexion refusée sans jeton valide (comparaison à temps constant), avant tout traitement de message. |
 | `serve(..., origins=[None, "vscode-webview://..."])` : rejet des origines web. L'extension se connecte depuis l'hôte Node, donc sans `Origin`. |
 | `project_path` validé : dossier existant, ni `/`, ni `$HOME` lui-même, ni un chemin système. |

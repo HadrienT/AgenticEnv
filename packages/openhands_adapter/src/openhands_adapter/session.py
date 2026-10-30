@@ -19,6 +19,8 @@ Flow, matching the SDK's own behaviour (not re-implemented REST calls):
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import threading
 import urllib.error
 import urllib.request
@@ -43,6 +45,7 @@ from pydantic import SecretStr
 
 from openhands_adapter.config import OpenHandsConfig, load_openhands_config
 from openhands_adapter.docker_workspace import AgenticEnvDockerWorkspace
+from openhands_adapter.secret_paths import find_secret_paths
 from openhands_adapter.working_copy import WorkingCopy
 
 logger = get_logger(__name__)
@@ -222,6 +225,7 @@ class AgentSession:
         self._workspace: AgenticEnvDockerWorkspace | None = None
         self._conversation: RemoteConversation | None = None
         self._llm_source = "create_payload"
+        self._masked_placeholder: Path | None = None
 
     @property
     def conversation(self) -> RemoteConversation:
@@ -292,6 +296,14 @@ class AgentSession:
         return self._working_copy
 
     def __enter__(self) -> AgentSession:
+        # `with` skips `__exit__` when `__enter__` raises, and a container may be up by then.
+        try:
+            return self._start()
+        except BaseException:
+            self.__exit__(None, None, None)
+            raise
+
+    def _start(self) -> AgentSession:
         _check_image_present(self._cfg.sandbox.image)
         settings = get_settings()
         _check_served_model(settings.llm.base_url, settings.llm.served_model)
@@ -307,9 +319,12 @@ class AgentSession:
                 )
             working_dir = _WORKING_COPY
             volumes = [f"{self._project_path}:{_PROJECT_SOURCE}:ro"]
+            masked_files, tmpfs_dirs = self._mask_secrets()
+            volumes += masked_files
         else:
             working_dir = self._cfg.sandbox.working_dir
             volumes = []
+            tmpfs_dirs = []
 
         workspace = AgenticEnvDockerWorkspace(
             server_image=self._cfg.sandbox.image,
@@ -319,6 +334,10 @@ class AgentSession:
             enable_gpu=self._cfg.sandbox.enable_gpu,
             forward_env=["DEBUG"],
             detach_logs=True,
+            memory=self._cfg.sandbox.memory,
+            cpus=self._cfg.sandbox.cpus,
+            pids_limit=self._cfg.sandbox.pids_limit,
+            tmpfs_dirs=tmpfs_dirs,
         )
         self._workspace = workspace
 
@@ -398,6 +417,21 @@ class AgentSession:
             llm_source=self._llm_source,
         )
 
+    def _mask_secrets(self) -> tuple[list[str], list[str]]:
+        """Volumes hiding secret files, and directories to cover with a tmpfs. The
+        source is only read-only: without this, `sudo` in the sandbox reads them."""
+        assert self._project_path is not None
+        files, dirs = find_secret_paths(self._project_path, self._cfg.sandbox.mask)
+        if files:
+            handle, name = tempfile.mkstemp(prefix="agenticenv-masked-")
+            os.close(handle)
+            os.chmod(name, 0o444)
+            self._masked_placeholder = Path(name)
+        volumes = [
+            f"{self._masked_placeholder}:{_PROJECT_SOURCE}/{relpath}:ro" for relpath in files
+        ]
+        return volumes, [f"{_PROJECT_SOURCE}/{relpath}" for relpath in dirs]
+
     def __exit__(
         self,
         exc_type: type[BaseException] | None,
@@ -419,6 +453,8 @@ class AgentSession:
                 self._workspace.cleanup()
             except Exception:  # noqa: BLE001 - cleanup must not mask the real error
                 logger.warning("failed to clean up sandbox workspace", exc_info=True)
+        if self._masked_placeholder is not None:
+            self._masked_placeholder.unlink(missing_ok=True)
 
     def _close_conversation_quietly(self) -> None:
         try:

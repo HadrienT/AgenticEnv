@@ -29,6 +29,8 @@ _BASELINE_REF = "refs/agenticenv/baseline"
 _APPLIED_REF = "refs/agenticenv/applied"
 _CHECKPOINT_NS = "refs/agenticenv/checkpoints"
 
+_MAX_COPY_ERRORS = 50
+
 _GIT_IDENTITY_EXPORT = (
     "export GIT_AUTHOR_NAME=agenticenv GIT_AUTHOR_EMAIL=agenticenv@local "
     "GIT_COMMITTER_NAME=agenticenv GIT_COMMITTER_EMAIL=agenticenv@local; "
@@ -46,6 +48,7 @@ class WorkingCopy:
         self._ws = workspace
         self._root = root
         self._is_git = False
+        self._copy_errors: list[str] = []
 
     @property
     def root(self) -> str:
@@ -54,6 +57,11 @@ class WorkingCopy:
     @property
     def is_git(self) -> bool:
         return self._is_git
+
+    @property
+    def copy_errors(self) -> list[str]:
+        """What `cp` could not copy from the project, so it can be reported."""
+        return self._copy_errors
 
     def _run(self, command: str, timeout: float = 60.0) -> tuple[int, str]:
         result = self._ws.execute_command(
@@ -74,14 +82,16 @@ class WorkingCopy:
         A project that isn't a git repo gets a `git init` in the copy only: the
         bookkeeping below needs one, and the real folder is never touched."""
         code, out = self._run(
-            "mkdir -p . && cp -a /workspace/source/. . 2>/dev/null; "
+            "mkdir -p . && cp -a /workspace/source/. . 2>&1; "
             "test -e .git || git init -q; "
             "test -e .git && echo GIT || echo NOGIT",
             timeout=300.0,
         )
         if code != 0:
             raise DependencyError(f"failed to populate the sandbox working copy: {out.strip()}")
-        self._is_git = out.strip().splitlines()[-1] == "GIT"
+        lines = out.strip().splitlines()
+        self._is_git = lines[-1] == "GIT"
+        self._copy_errors = [line for line in lines if line.startswith("cp: ")][:_MAX_COPY_ERRORS]
         if self._is_git:
             commit = self._commit_tree_to_ref(_BASELINE_REF, parent=None, timeout=300.0)
             self._git(f"update-ref {_APPLIED_REF} {commit}")

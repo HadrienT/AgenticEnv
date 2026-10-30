@@ -11,7 +11,7 @@ the container*, and run limits.
 from __future__ import annotations
 
 from corelib.config import load_yaml_config
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SandboxConfig(BaseModel):
@@ -21,6 +21,11 @@ class SandboxConfig(BaseModel):
     platform: str
     enable_gpu: bool
     working_dir: str
+    memory: str | None = None
+    cpus: int | None = None
+    pids_limit: int | None = None
+    # Basename globs hidden from the sandbox; `!` keeps a name a glob would catch.
+    mask: list[str] = Field(default_factory=list)
 
 
 class SandboxLLMConfig(BaseModel):

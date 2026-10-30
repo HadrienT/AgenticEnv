@@ -8,12 +8,14 @@ allowed to import `openhands.*` (see the import-linter contract for
 from __future__ import annotations
 
 import os
+import secrets
 import threading
 import uuid
 from typing import Any
 
 from openhands.sdk.utils.command import execute_command
 from openhands.workspace import DockerWorkspace
+from pydantic import Field
 
 _SANDBOX_NAME_PREFIX = "agent-server-"
 
@@ -52,6 +54,12 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
     `configs/openhands.yaml` (`sandbox.image`), pinned to the agent-server tag
     validated against the locally installed `openhands-sdk` version.
     """
+
+    memory: str | None = None
+    cpus: int | None = None
+    pids_limit: int | None = None
+    tmpfs_dirs: list[str] = Field(default_factory=list)
+    session_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32), repr=False)
 
     @property
     def container_name(self) -> str | None:
@@ -97,6 +105,18 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
         # Volume mounts.
         for volume in self.volumes:
             flags += ["-v", volume]
+        for directory in self.tmpfs_dirs:
+            flags += ["--tmpfs", f"{directory}:ro"]
+
+        # A runaway agent must not take the host (and llama-server) down with it.
+        if self.memory is not None:
+            flags += ["--memory", self.memory, "--memory-swap", self.memory]
+        if self.cpus is not None:
+            flags += ["--cpus", str(self.cpus)]
+        if self.pids_limit is not None:
+            flags += ["--pids-limit", str(self.pids_limit)]
+
+        flags += ["-e", f"SESSION_API_KEY={self.session_key}"]
 
         # Network path from sandbox -> host. Reaching the local llama-server
         # through this address requires the `llama-bridge` proxy (see
@@ -109,15 +129,16 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
 
         # Published agent-server port. host_port+1/+2 (VSCode/VNC, only when
         # extra_ports is set) are container-side dev ports unrelated to the
-        # llama-bridge port configured in configs/openhands.yaml.
-        ports = ["-p", f"{self.host_port}:8000"]
+        # llama-bridge port configured in configs/openhands.yaml. Loopback only: a
+        # plain `-p` publishes on every interface and Docker bypasses the host firewall.
+        ports = ["-p", f"127.0.0.1:{self.host_port}:8000"]
 
         if self.extra_ports:
             ports += [
                 "-p",
-                f"{self.host_port + 1}:8001",
+                f"127.0.0.1:{self.host_port + 1}:8001",
                 "-p",
-                f"{self.host_port + 2}:8002",
+                f"127.0.0.1:{self.host_port + 2}:8002",
             ]
 
         flags += ports
@@ -169,7 +190,7 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
             "host",
             f"http://localhost:{self.host_port}",
         )
-        object.__setattr__(self, "api_key", None)
+        object.__setattr__(self, "api_key", self.session_key)
 
         # Reuse OpenHands' existing health check.
         self._wait_for_health()

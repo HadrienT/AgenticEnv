@@ -40,8 +40,8 @@ class _LocalWorkspace:
         self.root = root
 
     def execute_command(self, command: str, timeout: float = 30.0) -> _Result:
-        # The fixture has already populated the copy; this keeps `cp` a no-op.
-        command = command.replace("/workspace/source/.", "/dev/null")
+        # The fixture has already populated the copy.
+        command = command.replace("cp -a /workspace/source/. .", "true")
         proc = subprocess.run(
             ["bash", "-c", command],
             cwd=self.root,
