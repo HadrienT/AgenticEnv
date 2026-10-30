@@ -1,0 +1,24 @@
+name: investigate-regression
+version: "1"
+description: >-
+  Find why a price changed in quant-modeling between two builds, using the numerical
+  harness first and the debugger last.
+preconditions:
+  - two builds exist whose reports can be compared
+tags:
+  - quant-modeling
+  - regression
+  - debugging
+steps:
+  - objective: Run qm.run in full mode on both builds, with the reports persisted.
+    verification: both reports exist and share the same compiler and optimization level
+  - objective: Run qm.compare to list the cases that moved.
+    verification: the comparison is accepted as comparable, and names the cases
+  - objective: Decide whether the move is numerical noise or a real change, from the size of the drift against the standard error.
+    verification: every moved case is classified, with its numbers
+  - objective: Narrow the change with git log and a build of the commits in between.
+    verification: one commit is identified as the first with the new value
+  - objective: Write a failing test that pins the correct value, before fixing anything.
+    verification: the test fails on the bad commit
+  - objective: Fix the cause and rerun the full harness.
+    verification: the new test passes and qm.compare shows no other case moved

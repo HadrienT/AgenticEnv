@@ -131,10 +131,10 @@ forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cpp
 # openhands_bridge never imports openhands.* DIRECTLY -- only through openhands_adapter's
 # curated re-exports (openhands_adapter/__init__.py) -- and depends on no other domain
 # package.
-name = "D15: openhands_bridge depends on corelib and openhands_adapter only"
+name = "D15: openhands_bridge depends on corelib, openhands_adapter and agentmem only"
 type = "forbidden"
 source_modules = ["openhands_bridge"]
-forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem", "agentmem_mcp", "qmharness", "qmharness_mcp"]
+forbidden_modules = ["quantlab", "kbase", "kbase_mcp", "evalkit", "cppdev", "cppdev_mcp", "codeintel", "codeintel_mcp", "agentmem_mcp", "qmharness", "qmharness_mcp"]
 
 [dependency-groups]
 dev = [

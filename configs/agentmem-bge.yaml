@@ -1,0 +1,19 @@
+# agentmem config (WP07). See blueprint/06-CONFIG.md §4 and
+# blueprint/wp/WP07-agentmem.md §4/§5.
+# Real embeddings: AGX_AGENTMEM_CONFIG=agentmem-bge.yaml (agenticenv-embed.service).
+embeddings:
+  provider: http
+  base_url: http://127.0.0.1:8310/v1
+  model_name: bge-m3
+  model_version: "q8_0"
+  dim: 1024                     # DOIT correspondre à mem.episodes.embedding vector(D)
+  normalize: true
+
+episodic:
+  embed_summary: true
+  recall_default_k: 5
+  min_similarity: 0.45
+
+procedural:
+  source_dir: agents/procedures
+  sync_on_start: true

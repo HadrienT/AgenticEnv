@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from agentmem.config import load_agentmem_config
-from agentmem.embeddings import HashingEmbedder
+from agentmem.embeddings import build_embedder
 from agentmem.episodic import remember as run_remember
 from corelib.errors import ValidationError
 
@@ -57,7 +57,7 @@ def remember(
             last_commit=last_commit,
         )
         config = load_agentmem_config()
-        embedder = HashingEmbedder(dim=config.embeddings.dim, normalize=config.embeddings.normalize)
+        embedder = build_embedder(config.embeddings)
         written_id = run_remember(
             episode, embedder=embedder, embed_summary=config.episodic.embed_summary
         )

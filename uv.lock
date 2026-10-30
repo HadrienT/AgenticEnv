@@ -3214,6 +3214,7 @@ name = "openhands-bridge"
 version = "0.1.0"
 source = { editable = "packages/openhands-bridge" }
 dependencies = [
+    { name = "agentmem" },
     { name = "corelib" },
     { name = "openhands-adapter" },
     { name = "pydantic" },
@@ -3230,6 +3231,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "agentmem", editable = "packages/agentmem" },
     { name = "corelib", editable = "packages/corelib" },
     { name = "openhands-adapter", editable = "packages/openhands_adapter" },
     { name = "pydantic", specifier = ">=2.7" },

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "WebSocket bridge exposing openhands_adapter.AgentSession (streaming) to an external chat client, e.g. a VS Code extension. See blueprint/wp/WP08b-openhands-sandbox.md and the agenticenv-chat project."
 requires-python = ">=3.12"
 dependencies = [
+    "agentmem",
     "corelib",
     "openhands-adapter",
     "pydantic>=2.7",
@@ -28,5 +29,6 @@ packages = ["src/openhands_bridge"]
 allow-direct-references = true
 
 [tool.uv.sources]
+agentmem = { workspace = true }
 corelib = { workspace = true }
 openhands-adapter = { workspace = true }

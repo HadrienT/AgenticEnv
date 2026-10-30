@@ -30,7 +30,7 @@ def reindex(session: Session, *, model_name: str, embedder: Embedder, replace: b
         rows = session.execute(
             text(
                 "SELECT c.id, c.content FROM kb.chunks c "
-                "WHERE (:last_id IS NULL OR c.id::text > :last_id) "
+                "WHERE (CAST(:last_id AS text) IS NULL OR c.id::text > :last_id) "
                 "AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e "
                 "WHERE e.chunk_id = c.id AND e.model_name = :model_name "
                 "AND e.model_version = :model_version) "

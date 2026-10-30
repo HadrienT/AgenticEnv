@@ -134,3 +134,26 @@ def test_isolation_one_bad_document_does_not_abort_run(
     assert report.status == "partial"
     assert report.documents_ingested == 1
     assert len(report.errors) == 1
+
+
+@pytest.mark.integration
+def test_reindex_resumes_and_replaces_the_old_model(golden_corpus: None) -> None:
+    from corelib.db import session_scope
+    from kbase.embeddings.hashing import HashingEmbedder
+    from kbase.ingestion.reindex import reindex
+    from sqlalchemy import text
+
+    class NewModel(HashingEmbedder):
+        model_name = "new-model"
+
+    embedder = NewModel(dim=1024)
+    with session_scope() as session:
+        first = reindex(session, model_name="new-model", embedder=embedder)
+        again = reindex(session, model_name="new-model", embedder=embedder, replace=True)
+        models = session.execute(
+            text("SELECT DISTINCT model_name FROM kb.chunk_embeddings")
+        ).scalars()
+
+        assert first > 0
+        assert again == 0
+        assert list(models) == ["new-model"]

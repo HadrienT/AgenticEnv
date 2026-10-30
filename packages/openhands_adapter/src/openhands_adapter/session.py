@@ -439,6 +439,10 @@ class AgentSession:
             llm_source=self._llm_source,
         )
 
+    def final_text(self) -> str:
+        """The agent's last answer, for what outlives the session."""
+        return get_agent_final_response(self.conversation.state.events)
+
     def _mask_secrets(self) -> tuple[list[str], list[str]]:
         """Volumes hiding secret files, and directories to cover with a tmpfs. The
         source is only read-only: without this, `sudo` in the sandbox reads them."""

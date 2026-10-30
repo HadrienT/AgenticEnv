@@ -10,7 +10,7 @@ from corelib.time import utc_now
 
 pytestmark = pytest.mark.integration
 
-_DIM = 256
+_DIM = 1024
 
 
 def _episode(**overrides: object) -> Episode:

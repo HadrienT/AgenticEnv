@@ -98,3 +98,18 @@ def test_get_procedure_picks_the_latest_version_when_unspecified(
 def test_get_procedure_unknown_raises_not_found(clean_mem_tables: None) -> None:
     with pytest.raises(NotFoundError):
         get_procedure("does-not-exist")
+
+
+def test_shipped_procedures_load() -> None:
+    from pathlib import Path
+
+    import yaml
+    from agentmem.schemas import Procedure
+    from corelib.config import repo_root
+
+    names = set()
+    for path in sorted((repo_root() / "agents" / "procedures").glob("*.yaml")):
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        assert Procedure.model_validate({**raw, "source_path": path.name}).steps
+        names.add(raw["name"])
+    assert {"add-pricer", "calibrate-sabr", "investigate-regression"} <= names

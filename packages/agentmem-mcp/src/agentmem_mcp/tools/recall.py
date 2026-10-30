@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from agentmem.config import load_agentmem_config
-from agentmem.embeddings import HashingEmbedder
+from agentmem.embeddings import build_embedder
 from agentmem.episodic import recall as run_recall
 
 from agentmem_mcp.mapping import episode_summaries_to_payload
@@ -22,7 +22,7 @@ def recall(
 
     def _run(timeout_s: int) -> tuple[dict[str, Any], dict[str, Any]]:
         config = load_agentmem_config()
-        embedder = HashingEmbedder(dim=config.embeddings.dim, normalize=config.embeddings.normalize)
+        embedder = build_embedder(config.embeddings)
         episodes = run_recall(
             query,
             k=k if k is not None else config.episodic.recall_default_k,

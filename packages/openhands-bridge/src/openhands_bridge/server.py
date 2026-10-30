@@ -62,6 +62,7 @@ from openhands_adapter import (
     reap_orphan_sandboxes,
 )
 from openhands_bridge import apply as apply_mod
+from openhands_bridge import memory
 from openhands_bridge.auth import ensure_token, serve_options, validate_project_path
 from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers
 from openhands_bridge.protocol import (
@@ -126,12 +127,14 @@ _MAX_REPORTED_CHANGES = 200
 _CANCEL_GRACE_S = 30.0
 _STOP_CALL_TIMEOUT_S = 10.0
 _DISCONNECT_SYNC_TIMEOUT_S = 60.0
+_RECALL_TIMEOUT_S = 10.0
 
 # At most one *AgentSession* (= one Docker sandbox) at a time across the whole
 # process, but connections are NOT gated. `_session_owner` is the connection
 # that currently owns the active session; the guard is held only briefly
 # around create/teardown, never for a connection's lifetime.
 _session_guard = asyncio.Lock()
+_background_tasks: set[asyncio.Task[str | None]] = set()
 _session_owner: _Connection | None = None
 
 
@@ -215,6 +218,7 @@ class _Connection:
         self.turn_task: asyncio.Task[None] | None = None
         self.baseline_hashes: dict[str, str] = {}
         self.conflicts: set[str] = set()
+        self.draft: memory.SessionDraft | None = None
         self._seq = 0
         self._send_lock = asyncio.Lock()
         self._turn_terminal = asyncio.Event()
@@ -262,11 +266,13 @@ async def _handle_connection(ws: ServerConnection) -> None:
                 await conn.send(ErrorMessage(code="INTERNAL_ERROR", message=str(exc)))
     finally:
         await _end_running_turn(conn)
+        await _close_draft(conn)
         if conn.session is not None:
             try:
                 await asyncio.to_thread(conn.session.__exit__, None, None, None)
             except Exception:  # noqa: BLE001 - ownership below must still be released
                 logger.warning("session teardown failed", exc_info=True)
+        _record_in_background(conn.draft)
         async with _session_guard:
             if _session_owner is conn:
                 _session_owner = None
@@ -395,6 +401,13 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
         conn.baseline_hashes = await asyncio.to_thread(_snapshot_host_tree, session.project_path)
 
     conn.session = session
+    if not session.read_only:
+        conn.draft = memory.SessionDraft(
+            conversation_id=str(session.conversation.id),
+            profile=profile,
+            started_at=datetime.now(UTC),
+            project=session.project_path.name if session.project_path else None,
+        )
     await conn.send(
         SessionStarted(
             conversation_id=str(session.conversation.id),
@@ -480,6 +493,42 @@ async def _await_turn_terminal(conn: _Connection, session: AgentSession) -> str:
                 return "timeout"
 
 
+async def _with_past_experience(prompt: str, text: str) -> str:
+    try:
+        context = await asyncio.wait_for(
+            asyncio.to_thread(memory.recall_context, text), _RECALL_TIMEOUT_S
+        )
+    except TimeoutError:
+        return prompt
+    return f"{context}\n\n{prompt}" if context else prompt
+
+
+async def _close_draft(conn: _Connection) -> None:
+    """Reads the agent's last words while the sandbox is still up."""
+    session = conn.session
+    if conn.draft is None or session is None:
+        return
+    try:
+        conn.draft.final_text = await asyncio.wait_for(
+            asyncio.to_thread(session.final_text), _STOP_CALL_TIMEOUT_S
+        )
+        changes = await _current_changes(session)
+        conn.draft.changed_files = [change.path for change in changes]
+    except Exception:  # noqa: BLE001 - a thinner episode beats a failed teardown
+        logger.info("could not read the end of the session", exc_info=True)
+
+
+def _record_in_background(draft: memory.SessionDraft | None) -> None:
+    """After the session is released: a slow summary must not keep it busy."""
+    if draft is None or not draft.messages:
+        return
+    task = asyncio.create_task(
+        asyncio.to_thread(memory.record_episode, draft, ended_at=datetime.now(UTC))
+    )
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
+
 async def _stop_agent(session: AgentSession) -> None:
     """`pause()` unwinds a running loop; `reject_pending_actions()` unblocks a turn
     parked at `waiting_for_confirmation` (where `pause()` is a no-op). Do both,
@@ -542,7 +591,13 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
                 )
 
         await conn.send(TurnStarted(turn_id=turn_id))
-        await asyncio.to_thread(_fire_run, session, _compose_prompt(message))
+        prompt = _compose_prompt(message)
+        draft = conn.draft
+        if draft is not None:
+            if not draft.messages:
+                prompt = await _with_past_experience(prompt, message.text)
+            draft.messages.append(message.text)
+        await asyncio.to_thread(_fire_run, session, prompt)
         reason = _reason_for(conn, await _await_turn_terminal(conn, session))
     except AppError as exc:
         await conn.send(_error_from(exc))
@@ -562,6 +617,8 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
     except Exception:  # noqa: BLE001 - stats are not worth losing `turn_finished` for
         logger.warning("could not report post-turn stats", exc_info=True)
 
+    if conn.draft is not None:
+        conn.draft.last_reason = reason
     conn.turn_id = None
     conn.turn_task = None
     await conn.send(TurnFinished(turn_id=turn_id, reason=reason))

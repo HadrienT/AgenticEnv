@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import os
+
 from corelib.config import load_yaml_config
 from pydantic import BaseModel, ConfigDict
 
 
 class EmbeddingsConfig(BaseModel):
+    provider: str = "local"
+    base_url: str | None = None
     model_name: str
     model_version: str
     dim: int
@@ -33,4 +37,5 @@ class AgentmemConfig(BaseModel):
 
 
 def load_agentmem_config() -> AgentmemConfig:
-    return load_yaml_config("agentmem.yaml", AgentmemConfig)
+    """`AGX_AGENTMEM_CONFIG` picks another file of `configs/`, e.g. `agentmem-bge.yaml`."""
+    return load_yaml_config(os.environ.get("AGX_AGENTMEM_CONFIG", "agentmem.yaml"), AgentmemConfig)

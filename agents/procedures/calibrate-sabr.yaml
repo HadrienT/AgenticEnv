@@ -1,9 +1,8 @@
 name: calibrate-sabr
 version: "1"
 description: >-
-  Calibrate a SABR model on one implied volatility surface slice via the C++
-  pricing engine (driven through qmharness), producing a reproducible calibration
-  run. Illustrative procedure from blueprint/wp/WP07-agentmem.md §3.
+  Calibrate a SABR model on one implied volatility slice with
+  quantmodeling.calibrate_sabr_slice, producing a reproducible calibration run.
 preconditions:
   - the input surface has at least 3 strikes per expiry
   - the forward rate is known or derivable from the discount curve

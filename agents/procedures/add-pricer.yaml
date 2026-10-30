@@ -1,0 +1,25 @@
+name: add-pricer
+version: "1"
+description: >-
+  Add a pricing engine for an (instrument, model) pair in quant-modeling and expose it
+  to Python, from the input struct to a reference case in the harness.
+preconditions:
+  - the instrument and model already exist in InstrumentKind and ModelKind
+  - a published formula or reference value exists to check the result against
+tags:
+  - quant-modeling
+  - pricer
+  - registry
+steps:
+  - objective: Add or extend the input struct in include/quantModeling/pricers/inputs.hpp.
+    verification: the struct builds and every field has a default value
+  - objective: Implement the pricing function, returning a PricingResult.
+    verification: the function compiles and fills npv and diagnostics
+  - objective: Register it in default_registry(), in src/pricers/registry.cpp, under r.register_pricer({InstrumentKind, ModelKind, EngineKind}, fn).
+    verification: code.registry_matrix lists the new (instrument, model, engine) triplet
+  - objective: Expose the input class and a price_* function in src/module.cpp.
+    verification: the rebuilt quantmodeling module has the function and the input fields
+  - objective: Add the function to the api table of configs/qmharness.yaml in AgenticEnv.
+    verification: qm.list_cases shows no unmapped case
+  - objective: Add a golden case citing an independent source, and an invariant if one applies.
+    verification: qm.run in full mode passes, and fails if the reference value is altered

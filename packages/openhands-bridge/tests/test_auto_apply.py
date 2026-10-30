@@ -91,6 +91,9 @@ def _fake_session_type(harness: _Harness, *, read_only: bool) -> type:
                 conversation_stats=SimpleNamespace(get_combined_metrics=lambda: stats),
             )
 
+        def final_text(self) -> str:
+            return ""
+
         def __enter__(self) -> FakeSession:
             self.working_copy.initialize()
             return self
@@ -134,6 +137,8 @@ async def _serve(
     monkeypatch.setattr(srv, "reap_orphan_sandboxes", lambda _keep=None: [])
     monkeypatch.setattr(srv, "load_openhands_config", lambda: None)
     monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
+    monkeypatch.setattr(srv.memory, "recall_context", lambda _text: None)
+    monkeypatch.setattr(srv.memory, "record_episode", lambda _draft, ended_at: None)
     monkeypatch.setattr(srv, "AgentSession", _fake_session_type(harness, read_only=read_only))
     async with serve(srv._handle_connection, "127.0.0.1", 0) as server:
         port = server.sockets[0].getsockname()[1]

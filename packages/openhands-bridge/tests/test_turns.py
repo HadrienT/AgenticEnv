@@ -69,6 +69,9 @@ def _session_type(fake: _Fake) -> type:
                 reject_pending_actions=lambda: None,
             )
 
+        def final_text(self) -> str:
+            return ""
+
         def __enter__(self) -> Any:
             return self
 
@@ -88,6 +91,8 @@ def fake(monkeypatch: pytest.MonkeyPatch) -> _Fake:
     monkeypatch.setattr(srv, "reap_orphan_sandboxes", lambda _keep=None: [])
     monkeypatch.setattr(srv, "load_openhands_config", lambda: None)
     monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
+    monkeypatch.setattr(srv.memory, "recall_context", lambda _text: None)
+    monkeypatch.setattr(srv.memory, "record_episode", lambda _draft, ended_at: None)
     monkeypatch.setattr(srv, "AgentSession", _session_type(state))
     monkeypatch.setattr(srv, "_CANCEL_GRACE_S", 0.1)
     return state
