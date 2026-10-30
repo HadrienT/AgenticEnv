@@ -154,6 +154,11 @@ def test_reindex_resumes_and_replaces_the_old_model(golden_corpus: None) -> None
             text("SELECT DISTINCT model_name FROM kb.chunk_embeddings")
         ).scalars()
 
-        assert first > 0
-        assert again == 0
-        assert list(models) == ["new-model"]
+        replaced = list(models)
+        # The corpus is shared: leave it with the vectors the other tests expect.
+        original = HashingEmbedder(dim=1024)
+        reindex(session, model_name=original.model_name, embedder=original, replace=True)
+
+    assert first > 0
+    assert again == 0
+    assert replaced == ["new-model"]
