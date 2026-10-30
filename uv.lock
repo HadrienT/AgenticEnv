@@ -1004,11 +1004,13 @@ name = "corelib"
 version = "0.1.0"
 source = { editable = "packages/corelib" }
 dependencies = [
+    { name = "mcp" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
     { name = "sqlalchemy" },
+    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
@@ -1019,6 +1021,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "mcp" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.1" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pydantic-settings", specifier = ">=2.3" },
@@ -1026,6 +1029,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=5.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "sqlalchemy", specifier = ">=2.0" },
+    { name = "uvicorn" },
 ]
 provides-extras = ["test"]
 

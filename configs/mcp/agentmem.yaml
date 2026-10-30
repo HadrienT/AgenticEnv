@@ -2,6 +2,7 @@
 # (AGX_MCP_AGENTMEM_PORT=8203).
 name: agentmem
 transport: stdio                # stdio | streamable-http
+reach: host_http           # how the sandbox gets to it: host_http | sandbox_stdio
 host: 127.0.0.1
 port: 8203
 default_timeout_s: 30

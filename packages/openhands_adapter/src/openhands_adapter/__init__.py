@@ -23,10 +23,12 @@ from openhands.sdk.security.confirmation_policy import (
 
 from openhands_adapter.config import OpenHandsConfig, load_openhands_config
 from openhands_adapter.docker_workspace import AgenticEnvDockerWorkspace, reap_orphan_sandboxes
+from openhands_adapter.profiles import DEFAULT_PROFILE, list_profiles
 from openhands_adapter.session import AgentResult, AgentSession, run_task
 from openhands_adapter.working_copy import Checkpoint, WorkingCopy
 
 __all__ = [
+    "DEFAULT_PROFILE",
     "AgentResult",
     "AgentSession",
     "AgenticEnvDockerWorkspace",
@@ -40,6 +42,7 @@ __all__ = [
     "GitChangeStatus",
     "NeverConfirm",
     "OpenHandsConfig",
+    "list_profiles",
     "WorkingCopy",
     "load_openhands_config",
     "reap_orphan_sandboxes",

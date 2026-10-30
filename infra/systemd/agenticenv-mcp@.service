@@ -1,0 +1,23 @@
+# systemd **user** unit: one MCP server over HTTP, for the Docker sandbox (WP12 §1).
+# Bound to the docker0 gateway so `host.docker.internal` reaches it, and to nothing
+# else. Every request needs the token in ~/.local/state/agenticenv/mcp.token.
+#
+# Instances: agenticenv-mcp@kbase, agenticenv-mcp@agentmem. Code tools (cppdev,
+# codeintel, qmharness) run inside the sandbox instead: they must see the copy the
+# agent is editing. Installed by infra/scripts/install-desktop-stack.sh.
+[Unit]
+Description=AgenticEnv MCP server (%i)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/AgenticEnv
+ExecStart=%h/.local/bin/uv run --frozen %i-mcp
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=AGX_MCP_TRANSPORT=streamable-http
+Environment=AGX_MCP_HOST=172.17.0.1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

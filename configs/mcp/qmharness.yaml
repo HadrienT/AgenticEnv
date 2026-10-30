@@ -2,6 +2,7 @@
 # blueprint/wp/WP09-numerical-harness.md §7 for the per-tool timeout table.
 name: qmharness
 transport: stdio                # stdio | streamable-http
+reach: sandbox_stdio       # how the sandbox gets to it: host_http | sandbox_stdio
 host: 127.0.0.1
 port: 8205
 default_timeout_s: 30

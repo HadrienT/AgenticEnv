@@ -43,6 +43,7 @@ import threading
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 from corelib.errors import AppError
 from corelib.logging import get_logger
@@ -50,17 +51,19 @@ from websockets.asyncio.server import ServerConnection, serve
 from websockets.exceptions import ConnectionClosed
 
 from openhands_adapter import (
+    DEFAULT_PROFILE,
     AgentSession,
     ConversationStateUpdateEvent,
     Event,
     GitChange,
     NeverConfirm,
+    list_profiles,
     load_openhands_config,
     reap_orphan_sandboxes,
 )
 from openhands_bridge import apply as apply_mod
 from openhands_bridge.auth import ensure_token, serve_options, validate_project_path
-from openhands_bridge.mcp_catalog import list_mcp_servers
+from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers
 from openhands_bridge.protocol import (
     AppliedEntry,
     ApplyChanges,
@@ -295,7 +298,8 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
                         name=s.name, transport=s.transport, tools_allowlist=s.tools_allowlist
                     )
                     for s in servers
-                ]
+                ],
+                profiles=list_profiles(),
             )
         )
         return
@@ -362,12 +366,19 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
     # security-analysis LLM call per action).
     try:
         project_path = validate_project_path(request.project_path) if request.project_path else None
+        config = load_openhands_config()
+        mcp_config, mcp_unavailable = await asyncio.to_thread(
+            build_mcp_config, request.mcp_servers, config
+        )
+        profile = request.profile or DEFAULT_PROFILE
         session = AgentSession(
-            oh_config=load_openhands_config(),
+            oh_config=config,
             confirmation_policy=NeverConfirm(),
             callbacks=[conn.relay.on_event],
             project_path=project_path,
             read_only=request.mode == "read_only",
+            mcp_config=mcp_config,
+            profile=profile,
         )
         await asyncio.to_thread(session.__enter__)
     except AppError as exc:
@@ -390,6 +401,9 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
             llm_source=session.llm_source,
             mode="read_only" if session.read_only else "agent",
             copy_warnings=session.working_copy.copy_errors if session.working_copy else [],
+            profile=profile,
+            mcp_servers=sorted(cast("dict[str, object]", mcp_config.get("mcpServers", {}))),
+            mcp_unavailable=mcp_unavailable,
         )
     )
     await conn.relay.release(session)
@@ -733,7 +747,8 @@ async def _sync_to_host(
     )
     conn.baseline_hashes = new_hashes
 
-    skipped = {p for p, _ in result.skipped}
+    # A protected file will never be written: waiting on it would hold everything back.
+    skipped = {p for p, r in result.skipped if r != apply_mod.PROTECTED_REASON}
     if only_paths is None:
         conn.conflicts = skipped
     else:

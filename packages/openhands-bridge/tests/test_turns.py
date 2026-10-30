@@ -87,6 +87,7 @@ def fake(monkeypatch: pytest.MonkeyPatch) -> _Fake:
     state = _Fake()
     monkeypatch.setattr(srv, "reap_orphan_sandboxes", lambda _keep=None: [])
     monkeypatch.setattr(srv, "load_openhands_config", lambda: None)
+    monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
     monkeypatch.setattr(srv, "AgentSession", _session_type(state))
     monkeypatch.setattr(srv, "_CANCEL_GRACE_S", 0.1)
     return state

@@ -55,13 +55,11 @@ def build_server(config: McpServerConfig) -> MCPServer:
 
 def main() -> None:
     from corelib.config import load_yaml_config
+    from corelib.mcp_http import run_server
 
     config = load_yaml_config("mcp/cppdev.yaml", McpServerConfig)
     server = build_server(config)
-    if config.transport == "stdio":
-        server.run(transport="stdio")
-    else:
-        server.run(transport=config.transport, host=config.host, port=config.port)
+    run_server(server, transport=config.transport, host=config.host, port=config.port)
 
 
 if __name__ == "__main__":

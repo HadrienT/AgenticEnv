@@ -139,6 +139,21 @@ def test_missing_from_sandbox_is_skipped(tmp_path: Path) -> None:
     assert result.skipped == [("ghost.py", "no longer present in the sandbox")]
 
 
+def test_protected_paths_stop_at_the_copy(tmp_path: Path) -> None:
+    paths = [".github/workflows/ci.yml", ".env", "conf/.env.prod", ".git/config", "src/ok.py"]
+
+    result, _ = apply_changes(
+        changes=[GitChangeDTO(status="ADDED", path=p) for p in paths],
+        host_root=tmp_path,
+        read_sandbox=lambda _rel: b"x\n",
+        baseline_hashes={},
+    )
+
+    assert [p for p, _ in result.applied] == ["src/ok.py"]
+    assert {p for p, _ in result.skipped} == set(paths) - {"src/ok.py"}
+    assert not (tmp_path / ".env").exists()
+
+
 def test_binary_file_is_written_byte_for_byte(tmp_path: Path) -> None:
     old = b"\x89PNG\r\n\x1a\n\x00old"
     new = b"\x89PNG\r\n\x1a\n\x00\x01\r\n\x02"

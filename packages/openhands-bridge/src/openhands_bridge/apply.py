@@ -15,14 +15,34 @@ successful apply); a mismatch is `skipped` unless the caller passes
 
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from openhands_bridge.protocol import GitChangeDTO
 
 # relpath -> content bytes, or None if the file no longer exists in the copy
+# Paths the agent may not change in the real repo: what runs by itself on the
+# user's machine or in CI, and secrets. The agent can edit them in its copy; they
+# simply stop there, and the client says so (WP12 §4).
+PROTECTED_REASON = "protected path, not written to your repo"
+_PROTECTED_GLOBS = (
+    ".git/*",
+    ".github/workflows/*",
+    ".gitlab-ci.yml",
+    ".husky/*",
+    ".envrc",
+    ".env",
+    ".env.*",
+    ".vscode/tasks.json",
+    ".vscode/settings.json",
+    ".devcontainer/*",
+    "*.pem",
+    "*.key",
+)
+
 ReadSandbox = Callable[[str], "bytes | None"]
 IsExecutable = Callable[[str], bool]
 
@@ -90,6 +110,13 @@ def _prune_empty_parents(host_root: Path, target: Path) -> None:
         parent = parent.parent
 
 
+def is_protected(relpath: str) -> bool:
+    name = PurePosixPath(relpath).name
+    return any(
+        fnmatch.fnmatch(relpath, glob) or fnmatch.fnmatch(name, glob) for glob in _PROTECTED_GLOBS
+    )
+
+
 def _apply_one(
     change: GitChangeDTO,
     *,
@@ -142,6 +169,10 @@ def apply_changes(
     for change in changes:
         rel = change.path
         if only_paths is not None and rel not in only_paths:
+            continue
+
+        if is_protected(rel):
+            result.skipped.append((rel, PROTECTED_REASON))
             continue
 
         target = host_root / rel

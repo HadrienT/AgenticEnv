@@ -31,6 +31,11 @@ if [[ "$(loginctl show-user "$USER_NAME" -p Linger --value 2>/dev/null || echo n
 fi
 echo "    systemctl --user start agenticenv-bridge   # to start it now"
 
+echo "==> MCP servers for the sandbox"
+install -m 0644 "$REPO/infra/systemd/agenticenv-mcp@.service" "$USER_UNIT_DIR/"
+systemctl --user daemon-reload
+systemctl --user enable --now agenticenv-mcp@kbase agenticenv-mcp@agentmem
+
 echo "==> nightly database backup"
 install -m 0644 "$REPO/infra/systemd/agenticenv-backup.service" "$REPO/infra/systemd/agenticenv-backup.timer" "$USER_UNIT_DIR/"
 systemctl --user daemon-reload

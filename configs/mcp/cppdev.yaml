@@ -1,6 +1,7 @@
 # MCP server config for cppdev-mcp (WP02). See blueprint/06-CONFIG.md §4.
 name: cppdev
 transport: stdio                # stdio | streamable-http
+reach: sandbox_stdio       # how the sandbox gets to it: host_http | sandbox_stdio
 host: 127.0.0.1
 port: 8201
 default_timeout_s: 30

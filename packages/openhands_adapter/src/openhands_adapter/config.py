@@ -26,6 +26,14 @@ class SandboxConfig(BaseModel):
     pids_limit: int | None = None
     # Basename globs hidden from the sandbox; `!` keeps a name a glob would catch.
     mask: list[str] = Field(default_factory=list)
+    code_tools: bool = False
+
+
+class SandboxMcpConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    bind_host: str = "172.17.0.1"
+    sandbox_host: str = "host.docker.internal"
 
 
 class SandboxLLMConfig(BaseModel):
@@ -48,6 +56,7 @@ class OpenHandsConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     sandbox: SandboxConfig
+    mcp: SandboxMcpConfig = Field(default_factory=SandboxMcpConfig)
     llm: SandboxLLMConfig
     run: RunConfig
 

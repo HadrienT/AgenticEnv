@@ -20,11 +20,10 @@ pas installées.
 
 | Livrable |
 |---|
-| Les 5 serveurs en `streamable-http`, sur le host, lancés en services `systemctl --user` (comme le bridge). |
-| Jeton par session, exigé par les serveurs MCP. |
-| Passage par un proxy sur `docker0` (modèle `llama-bridge`), serveurs liés à `127.0.0.1`. |
+| `kbase` et `agentmem` en `streamable-http` sur l'hôte, en services `systemctl --user` (`agenticenv-mcp@`), liés à la passerelle `docker0`, derrière un jeton. |
+| `cppdev`, `codeintel`, `qmharness` en `stdio` **dans** le sandbox : ils doivent voir la copie que l'agent édite, pas le repo hôte, en retard jusqu'à la fin du tour. Ils exigent l'image `infra/docker/agent` (`sandbox.code_tools: true`). |
 | `_start_session` traduit `mcp_servers` en `mcp_config` réel. Le picker a enfin un effet. |
-| Chemins projet : l'agent voit `/workspace/project`, `cppdev` et `codeintel` voient l'hôte. Décider et documenter : outils exécutés dans le sandbox ou traduction de chemin. |
+| Un serveur injoignable ne coûte pas la session : il est signalé dans `session_started.mcp_unavailable`. |
 
 **Acceptation** : e2e où l'agent appelle `kb.search` et `cpp.build` et cite le résultat,
 ligne présente dans `obs.tool_invocations`. Healthcheck : les MCP passent de `skipped` à `ok`.
@@ -46,7 +45,7 @@ ligne présente dans `obs.tool_invocations`. Healthcheck : les MCP passent de `s
 |---|
 | `agents/` chargé et validé par un schéma pydantic. |
 | Prompt injecté via `Agent.agent_context` (SDK 1.21), avec `AGENTS.md` du repo cible et conventions du sandbox. |
-| `StartSession.profile` ajouté au protocole. Profil coding par défaut, `read_only` mappé sur un profil sans écriture. |
+| `StartSession.profile` ajouté au protocole, profils listés dans `mcp_servers.profiles`. Profil `coding` par défaut. Une session `read_only` garde le profil demandé : la copie reste jetable et rien n'atteint le repo. |
 | Allowlist appliquée via `Agent.filter_tools_regex`. |
 | Limites du profil appliquées (`max_iterations`, `timeout_seconds`). |
 | `orchestrator` retiré ou implémenté. Sélecteur côté client : HadrienT/agenticenv-chat#15. |

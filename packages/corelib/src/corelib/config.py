@@ -120,7 +120,7 @@ def get_settings() -> Settings:
     with _settings_lock:
         if _settings_singleton is None:
             try:
-                _settings_singleton = Settings(_env_file=repo_root() / ".env")  # type: ignore[call-arg]
+                _settings_singleton = Settings(_env_file=repo_root() / ".env")
             except PydanticValidationError as exc:
                 missing = [".".join(str(p) for p in err["loc"]) for err in exc.errors()]
                 raise ConfigError(

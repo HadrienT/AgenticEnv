@@ -30,14 +30,15 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any, cast
 
-from corelib.config import get_settings
+from corelib.config import get_settings, repo_root
 from corelib.errors import DependencyError
 from corelib.logging import get_logger
-from openhands.sdk import LLM, Agent, Conversation, Event, Tool
+from openhands.sdk import LLM, Agent, AgentContext, Conversation, Event, Tool
 from openhands.sdk.context.condenser import LLMSummarizingCondenser
 from openhands.sdk.conversation.exceptions import ConversationRunError
 from openhands.sdk.conversation.impl.remote_conversation import RemoteConversation
 from openhands.sdk.conversation.response_utils import get_agent_final_response
+from openhands.sdk.hooks import HookConfig, HookDefinition, HookMatcher
 from openhands.sdk.security.confirmation_policy import ConfirmationPolicyBase, NeverConfirm
 from openhands.sdk.utils.command import execute_command
 from openhands.tools.preset.default import register_default_tools
@@ -45,24 +46,21 @@ from pydantic import SecretStr
 
 from openhands_adapter.config import OpenHandsConfig, load_openhands_config
 from openhands_adapter.docker_workspace import AgenticEnvDockerWorkspace
+from openhands_adapter.profiles import DEFAULT_PROFILE, AgentProfile, load_profile, repo_notes
 from openhands_adapter.secret_paths import find_secret_paths
 from openhands_adapter.working_copy import WorkingCopy
 
 logger = get_logger(__name__)
-
-_DEFAULT_TOOLS = (
-    # Registered by register_default_tools() under these exact snake_case keys
-    # (openhands.sdk.tool.registry) -- NOT the "TerminalTool"-style class names.
-    Tool(name="terminal"),
-    Tool(name="file_editor"),
-    Tool(name="task_tracker"),
-)
 
 # WP08d: the host project is bind-mounted READ-ONLY here; the agent works on a
 # disposable `cp -a` copy at _WORKING_COPY (a subdir of /workspace, so the
 # agent-server's own /workspace/conversations stays out of the copy).
 _PROJECT_SOURCE = "/workspace/source"
 _WORKING_COPY = "/workspace/project"
+# The policy hook: mounted, not copied into the project, so the agent's repo stays
+# untouched and every session gets it (WP12 §4).
+_HOOK_SOURCE = "agents/openhands-template/.openhands/hooks/block_dangerous.sh"
+_HOOK_TARGET = "/opt/agenticenv/hooks/block_dangerous.sh"
 
 # Idempotent: `register_default_tools` just re-imports/re-registers on repeat calls.
 _tools_registered = False
@@ -122,7 +120,12 @@ def _check_served_model(base_url: str, served_model: str) -> None:
         )
 
 
-def _build_agent(cfg: OpenHandsConfig, mcp_config: dict[str, object] | None) -> tuple[Agent, str]:
+def _build_agent(
+    cfg: OpenHandsConfig,
+    mcp_config: dict[str, object] | None,
+    profile: AgentProfile,
+    project_path: Path | None,
+) -> tuple[Agent, str]:
     served_model = get_settings().llm.served_model
     model = f"openai/{served_model}"
     ctx_size = get_settings().llm.ctx_size
@@ -155,13 +158,26 @@ def _build_agent(cfg: OpenHandsConfig, mcp_config: dict[str, object] | None) -> 
         max_size=120,
         keep_first=4,
     )
+    notes = repo_notes(str(project_path) if project_path else None)
+    prompt = profile.prompt()
     agent = Agent(
         llm=_llm("agent"),
-        tools=list(_DEFAULT_TOOLS),
+        # Registered by register_default_tools() under these exact snake_case keys
+        # (openhands.sdk.tool.registry) -- NOT the "TerminalTool"-style class names.
+        tools=[Tool(name=name) for name in profile.builtin_tools],
         mcp_config=mcp_config or {},
+        filter_tools_regex=profile.tools_regex,
+        agent_context=AgentContext(
+            system_message_suffix=f"{prompt}\n\n{notes}" if notes else prompt
+        ),
         condenser=condenser,
     )
     return agent, model
+
+
+def _policy_hooks() -> HookConfig:
+    definition = HookDefinition(command=_HOOK_TARGET, timeout=10)
+    return HookConfig(pre_tool_use=[HookMatcher(matcher="terminal", hooks=[definition])])
 
 
 def _ensure_llm(
@@ -212,8 +228,10 @@ class AgentSession:
         callbacks: list[Callable[[Event], None]] | None = None,
         project_path: str | Path | None = None,
         read_only: bool = False,
+        profile: str = DEFAULT_PROFILE,
     ) -> None:
         self._cfg = oh_config or load_openhands_config()
+        self._profile = load_profile(profile)
         self._confirmation_policy = confirmation_policy or NeverConfirm()
         self._mcp_config = mcp_config
         self._callbacks = callbacks or []
@@ -262,10 +280,10 @@ class AgentSession:
 
     @property
     def run_timeout_s(self) -> int:
-        """Per-run wall-clock budget from the OpenHands config -- the bridge
-        uses it to bound how long it waits for a turn to reach a terminal
-        status."""
-        return self._cfg.run.timeout_s
+        """Per-run wall-clock budget, from the profile or else the OpenHands config
+        -- the bridge uses it to bound how long it waits for a turn to reach a
+        terminal status."""
+        return self._profile.limits.timeout_seconds or self._cfg.run.timeout_s
 
     @property
     def container_name(self) -> str | None:
@@ -309,7 +327,7 @@ class AgentSession:
         _check_served_model(settings.llm.base_url, settings.llm.served_model)
         _ensure_tools_registered()
 
-        agent, model = _build_agent(self._cfg, self._mcp_config)
+        agent, model = _build_agent(self._cfg, self._mcp_config, self._profile, self._project_path)
 
         if self._project_path is not None:
             if not self._project_path.is_dir():
@@ -325,6 +343,7 @@ class AgentSession:
             working_dir = self._cfg.sandbox.working_dir
             volumes = []
             tmpfs_dirs = []
+        volumes.append(f"{repo_root() / _HOOK_SOURCE}:{_HOOK_TARGET}:ro")
 
         workspace = AgenticEnvDockerWorkspace(
             server_image=self._cfg.sandbox.image,
@@ -346,7 +365,10 @@ class AgentSession:
             workspace=workspace,
             visualizer=None,
             callbacks=self._callbacks,
-            max_iteration_per_run=self._cfg.run.max_iterations,
+            max_iteration_per_run=(
+                self._profile.limits.max_iterations or self._cfg.run.max_iterations
+            ),
+            hook_config=_policy_hooks(),
             delete_on_close=True,
         )
         assert isinstance(conversation, RemoteConversation)
@@ -399,7 +421,7 @@ class AgentSession:
         untyped_conversation = cast(Any, conversation)
         untyped_conversation.send_message(message)
         try:
-            untyped_conversation.run(blocking=blocking, timeout=self._cfg.run.timeout_s)
+            untyped_conversation.run(blocking=blocking, timeout=self.run_timeout_s)
         except ConversationRunError as exc:
             raise DependencyError(
                 f"agent-server run failed: {exc}",

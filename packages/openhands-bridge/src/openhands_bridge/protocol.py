@@ -62,6 +62,8 @@ class StartSession(BaseModel):
     # Host directory bind-mounted READ-ONLY into the sandbox; the agent works on
     # a disposable copy of it (WP08d). None -> empty /workspace.
     project_path: str | None = None
+    # One of `agents/profiles/*.yaml`, listed in `mcp_servers.profiles`. None -> the default.
+    profile: str | None = None
     # "agent" (default) allows apply_changes; "read_only" (Ask / Plan modes)
     # refuses it -- the agent may still experiment in the throwaway copy.
     mode: Literal["agent", "read_only"] = "agent"
@@ -184,6 +186,10 @@ class SessionStarted(_Out):
     llm_source: str
     # Project files the sandbox copy could not take: the agent won't see them.
     copy_warnings: list[str] = Field(default_factory=list)
+    profile: str | None = None
+    mcp_servers: list[str] = Field(default_factory=list)
+    # Servers the agent should have had but can't reach.
+    mcp_unavailable: list[str] = Field(default_factory=list)
     mode: Literal["agent", "read_only"] = "agent"
 
 
@@ -309,6 +315,7 @@ class McpServerEntry(BaseModel):
 class McpServers(_Out):
     type: Literal["mcp_servers"] = "mcp_servers"
     servers: list[McpServerEntry]
+    profiles: list[str] = Field(default_factory=list)
 
 
 OutboundMessage = (

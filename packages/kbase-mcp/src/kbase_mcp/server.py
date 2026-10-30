@@ -58,15 +58,13 @@ def _check_embeddings_dimension(expected_dim: int) -> None:
 
 def main() -> None:
     from corelib.config import load_yaml_config
+    from corelib.mcp_http import run_server
     from kbase.config import load_kbase_config
 
     config = load_yaml_config("mcp/kbase.yaml", McpServerConfig)
     _check_embeddings_dimension(load_kbase_config().embeddings.dim)
     server = build_server(config)
-    if config.transport == "stdio":
-        server.run(transport="stdio")
-    else:
-        server.run(transport=config.transport, host=config.host, port=config.port)
+    run_server(server, transport=config.transport, host=config.host, port=config.port)
 
 
 if __name__ == "__main__":

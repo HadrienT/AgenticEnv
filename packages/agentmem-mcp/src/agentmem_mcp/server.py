@@ -84,6 +84,7 @@ def _sync_procedures_if_configured(source_dir: str, sync_on_start: bool) -> None
 def main() -> None:
     from agentmem.config import load_agentmem_config
     from corelib.config import load_yaml_config
+    from corelib.mcp_http import run_server
 
     config = load_yaml_config("mcp/agentmem.yaml", McpServerConfig)
     agentmem_config = load_agentmem_config()
@@ -92,10 +93,7 @@ def main() -> None:
         agentmem_config.procedural.source_dir, agentmem_config.procedural.sync_on_start
     )
     server = build_server(config)
-    if config.transport == "stdio":
-        server.run(transport="stdio")
-    else:
-        server.run(transport=config.transport, host=config.host, port=config.port)
+    run_server(server, transport=config.transport, host=config.host, port=config.port)
 
 
 if __name__ == "__main__":

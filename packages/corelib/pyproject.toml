@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Shared kernel: config, logging, errors, DB access, units, ids, hashing, time, serialization."
 requires-python = ">=3.12"
 dependencies = [
+    "mcp",
+    "uvicorn",
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
     "sqlalchemy>=2.0",

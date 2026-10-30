@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import socket
 from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from corelib.config import reset_settings_cache
 from corelib.errors import ConfigError
-from openhands_bridge.mcp_catalog import list_mcp_servers
+from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers
+
+from openhands_adapter import OpenHandsConfig
 
 _REQUIRED_ENV = {
     "AGX_ENV": "dev",
@@ -65,3 +68,72 @@ def test_list_mcp_servers_missing_directory_raises_config_error(
 
     with pytest.raises(ConfigError):
         list_mcp_servers()
+
+
+def _config(*, code_tools: bool) -> OpenHandsConfig:
+    return OpenHandsConfig.model_validate(
+        {
+            "sandbox": {
+                "image": "x",
+                "platform": "linux/amd64",
+                "enable_gpu": False,
+                "working_dir": "/workspace",
+                "code_tools": code_tools,
+            },
+            "mcp": {"bind_host": "127.0.0.1", "sandbox_host": "host.docker.internal"},
+            "llm": {"sandbox_base_url": "http://x/v1"},
+            "run": {"max_iterations": 1, "timeout_s": 1},
+        }
+    )
+
+
+def _write_servers(env: pytest.MonkeyPatch, root: Path, port: int) -> None:
+    mcp_dir = root / "configs" / "mcp"
+    mcp_dir.mkdir(parents=True)
+    (mcp_dir / "kbase.yaml").write_text(
+        f"name: kbase\ntransport: stdio\nreach: host_http\nport: {port}\n"
+    )
+    (mcp_dir / "cppdev.yaml").write_text("name: cppdev\ntransport: stdio\nreach: sandbox_stdio\n")
+    env.setenv("AGX_CONFIGS_DIR", str(root / "configs"))
+    env.setenv("XDG_STATE_HOME", str(root / "state"))
+    reset_settings_cache()
+
+
+def test_host_server_is_called_over_http_with_the_token(
+    isolated_env: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen()
+        port = listener.getsockname()[1]
+        _write_servers(isolated_env, tmp_path, port)
+
+        config, unavailable = build_mcp_config([], _config(code_tools=False))
+
+    entry = config["mcpServers"]["kbase"]  # type: ignore[index]
+    assert entry["url"] == f"http://host.docker.internal:{port}/mcp"
+    assert entry["headers"]["Authorization"].startswith("Bearer ")
+    assert unavailable == ["cppdev"]
+
+
+def test_a_server_that_is_down_is_reported_not_fatal(
+    isolated_env: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _write_servers(isolated_env, tmp_path, 1)
+
+    config, unavailable = build_mcp_config(["kbase"], _config(code_tools=False))
+
+    assert config == {}
+    assert unavailable == ["kbase"]
+
+
+def test_code_servers_run_inside_the_sandbox_when_the_image_has_them(
+    isolated_env: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _write_servers(isolated_env, tmp_path, 1)
+
+    config, _ = build_mcp_config(["cppdev"], _config(code_tools=True))
+
+    entry = config["mcpServers"]["cppdev"]  # type: ignore[index]
+    assert entry["command"].endswith("/cppdev-mcp")
+    assert entry["env"]["AGX_REPO_ROOT"] == "/opt/agenticenv"

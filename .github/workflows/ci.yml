@@ -59,6 +59,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: HadrienT/agenticenv-chat
+          # Both repos move together: compare with the twin branch, if there is one.
+          ref: ${{ github.head_ref || github.ref_name }}
           path: agenticenv-chat
       - uses: actions/setup-node@v4
         with:

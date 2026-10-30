@@ -133,6 +133,7 @@ async def _serve(
 ) -> AsyncIterator[ClientConnection]:
     monkeypatch.setattr(srv, "reap_orphan_sandboxes", lambda _keep=None: [])
     monkeypatch.setattr(srv, "load_openhands_config", lambda: None)
+    monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
     monkeypatch.setattr(srv, "AgentSession", _fake_session_type(harness, read_only=read_only))
     async with serve(srv._handle_connection, "127.0.0.1", 0) as server:
         port = server.sockets[0].getsockname()[1]
