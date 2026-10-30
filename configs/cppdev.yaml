@@ -1,6 +1,8 @@
 # cppdev tuning: build/test/diagnostics parameters (WP02).
 # No hardcoded values live in packages/cppdev — everything tunable is here.
 
+# quant-modeling has no .clang-tidy; infra/clang-tidy/quant-modeling.clang-tidy is a
+# starting point to copy there.
 diagnostics:
   max_warnings: 20             # warnings truncated beyond this; errors never are
 

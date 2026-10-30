@@ -176,18 +176,12 @@ class RealClangdClient:
         return list(result) if result else []
 
     def ast(self, uri: str, *, timeout_s: float) -> dict[str, Any] | None:
+        # No `range`: clangd then returns the whole translation unit, and it rejects
+        # a range past the end of the file.
         result = self._lsp.request(
-            "textDocument/ast",
-            {
-                "textDocument": {"uri": uri},
-                "range": {
-                    "start": {"line": 0, "character": 0},
-                    "end": {"line": 1_000_000, "character": 0},
-                },
-            },
-            timeout_s=timeout_s,
+            "textDocument/ast", {"textDocument": {"uri": uri}}, timeout_s=timeout_s
         )
-        return dict(result) if result else None
+        return dict(result) if isinstance(result, dict) else None
 
 
 def _as_list(result: Any) -> list[dict[str, Any]]:

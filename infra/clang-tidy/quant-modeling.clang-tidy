@@ -1,0 +1,10 @@
+# Starting point for quant-modeling (WP15 §4): bugs and numerics, not style.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  clang-analyzer-*,
+  performance-*,
+  misc-unused-parameters
+WarningsAsErrors: ""
+HeaderFilterRegex: "include/quantModeling/.*"

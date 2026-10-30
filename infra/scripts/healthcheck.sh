@@ -107,6 +107,15 @@ check_mcp() {
     add_check "$name" "error" "GET /health -> $code on :${port}"
   fi
 }
+check_tool() {
+  if PATH="$HOME/.local/bin:$PATH" command -v "$1" >/dev/null 2>&1; then
+    add_check "tool_$1" "ok" "$1 on PATH"
+  else
+    add_check "tool_$1" "warning" "$1 missing: just install-stack"
+  fi
+}
+for tool in clangd clang-format clang-tidy gcovr ctest; do check_tool "$tool"; done
+
 check_mcp "mcp_cppdev"   "${AGX_MCP_CPPDEV_PORT:-8201}"
 check_mcp "mcp_kbase"    "${AGX_MCP_KBASE_PORT:-8202}"
 check_mcp "mcp_agentmem" "${AGX_MCP_AGENTMEM_PORT:-8203}"

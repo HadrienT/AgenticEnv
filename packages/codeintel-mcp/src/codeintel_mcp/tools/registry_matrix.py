@@ -24,7 +24,7 @@ def registry_matrix(
             compile_commands_dir=Path(root) / build_dir,
             timeout_s=float(timeout_s),
             function_names=config.registry_matrix.function_names,
-            template_param_order=config.registry_matrix.template_param_order,
+            key_enums=config.registry_matrix.key_enums,
         )
         return report.model_dump(mode="json")
 

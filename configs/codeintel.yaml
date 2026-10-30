@@ -4,14 +4,12 @@
 # (06-CONFIG.md: config loading only happens outside the pure business-logic layer).
 
 registry_matrix:
-  # Names of the functions that register a (instrument, model, engine) triplet in
-  # `quant-modeling`'s `PricingRegistry` (10-TARGET-REPO.md §1). `[À CONFIRMER]`: adjust to the
-  # real function name(s) once validated against the target repo.
+  # What registers an (instrument, model, engine) triplet in `quant-modeling`'s
+  # `PricingRegistry` (src/pricers/registry.cpp), and which enum gives which part of
+  # the key: `r.register_pricer({InstrumentKind::X, ModelKind::Y, EngineKind::Z}, fn)`.
   function_names:
-    - registerPricer
-  # Order in which template arguments appear in a registration call, e.g.
-  # `registerPricer<EquityAsianOption, BlackScholes, MonteCarlo>()`.
-  template_param_order:
-    - instrument
-    - model
-    - engine
+    - register_pricer
+  key_enums:
+    InstrumentKind: instrument
+    ModelKind: model
+    EngineKind: engine

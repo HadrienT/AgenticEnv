@@ -23,7 +23,7 @@ Le seul run en base (`run-store-3`) est un résidu de test.
 | Table de correspondance `(instrument, model, engine)` vers fonction et type d'entrée du module, générée ou vérifiée au chargement. |
 | Lecture réelle du résultat (prix, erreur standard, diagnostics, greeks). |
 | `build_dir` corrigé : `build/release` n'existe pas, le build est dans `build/`. Lire le `binaryDir` du preset (`cppdev.project`). |
-| Goldens : `benchmarks/golden` n'existe pas dans quant-modeling. Décider du lieu (recommandé : dans quant-modeling, versionnés avec le code), renommer les identifiants placeholder. |
+| Goldens : gardés dans AgenticEnv (`benchmarks/golden`) pour ne pas mêler le harnais au produit, qui tourne en production. |
 | Test d'intégration sur le vrai `.so`, ignoré proprement s'il est absent. |
 
 **Acceptation** : `qm.run` en mode `quick` passe sur le vrai module et détecte une
@@ -58,4 +58,4 @@ des résultats exacts sur quant-modeling, vérifiés par un échantillon de pric
 | Pas de `.clang-tidy` dans quant-modeling | config minimale proposée dans ce repo |
 | `test`, `sanitize`, `bench` non vérifiés sur le vrai repo | parcours réel documenté, corrections au besoin |
 
-**Acceptation** : les 8 outils `cpp.*` passent une fois sur quant-modeling.
+**Acceptation** : les outils `cpp.*` passent sur un vrai projet C++. Sur quant-modeling : `format_check` et `registry_matrix` vérifiés ; `build`, `test`, `coverage` et `sanitize` à repasser par l'opérateur, car ils réécrivent ses dossiers de build.

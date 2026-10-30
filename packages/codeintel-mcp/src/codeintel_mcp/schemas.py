@@ -40,9 +40,13 @@ class RegistryMatrixConfig(BaseModel):
     no hardcoded config value); loaded from `configs/codeintel.yaml`, never hardcoded in code.
     """
 
-    function_names: list[str] = Field(default_factory=lambda: ["registerPricer"])
-    template_param_order: list[str] = Field(
-        default_factory=lambda: ["instrument", "model", "engine"]
+    function_names: list[str] = Field(default_factory=lambda: ["register_pricer"])
+    key_enums: dict[str, str] = Field(
+        default_factory=lambda: {
+            "InstrumentKind": "instrument",
+            "ModelKind": "model",
+            "EngineKind": "engine",
+        }
     )
 
 

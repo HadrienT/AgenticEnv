@@ -1,103 +1,101 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from codeintel.registry_matrix import registry_matrix
 from codeintel.schemas import RegistryCombination, RegistryMatrixRequest
 
+_KEY_ENUMS = {"InstrumentKind": "instrument", "ModelKind": "model", "EngineKind": "engine"}
 
-def test_registry_matrix_extracts_via_detail_regex(cpp_project: Path, fake_client) -> None:
-    (cpp_project / "src" / "registrations.cpp").write_text(
-        "void register_all() { registerPricer<EquityAsianOption, BlackScholes, MonteCarlo>(); }\n",
-        encoding="utf-8",
-    )
-    fake_client.ast_result = {
-        "role": "file",
-        "kind": "TranslationUnitDecl",
-        "range": {"start": {"line": 0, "character": 0}},
-        "children": [
-            {
-                "role": "expression",
-                "kind": "CallExpr",
-                "detail": "registerPricer<EquityAsianOption, BlackScholes, MonteCarlo>(",
-                "arcana": "",
-                "range": {"start": {"line": 0, "character": 21}},
-                "children": [],
-            }
-        ],
+
+def _enumerator(name: str, enum: str) -> dict[str, Any]:
+    return {
+        "kind": "DeclRef",
+        "detail": name,
+        "children": [{"kind": "Type", "children": [{"kind": "Enum", "detail": enum}]}],
     }
-    report = registry_matrix(
-        RegistryMatrixRequest(paths=["src/registrations.cpp"]),
-        root=cpp_project,
-        compile_commands_dir=cpp_project / "build",
-        timeout_s=5.0,
-        function_names=["registerPricer"],
-        template_param_order=["instrument", "model", "engine"],
-        client=fake_client,
-    )
-    assert report.ok is True
-    assert len(report.entries) == 1
-    entry = report.entries[0]
-    assert entry.instrument == "EquityAsianOption"
-    assert entry.model == "BlackScholes"
-    assert entry.engine == "MonteCarlo"
-    assert entry.adapter.startswith("src/registrations.cpp:")
 
 
-def test_registry_matrix_structural_fallback(cpp_project: Path, fake_client) -> None:
-    (cpp_project / "src" / "registrations.cpp").write_text(
-        "void register_all() {}\n", encoding="utf-8"
-    )
-    fake_client.ast_result = {
-        "role": "file",
-        "kind": "TranslationUnitDecl",
-        "range": {"start": {"line": 0, "character": 0}},
+def _registration(line: int, instrument: str, model: str, engine: str) -> dict[str, Any]:
+    """The shape clangd really returns for `r.register_pricer({...}, lambda)`."""
+    return {
+        "kind": "CXXMemberCall",
+        "range": {"start": {"line": line, "character": 12}},
         "children": [
+            {"kind": "Member", "detail": "register_pricer", "children": []},
             {
-                "role": "expression",
-                "kind": "CallExpr",
-                "detail": "registerPricer(",
-                "arcana": "",
-                "range": {"start": {"line": 5, "character": 0}},
+                "kind": "MaterializeTemporary",
                 "children": [
-                    {"role": "template argument", "detail": "EquityAsianOption"},
-                    {"role": "template argument", "detail": "BlackScholes"},
-                    {"role": "template argument", "detail": "MonteCarlo"},
+                    {
+                        "kind": "InitList",
+                        "children": [
+                            _enumerator(instrument, "InstrumentKind"),
+                            _enumerator(model, "ModelKind"),
+                            _enumerator(engine, "EngineKind"),
+                        ],
+                    }
                 ],
-            }
+            },
+            {
+                "kind": "Lambda",
+                "children": [_enumerator("Analytic", "EngineKind")],
+            },
         ],
     }
-    report = registry_matrix(
-        RegistryMatrixRequest(paths=["src/registrations.cpp"]),
-        root=cpp_project,
-        compile_commands_dir=cpp_project / "build",
-        timeout_s=5.0,
-        function_names=["registerPricer"],
-        template_param_order=["instrument", "model", "engine"],
-        client=fake_client,
-    )
-    assert len(report.entries) == 1
-    assert report.entries[0].model == "BlackScholes"
 
 
-def test_registry_matrix_reports_missing_combinations(cpp_project: Path, fake_client) -> None:
-    (cpp_project / "src" / "registrations.cpp").write_text(
-        "void register_all() {}\n", encoding="utf-8"
-    )
-    fake_client.ast_result = {"role": "file", "kind": "TranslationUnitDecl", "children": []}
-    report = registry_matrix(
-        RegistryMatrixRequest(paths=["src/registrations.cpp"]),
-        root=cpp_project,
-        compile_commands_dir=cpp_project / "build",
+def _matrix(project: Path, client: Any, **kwargs: Any) -> Any:
+    return registry_matrix(
+        RegistryMatrixRequest(paths=["src/registry.cpp"]),
+        root=project,
+        compile_commands_dir=project / "build",
         timeout_s=5.0,
-        function_names=["registerPricer"],
-        template_param_order=["instrument", "model", "engine"],
-        expected_combinations=[
-            RegistryCombination(
-                instrument="EquityAsianOption", model="BlackScholes", engine="MonteCarlo"
-            )
+        function_names=["register_pricer"],
+        key_enums=_KEY_ENUMS,
+        client=client,
+        **kwargs,
+    )
+
+
+def test_reads_the_key_from_the_enumerators_of_the_call(cpp_project: Path, fake_client) -> None:
+    (cpp_project / "src" / "registry.cpp").write_text("// registrations\n", encoding="utf-8")
+    fake_client.ast_result = {
+        "kind": "TranslationUnitDecl",
+        "children": [_registration(57, "EquityVanillaOption", "BlackScholes", "MonteCarlo")],
+    }
+
+    report = _matrix(cpp_project, fake_client)
+
+    entry = report.entries[0]
+    assert (entry.instrument, entry.model, entry.engine) == (
+        "EquityVanillaOption",
+        "BlackScholes",
+        "MonteCarlo",
+    )
+    assert entry.adapter == "src/registry.cpp:58"
+
+
+def test_reports_expected_combinations_that_are_missing(cpp_project: Path, fake_client) -> None:
+    (cpp_project / "src" / "registry.cpp").write_text("// registrations\n", encoding="utf-8")
+    fake_client.ast_result = {
+        "kind": "TranslationUnitDecl",
+        "children": [_registration(1, "EquityVanillaOption", "BlackScholes", "Analytic")],
+    }
+    wanted = RegistryCombination(instrument="Barrier", model="BlackScholes", engine="MonteCarlo")
+
+    report = _matrix(cpp_project, fake_client, expected_combinations=[wanted])
+
+    assert report.missing_combinations == [wanted]
+
+
+def test_other_calls_are_ignored(cpp_project: Path, fake_client) -> None:
+    (cpp_project / "src" / "registry.cpp").write_text("// registrations\n", encoding="utf-8")
+    fake_client.ast_result = {
+        "kind": "TranslationUnitDecl",
+        "children": [
+            {"kind": "CallExpr", "children": [{"kind": "DeclRef", "detail": "something_else"}]}
         ],
-        client=fake_client,
-    )
-    assert len(report.entries) == 0
-    assert len(report.missing_combinations) == 1
+    }
+
+    assert _matrix(cpp_project, fake_client).entries == []

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -17,14 +16,8 @@ from codeintel.schemas import (
 from codeintel.session import resolve_client
 
 _SOURCE_SUFFIXES = {".cpp", ".cc", ".cxx"}
-
-# Best-effort: a template-instantiating call typically shows up in clangd's `detail`/`arcana`
-# as `name<Arg1, Arg2, ...>(`. This is regex over an *AST node's own debug metadata*, not over
-# source text (WP03 §10 bans the latter for registry extraction, not the former) — but the
-# exact shape of `detail`/`arcana` for a given clangd version isn't part of the documented
-# extension contract, so this heuristic must be validated against the real target repo before
-# being trusted in production (see blueprint/wp/WP03-code-intelligence.md §2).
-_TEMPLATE_CALL_RE = re.compile(r"\b(?P<name>[A-Za-z_]\w*)\s*<(?P<args>[^<>]+)>\s*\(")
+_CALL_KINDS = {"CallExpr", "CXXMemberCall", "CXXMemberCallExpr"}
+_CALLEE_KINDS = {"Member", "MemberExpr", "DeclRef", "DeclRefExpr"}
 
 
 def registry_matrix(
@@ -34,7 +27,7 @@ def registry_matrix(
     compile_commands_dir: Path,
     timeout_s: float,
     function_names: Sequence[str],
-    template_param_order: Sequence[str],
+    key_enums: Mapping[str, str],
     expected_combinations: Sequence[RegistryCombination] = (),
     client: ClangdClient | None = None,
 ) -> RegistryMatrixReport:
@@ -47,7 +40,7 @@ def registry_matrix(
             tree = session.ast(uri, timeout_s=timeout_s)
             if tree is None:
                 continue
-            entries.extend(_walk_ast(tree, function_names, template_param_order, path, root))
+            entries.extend(_walk_ast(tree, function_names, key_enums, path, root))
     missing = [
         combo
         for combo in expected_combinations
@@ -82,49 +75,52 @@ def _iter_source_files(root: Path, paths: list[str]) -> list[Path]:
 def _walk_ast(
     node: dict[str, Any],
     function_names: Sequence[str],
-    template_param_order: Sequence[str],
+    key_enums: Mapping[str, str],
     path: Path,
     root: Path,
 ) -> list[RegistryEntry]:
-    entries: list[RegistryEntry] = []
-    if node.get("kind") == "CallExpr":
-        name, args = _match_registration_call(node, function_names)
-        if name is not None and len(args) >= len(template_param_order):
-            kwargs = dict(zip(template_param_order, args, strict=False))
-            line = node.get("range", {}).get("start", {}).get("line", 0) + 1
-            entries.append(
-                RegistryEntry(
-                    instrument=kwargs.get("instrument", "?"),
-                    model=kwargs.get("model", "?"),
-                    engine=kwargs.get("engine", "?"),
-                    adapter=f"{to_relative(path, root)}:{line}",
-                )
+    children = node.get("children") or []
+    if node.get("kind") in _CALL_KINDS and any(
+        child.get("kind") in _CALLEE_KINDS and child.get("detail") in function_names
+        for child in children
+    ):
+        key = _enumerators(node, key_enums)
+        line = node.get("range", {}).get("start", {}).get("line", 0) + 1
+        return [
+            RegistryEntry(
+                instrument=key.get("instrument", "?"),
+                model=key.get("model", "?"),
+                engine=key.get("engine", "?"),
+                adapter=f"{to_relative(path, root)}:{line}",
             )
-    for child in node.get("children", []):
-        entries.extend(_walk_ast(child, function_names, template_param_order, path, root))
+        ]
+    entries: list[RegistryEntry] = []
+    for child in children:
+        entries.extend(_walk_ast(child, function_names, key_enums, path, root))
     return entries
 
 
-def _match_registration_call(
-    node: dict[str, Any], function_names: Sequence[str]
-) -> tuple[str | None, list[str]]:
-    for haystack in (node.get("detail") or "", node.get("arcana") or ""):
-        match = _TEMPLATE_CALL_RE.search(haystack)
-        if match and match.group("name") in function_names:
-            args = [a.strip() for a in match.group("args").split(",")]
-            return match.group("name"), args
-    template_children = [
-        c for c in node.get("children", []) if c.get("role") == "template argument"
-    ]
-    if template_children:
-        callee = _callee_name(node)
-        if callee in function_names:
-            return callee, [c.get("detail", "?") for c in template_children]
-    return None, []
+def _enumerators(node: dict[str, Any], key_enums: Mapping[str, str]) -> dict[str, str]:
+    """The registration key, read from the types of the enumerators in the call: the
+    `{InstrumentKind::X, ModelKind::Y, EngineKind::Z}` of `r.register_pricer(...)`. The
+    first of each kind wins, since the pricing lambda that follows may mention others."""
+    found: dict[str, str] = {}
+    for child in node.get("children") or []:
+        if child.get("kind") in {"DeclRef", "DeclRefExpr"}:
+            enum = _enum_name(child)
+            if enum is not None and enum in key_enums:
+                found.setdefault(key_enums[enum], child.get("detail", "?"))
+        for field, value in _enumerators(child, key_enums).items():
+            found.setdefault(field, value)
+    return found
 
 
-def _callee_name(node: dict[str, Any]) -> str | None:
-    detail = node.get("detail")
-    if not detail:
-        return None
-    return detail.split("(")[0].split("<")[0].strip() or None
+def _enum_name(node: dict[str, Any]) -> str | None:
+    for child in node.get("children") or []:
+        if child.get("kind") == "Enum":
+            detail = child.get("detail")
+            return str(detail) if detail else None
+        name = _enum_name(child)
+        if name is not None:
+            return name
+    return None

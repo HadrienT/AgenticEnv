@@ -31,6 +31,11 @@ if [[ "$(loginctl show-user "$USER_NAME" -p Linger --value 2>/dev/null || echo n
 fi
 echo "    systemctl --user start agenticenv-bridge   # to start it now"
 
+echo "==> C++ tools for cppdev and codeintel (user-level, no sudo)"
+for tool in clangd clang-format clang-tidy gcovr; do
+  uv tool install --quiet "$tool"
+done
+
 echo "==> MCP servers for the sandbox"
 install -m 0644 "$REPO/infra/systemd/agenticenv-mcp@.service" "$USER_UNIT_DIR/"
 systemctl --user daemon-reload
