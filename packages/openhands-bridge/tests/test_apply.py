@@ -137,3 +137,62 @@ def test_missing_from_sandbox_is_skipped(tmp_path: Path) -> None:
 
     assert result.applied == []
     assert result.skipped == [("ghost.py", "no longer present in the sandbox")]
+
+
+def test_binary_file_is_written_byte_for_byte(tmp_path: Path) -> None:
+    old = b"\x89PNG\r\n\x1a\n\x00old"
+    new = b"\x89PNG\r\n\x1a\n\x00\x01\r\n\x02"
+    (tmp_path / "a.png").write_bytes(old)
+
+    apply_changes(
+        changes=[GitChangeDTO(status="UPDATED", path="a.png")],
+        host_root=tmp_path,
+        read_sandbox=_sandbox({"a.png": new}),
+        baseline_hashes=hash_host_tree(tmp_path, ["a.png"]),
+    )
+
+    assert (tmp_path / "a.png").read_bytes() == new
+
+
+def test_new_executable_keeps_its_exec_bit(tmp_path: Path) -> None:
+    apply_changes(
+        changes=[GitChangeDTO(status="ADDED", path="run.sh")],
+        host_root=tmp_path,
+        read_sandbox=_sandbox({"run.sh": b"#!/bin/sh\n"}),
+        is_executable=lambda rel: rel == "run.sh",
+        baseline_hashes={},
+    )
+
+    assert (tmp_path / "run.sh").stat().st_mode & 0o111
+
+
+def test_write_failure_is_skipped_not_raised(tmp_path: Path) -> None:
+    locked = tmp_path / "locked"
+    locked.mkdir()
+    locked.chmod(0o500)
+    try:
+        result, _ = apply_changes(
+            changes=[GitChangeDTO(status="ADDED", path="locked/x.py")],
+            host_root=tmp_path,
+            read_sandbox=_sandbox({"locked/x.py": b"y"}),
+            baseline_hashes={},
+        )
+    finally:
+        locked.chmod(0o700)
+
+    assert result.applied == []
+    assert result.skipped[0][0] == "locked/x.py"
+
+
+def test_delete_prunes_directories_it_empties(tmp_path: Path) -> None:
+    (tmp_path / "pkg/sub").mkdir(parents=True)
+    (tmp_path / "pkg/sub/new.py").write_text("x\n")
+
+    apply_changes(
+        changes=[GitChangeDTO(status="DELETED", path="pkg/sub/new.py")],
+        host_root=tmp_path,
+        read_sandbox=_sandbox({}),
+        baseline_hashes=hash_host_tree(tmp_path, ["pkg/sub/new.py"]),
+    )
+
+    assert not (tmp_path / "pkg").exists()

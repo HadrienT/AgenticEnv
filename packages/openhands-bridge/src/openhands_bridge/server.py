@@ -5,10 +5,11 @@ sandbox working copy). Every connection opens with `hello`/`welcome`
 capability negotiation; every outbound message carries a monotonic `seq`;
 each user message is wrapped in `turn_started`/`turn_finished`, can be
 cancelled mid-flight, and -- when the session has a project working copy --
-is preceded by a `checkpoint` the client can restore. `apply_changes` writes
-the agent's edits from the throwaway copy back into the real host repo,
-performed by *this* process (which runs as the user, unlike the uid-10001
-agent-server).
+is preceded by a `checkpoint` the client can restore. At the end of each turn
+the agent's edits are written from the throwaway copy back into the real host
+repo (WP08g), by *this* process (which runs as the user, unlike the uid-10001
+agent-server); restoring a checkpoint goes through the same sync, so an undo
+reaches the real repo too. A `read_only` session never writes.
 
 Connections themselves are never gated -- a client may connect, negotiate,
 list MCP servers, and reconnect freely (VS Code restarts its extension host,
@@ -25,8 +26,7 @@ and calls `conversation.pause()`, moving the run to a terminal/`paused` state
 the same watcher observes and reports as a cancelled turn.
 
 The confirmation policy is `NeverConfirm` (WP08d): the agent works on a
-disposable copy and nothing reaches the real repo without an explicit
-`apply_changes`, so the copy is the safety boundary. `waiting_for_confirmation`
+disposable copy and acts without per-action prompts. `waiting_for_confirmation`
 should not occur; if it ever does, the turn watcher still bounds the wait by
 `run_timeout_s` rather than hanging.
 """
@@ -69,7 +69,6 @@ from openhands_bridge.protocol import (
     CheckpointRestored,
     ConfirmAction,
     ContextStats,
-    DiscardChanges,
     ErrorMessage,
     EventMessage,
     FileDiffMessage,
@@ -202,6 +201,7 @@ class _Connection:
         self.turn_id: str | None = None
         self.cancelled = False
         self.baseline_hashes: dict[str, str] = {}
+        self.conflicts: set[str] = set()
         self._seq = 0
         self._send_lock = asyncio.Lock()
         self._turn_terminal = asyncio.Event()
@@ -323,8 +323,6 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
         await _handle_restore_checkpoint(conn, inbound)
     elif isinstance(inbound, ApplyChanges):
         await _handle_apply_changes(conn, inbound)
-    elif isinstance(inbound, DiscardChanges):
-        await _handle_discard_changes(conn, inbound)
 
 
 async def _start_session(conn: _Connection, request: StartSession) -> bool:
@@ -335,10 +333,9 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
     if reaped:
         logger.info("reaped orphan sandbox containers before start", extra={"containers": reaped})
 
-    # NeverConfirm: under WP08d the agent works on a disposable copy and nothing
-    # reaches the real repo without an explicit `apply_changes`, so the copy is
-    # the safety boundary -- a per-action confirmation pause only wedges the turn
-    # (`ConfirmRisky` also adds a security-analysis LLM call per action).
+    # NeverConfirm: the agent works on a disposable copy and a per-action
+    # confirmation pause only wedges the turn (`ConfirmRisky` also adds a
+    # security-analysis LLM call per action).
     session = AgentSession(
         oh_config=load_openhands_config(),
         confirmation_policy=NeverConfirm(),
@@ -352,6 +349,11 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
         await conn.send(_error_from(exc))
         return False
 
+    # Before `session_started`: an edit made once the client sees the session
+    # must count as a conflict, not end up in the reference hashes.
+    if session.project_path is not None:
+        conn.baseline_hashes = await asyncio.to_thread(_snapshot_host_tree, session.project_path)
+
     conn.session = session
     await conn.send(
         SessionStarted(
@@ -361,16 +363,13 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
         )
     )
     await conn.relay.release(session)
-
-    if session.project_path is not None:
-        conn.baseline_hashes = await asyncio.to_thread(_snapshot_host_tree, session.project_path)
     return True
 
 
 def _snapshot_host_tree(root: Path) -> dict[str, str]:
     """Content hashes of the real repo's tracked files at session start --
-    `apply_changes` compares against these to refuse a blind overwrite of a
-    file the user edited meanwhile (WP08d conflict rule)."""
+    the sync to the host compares against these to refuse a blind overwrite of
+    a file the user edited meanwhile (WP08d conflict rule)."""
     try:
         proc = subprocess.run(
             ["git", "-C", str(root), "ls-files", "-z"],
@@ -473,6 +472,13 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
         reason = "error"
     else:
         reason = _reason_for(conn, await _await_turn_terminal(conn, session))
+
+    if _auto_applies(session):
+        try:
+            await _sync_to_host(conn, session)
+        except Exception as exc:  # noqa: BLE001 - the turn must still finish cleanly
+            logger.warning("could not sync the working copy to the host", exc_info=True)
+            await conn.send(ErrorMessage(code="APPLY_FAILED", message=str(exc)))
 
     await _emit_post_turn(conn)
     await conn.send(TurnFinished(turn_id=turn_id, reason=reason))
@@ -628,21 +634,59 @@ async def _handle_restore_checkpoint(conn: _Connection, message: RestoreCheckpoi
         await conn.send(_error_from(exc))
         return
     await conn.send(CheckpointRestored(checkpoint_id=message.checkpoint_id))
+    if _auto_applies(session):
+        await _sync_to_host(conn, session)
     await _emit_files_changed(conn)
 
 
-async def _handle_discard_changes(conn: _Connection, message: DiscardChanges) -> None:
-    session = conn.session
-    assert session is not None
-    if session.working_copy is None:
-        await conn.send(_no_working_copy())
-        return
-    try:
-        await asyncio.to_thread(session.working_copy.discard, message.paths)
-    except AppError as exc:
-        await conn.send(_error_from(exc))
-        return
-    await _emit_files_changed(conn)
+def _auto_applies(session: AgentSession) -> bool:
+    working_copy = session.working_copy
+    return not session.read_only and working_copy is not None and working_copy.is_git
+
+
+async def _sync_to_host(
+    conn: _Connection,
+    session: AgentSession,
+    *,
+    only_paths: set[str] | None = None,
+    force: bool = False,
+) -> None:
+    """Writes what the real repo has not received yet. `refs/agenticenv/applied`
+    only moves once nothing is left in conflict, so a skipped file stays pending
+    until it is overwritten or the next sync goes through."""
+    working_copy = session.working_copy
+    project_path = session.project_path
+    assert working_copy is not None and project_path is not None
+
+    pairs = await asyncio.to_thread(working_copy.changed_since_applied)
+    changes = [GitChangeDTO(status=s, path=p) for s, p in pairs if _keep_change(p)]
+    result, new_hashes = await asyncio.to_thread(
+        apply_mod.apply_changes,
+        changes=changes,
+        host_root=project_path,
+        read_sandbox=working_copy.read_file,
+        is_executable=working_copy.is_executable,
+        baseline_hashes=conn.baseline_hashes,
+        only_paths=only_paths,
+        force=force,
+    )
+    conn.baseline_hashes = new_hashes
+
+    skipped = {p for p, _ in result.skipped}
+    if only_paths is None:
+        conn.conflicts = skipped
+    else:
+        conn.conflicts = (conn.conflicts - {p for p, _ in result.applied}) | skipped
+    if not conn.conflicts:
+        await asyncio.to_thread(working_copy.mark_applied)
+
+    if result.applied or result.skipped:
+        await conn.send(
+            ChangesApplied(
+                applied=[AppliedEntry(path=p, status=s) for p, s in result.applied],
+                skipped=[SkippedEntry(path=p, reason=r) for p, r in result.skipped],
+            )
+        )
 
 
 async def _handle_apply_changes(conn: _Connection, message: ApplyChanges) -> None:
@@ -660,25 +704,8 @@ async def _handle_apply_changes(conn: _Connection, message: ApplyChanges) -> Non
         await conn.send(_no_working_copy())
         return
 
-    changes = await _current_changes(session)
     only_paths = set(message.paths) if message.paths is not None else None
-
-    result, new_hashes = await asyncio.to_thread(
-        apply_mod.apply_changes,
-        changes=changes,
-        host_root=session.project_path,
-        read_sandbox=session.working_copy.read_file,
-        baseline_hashes=conn.baseline_hashes,
-        only_paths=only_paths,
-        force=message.force,
-    )
-    conn.baseline_hashes = new_hashes
-    await conn.send(
-        ChangesApplied(
-            applied=[AppliedEntry(path=p, status=s) for p, s in result.applied],
-            skipped=[SkippedEntry(path=p, reason=r) for p, r in result.skipped],
-        )
-    )
+    await _sync_to_host(conn, session, only_paths=only_paths, force=message.force)
     await _emit_files_changed(conn)
 
 

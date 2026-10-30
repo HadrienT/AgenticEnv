@@ -8,7 +8,6 @@ from openhands_bridge.protocol import (
     ApplyChanges,
     CancelTurn,
     ConfirmAction,
-    DiscardChanges,
     ErrorMessage,
     Hello,
     ListMcpServers,
@@ -177,13 +176,12 @@ def test_parse_inbound_apply_changes_with_paths_and_force() -> None:
     assert message.force is True
 
 
-def test_parse_inbound_request_bundle_diff_and_restore_and_discard() -> None:
+def test_parse_inbound_request_bundle_diff_and_restore() -> None:
     assert isinstance(parse_inbound('{"type": "request_bundle_diff"}'), RequestBundleDiff)
     assert isinstance(
         parse_inbound('{"type": "restore_checkpoint", "checkpoint_id": "c1"}'),
         RestoreCheckpoint,
     )
-    assert isinstance(parse_inbound('{"type": "discard_changes"}'), DiscardChanges)
 
 
 def test_truncate_passes_small_payloads_through() -> None:

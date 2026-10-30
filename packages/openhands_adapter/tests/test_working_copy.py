@@ -81,15 +81,17 @@ def test_initialize_detects_git_repo(repo: Path) -> None:
     assert _wc(repo).is_git is True
 
 
-def test_initialize_non_git_is_marked(tmp_path: Path) -> None:
+def test_initialize_inits_git_in_a_non_git_copy(tmp_path: Path) -> None:
     plain = tmp_path / "plain"
     plain.mkdir()
     (plain / "note.txt").write_text("hi\n")
     wc = WorkingCopy(_FakeWorkspace(plain), str(plain))  # type: ignore[arg-type]
     wc.initialize()
 
-    assert wc.is_git is False
-    assert wc.checkpoint() is None
+    assert wc.is_git is True
+    assert wc.changed_files() == []
+    (plain / "note.txt").write_text("edited\n")
+    assert wc.changed_files() == [("UPDATED", "note.txt")]
 
 
 def test_checkpoint_and_diff_track_agent_edits(repo: Path) -> None:
@@ -167,10 +169,42 @@ def test_read_file_returns_content_then_none(repo: Path) -> None:
     assert wc.read_file("does-not-exist.py") is None
 
 
-def test_discard_resets_working_tree(repo: Path) -> None:
+def test_changed_since_applied_only_lists_what_the_host_has_not_received(repo: Path) -> None:
     wc = _wc(repo)
-    (repo / "app.py").write_text("print('vX')\n")
+    (repo / "app.py").write_text("print('v2')\n")
+    assert wc.changed_since_applied() == [("UPDATED", "app.py")]
 
-    wc.discard(None)
+    wc.mark_applied()
+    assert wc.changed_since_applied() == []
+    # ...while the session-level view stays cumulative.
+    assert wc.changed_files() == [("UPDATED", "app.py")]
 
-    assert (repo / "app.py").read_text() == "print('v1')\n"
+
+def test_undo_shows_up_as_a_pending_change_for_the_host(repo: Path) -> None:
+    wc = _wc(repo)
+    checkpoint = wc.checkpoint()
+    assert checkpoint is not None
+    (repo / "app.py").write_text("print('v2')\n")
+    (repo / "new.py").write_text("x = 1\n")
+    wc.mark_applied()
+
+    wc.restore(checkpoint.checkpoint_id)
+
+    assert not (repo / "new.py").exists()
+    assert sorted(wc.changed_since_applied()) == [("DELETED", "new.py"), ("UPDATED", "app.py")]
+
+
+def test_rename_is_a_delete_plus_an_add(repo: Path) -> None:
+    wc = _wc(repo)
+    (repo / "app.py").rename(repo / "renamed.py")
+
+    assert sorted(wc.changed_since_applied()) == [("ADDED", "renamed.py"), ("DELETED", "app.py")]
+
+
+def test_is_executable(repo: Path) -> None:
+    wc = _wc(repo)
+    (repo / "run.sh").write_text("#!/bin/sh\n")
+    (repo / "run.sh").chmod(0o755)
+
+    assert wc.is_executable("run.sh") is True
+    assert wc.is_executable("app.py") is False

@@ -9,8 +9,8 @@ to/from SDK objects in `server.py`, and `openhands_bridge` never imports
 
 Protocol v2 (agenticenv-chat/docs/bridge-v2-spec.md): `hello`/`welcome`
 negotiation, a monotonic `seq` on every outbound message, turn boundaries,
-cancellation, mid-turn context stats, and -- for WP08d -- a disposable sandbox
-working copy with `apply_changes` back to the real repo. Capabilities the
+cancellation, mid-turn context stats, and -- for WP08d/WP08g -- a disposable
+sandbox working copy applied to the real repo at the end of each turn. Capabilities the
 bridge does NOT implement yet (deltas, todo, compact, interrupt, models,
 resume) are simply not announced; the client degrades per capability.
 """
@@ -126,23 +126,16 @@ class RestoreCheckpoint(BaseModel):
 
 
 class ApplyChanges(BaseModel):
-    """Write changed files from the sandbox copy into the real host repo (WP08d).
-    `paths` absent -> all changed files. `force` overrides conflict detection."""
+    """Write changed files from the sandbox copy into the real host repo. The
+    bridge already does this after each turn (WP08g); a client only sends it to
+    overwrite reported conflicts. `paths` absent -> all pending files. `force`
+    overrides conflict detection."""
 
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["apply_changes"] = "apply_changes"
     paths: list[str] | None = None
     force: bool = False
-
-
-class DiscardChanges(BaseModel):
-    """Reset files in the sandbox copy back to the session baseline (WP08d)."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    type: Literal["discard_changes"] = "discard_changes"
-    paths: list[str] | None = None
 
 
 InboundMessage = Annotated[
@@ -155,8 +148,7 @@ InboundMessage = Annotated[
     | RequestDiff
     | RequestBundleDiff
     | RestoreCheckpoint
-    | ApplyChanges
-    | DiscardChanges,
+    | ApplyChanges,
     Field(discriminator="type"),
 ]
 _inbound_adapter: TypeAdapter[InboundMessage] = TypeAdapter(InboundMessage)

@@ -7,7 +7,8 @@ drives the git bookkeeping inside that copy through
 checkpoints stored on **technical refs** (`refs/agenticenv/*`), never on a
 branch, so the copy's `git log`/`git branch` stay clean. The copy is thrown
 away with the container; nothing here touches the real repo (that's the
-bridge's `apply_changes`, WP08d §3.3).
+bridge's auto-apply, WP08g). `refs/agenticenv/applied` marks what the real repo
+has already received, so one sync covers both a finished turn and an undo.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from openhands.sdk.workspace import RemoteWorkspace
 
 _BASELINE_REF = "refs/agenticenv/baseline"
+_APPLIED_REF = "refs/agenticenv/applied"
 _CHECKPOINT_NS = "refs/agenticenv/checkpoints"
 
 _GIT_IDENTITY_EXPORT = (
@@ -67,9 +69,13 @@ class WorkingCopy:
 
     def initialize(self) -> None:
         """Populate `/workspace/project` from the read-only source and pin the
-        session baseline. Idempotent-ish: safe to call once in `__enter__`."""
+        session baseline. Idempotent-ish: safe to call once in `__enter__`.
+
+        A project that isn't a git repo gets a `git init` in the copy only: the
+        bookkeeping below needs one, and the real folder is never touched."""
         code, out = self._run(
             "mkdir -p . && cp -a /workspace/source/. . 2>/dev/null; "
+            "test -e .git || git init -q; "
             "test -e .git && echo GIT || echo NOGIT",
             timeout=300.0,
         )
@@ -77,9 +83,10 @@ class WorkingCopy:
             raise DependencyError(f"failed to populate the sandbox working copy: {out.strip()}")
         self._is_git = out.strip().splitlines()[-1] == "GIT"
         if self._is_git:
-            self._commit_tree_to_ref(_BASELINE_REF, parent=None)
+            commit = self._commit_tree_to_ref(_BASELINE_REF, parent=None, timeout=300.0)
+            self._git(f"update-ref {_APPLIED_REF} {commit}")
 
-    def _commit_tree_to_ref(self, ref: str, parent: str | None) -> str:
+    def _commit_tree_to_ref(self, ref: str, parent: str | None, timeout: float = 60.0) -> str:
         """Snapshot the whole working tree into a commit on `ref` without
         touching the branch or the index (`git reset` afterwards)."""
         parent_flag = f"-p {parent} " if parent else ""
@@ -89,7 +96,8 @@ class WorkingCopy:
             f'C=$(git commit-tree "$T" {parent_flag}-m "agenticenv snapshot") && '
             f'git update-ref {ref} "$C" && '
             "git reset -q && "
-            'echo "$C"'
+            'echo "$C"',
+            timeout=timeout,
         )
         if code != 0:
             raise DependencyError(f"git snapshot failed: {out.strip()}")
@@ -108,7 +116,11 @@ class WorkingCopy:
         if not self._is_git:
             raise DependencyError("this working copy is not a git repository; cannot restore")
         ref = f"{_CHECKPOINT_NS}/{shlex.quote(checkpoint_id)}"
-        code, out = self._git(f"cat-file -e {ref} 2>/dev/null && git read-tree --reset -u {ref}")
+        # `add -A -N` first: read-tree only removes files the index knows about,
+        # and a file the agent added since the last snapshot must go too.
+        code, out = self._git(
+            f"cat-file -e {ref} 2>/dev/null && git add -A -N && git read-tree --reset -u {ref}"
+        )
         if code != 0:
             raise DependencyError(
                 f"unknown or unrestorable checkpoint {checkpoint_id}: {out.strip()}"
@@ -124,8 +136,6 @@ class WorkingCopy:
         "A": "ADDED",
         "M": "UPDATED",
         "D": "DELETED",
-        "R": "MOVED",
-        "C": "ADDED",
         "T": "UPDATED",
     }
 
@@ -135,9 +145,22 @@ class WorkingCopy:
         already untracked or ignored in `/workspace/source` at session start are
         in the baseline tree, so they never show up here (unlike a plain
         `git status`, which compares against the source repo's HEAD)."""
+        return self._changed_from(_BASELINE_REF)
+
+    def changed_since_applied(self) -> list[tuple[str, str]]:
+        """`(status, relpath)` for every file the real repo has not received yet."""
+        return self._changed_from(_APPLIED_REF)
+
+    def mark_applied(self) -> None:
+        """Record the copy's current tree as what the real repo now holds."""
+        self._commit_tree_to_ref(_APPLIED_REF, parent=_BASELINE_REF)
+
+    def _changed_from(self, base: str) -> list[tuple[str, str]]:
         if not self._is_git:
             return []
-        code, out = self._git(f"add -A -N && git diff --name-status -M {_BASELINE_REF}")
+        # `--no-renames`: a rename is a delete + an add, so the old path also
+        # disappears from the real repo when the change is applied.
+        code, out = self._git(f"add -A -N && git diff --name-status --no-renames {base}")
         if code != 0:
             return []
         changes: list[tuple[str, str]] = []
@@ -170,11 +193,6 @@ class WorkingCopy:
                 return None
             return Path(tmp.name).read_bytes()
 
-    def discard(self, relpaths: list[str] | None) -> None:
-        if not self._is_git:
-            raise DependencyError("this working copy is not a git repository; cannot discard")
-        if relpaths:
-            spec = " ".join(shlex.quote(p) for p in relpaths)
-            self._git(f"checkout {_BASELINE_REF} -- {spec}")
-        else:
-            self._git(f"read-tree --reset -u {_BASELINE_REF}")
+    def is_executable(self, relpath: str) -> bool:
+        code, _ = self._run(f"test -x {shlex.quote(relpath)}")
+        return code == 0

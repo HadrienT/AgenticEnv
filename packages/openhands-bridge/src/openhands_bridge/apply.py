@@ -1,5 +1,5 @@
 """Write changed files from the sandbox working copy back into the real host
-repo (WP08d `apply_changes`).
+repo (WP08d, applied automatically at the end of each turn since WP08g).
 
 Pure and Docker-free: the only I/O against the sandbox is the `read_sandbox`
 callable the caller injects (`server.py` wires it to
@@ -24,6 +24,7 @@ from openhands_bridge.protocol import GitChangeDTO
 
 # relpath -> content bytes, or None if the file no longer exists in the copy
 ReadSandbox = Callable[[str], "bytes | None"]
+IsExecutable = Callable[[str], bool]
 
 
 @dataclass
@@ -51,9 +52,17 @@ def _dominant_eol(data: bytes) -> bytes:
     return b"\r\n" if data.count(b"\r\n") > data.count(b"\n") - data.count(b"\r\n") else b"\n"
 
 
+def _is_binary(data: bytes) -> bool:
+    """Same heuristic as git: a NUL byte near the start."""
+    return b"\0" in data[:8000]
+
+
 def _match_host_style(new: bytes, old: bytes) -> bytes:
     """Reproduce the old file's BOM and dominant line ending on the new content
-    so an apply never silently reflows CRLF<->LF or drops a BOM."""
+    so an apply never silently reflows CRLF<->LF or drops a BOM. Binary content
+    is left alone: its `\\r\\n` bytes are data, not line endings."""
+    if _is_binary(new) or _is_binary(old):
+        return new
     bom = b"\xef\xbb\xbf"
     had_bom = old.startswith(bom)
     body = new[len(bom) :] if new.startswith(bom) else new
@@ -72,6 +81,49 @@ def _is_within(root: Path, target: Path) -> bool:
         return False
 
 
+def _prune_empty_parents(host_root: Path, target: Path) -> None:
+    """Remove directories a delete left empty, so an undo leaves no trace."""
+    root = host_root.resolve()
+    parent = target.parent.resolve()
+    while parent != root and root in parent.parents and not any(parent.iterdir()):
+        parent.rmdir()
+        parent = parent.parent
+
+
+def _apply_one(
+    change: GitChangeDTO,
+    *,
+    target: Path,
+    host_root: Path,
+    read_sandbox: ReadSandbox,
+    is_executable: IsExecutable | None,
+    hashes: dict[str, str],
+) -> str | None:
+    """Writes one change. Returns the reason it was skipped, or None if applied."""
+    rel = change.path
+    if change.status == "DELETED":
+        if target.is_file():
+            target.unlink()
+            _prune_empty_parents(host_root, target)
+        hashes.pop(rel, None)
+        return None
+
+    content = read_sandbox(rel)
+    if content is None:
+        return "no longer present in the sandbox"
+
+    is_new = not target.is_file()
+    if not is_new:
+        content = _match_host_style(content, target.read_bytes())
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(content)
+    # An existing file keeps its host mode; only a new one needs the sandbox's.
+    if is_new and is_executable is not None and is_executable(rel):
+        target.chmod(target.stat().st_mode | 0o111)
+    hashes[rel] = _sha256(content)
+    return None
+
+
 def apply_changes(
     *,
     changes: list[GitChangeDTO],
@@ -80,6 +132,7 @@ def apply_changes(
     baseline_hashes: dict[str, str],
     only_paths: set[str] | None = None,
     force: bool = False,
+    is_executable: IsExecutable | None = None,
 ) -> tuple[ApplyResult, dict[str, str]]:
     """Returns the outcome and the updated host-hash table (to carry into the
     next apply)."""
@@ -103,23 +156,20 @@ def apply_changes(
             result.skipped.append((rel, "host file changed since session start"))
             continue
 
-        if change.status == "DELETED":
-            if target.is_file():
-                target.unlink()
-            hashes.pop(rel, None)
-            result.applied.append((rel, "DELETED"))
-            continue
-
-        content = read_sandbox(rel)
-        if content is None:
-            result.skipped.append((rel, "no longer present in the sandbox"))
-            continue
-
-        if target.is_file():
-            content = _match_host_style(content, target.read_bytes())
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(content)
-        hashes[rel] = _sha256(content)
-        result.applied.append((rel, change.status))
+        try:
+            reason = _apply_one(
+                change,
+                target=target,
+                host_root=host_root,
+                read_sandbox=read_sandbox,
+                is_executable=is_executable,
+                hashes=hashes,
+            )
+        except OSError as exc:
+            reason = f"could not write to the host: {exc.strerror or exc}"
+        if reason is None:
+            result.applied.append((rel, change.status))
+        else:
+            result.skipped.append((rel, reason))
 
     return result, hashes
