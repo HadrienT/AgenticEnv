@@ -60,7 +60,7 @@ def test_build_fingerprint_raises_without_module_file(tmp_path: Path) -> None:
 
 
 def test_find_module_file_needs_a_module_for_this_python(tmp_path: Path) -> None:
-    (tmp_path / _MODULE_NAME).write_bytes(b"")
+    (tmp_path / "quantmodeling.cpython-39-x86_64-linux-gnu.so").write_bytes(b"")
 
     with pytest.raises(ModuleFingerprintError):
         find_module_file(tmp_path)
