@@ -1,9 +1,6 @@
-"""`Reranker` extension point + a local, offline placeholder implementation.
-
-Like `HashingEmbedder`, `LexicalOverlapReranker` is deliberately not a real
-cross-encoder — no such model is available/verified on this dev box. It scores
-candidates by token overlap with the query (Jaccard), which is deterministic and
-dependency-free.
+"""`Reranker` extension point. `HttpReranker` is the real cross-encoder, behind a
+local `llama-server --reranking`. `LexicalOverlapReranker` scores by token overlap
+(Jaccard): deterministic and offline, for tests, but it favours short chunks.
 """
 
 from __future__ import annotations
@@ -12,6 +9,7 @@ import re
 from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
+from kbase.embeddings.http import post_json
 from kbase.schemas import RetrievedChunk
 
 _TOKEN_RE = re.compile(r"\w+", re.UNICODE)
@@ -28,6 +26,34 @@ class Reranker(Protocol):
     def rerank(
         self, query: str, candidates: Sequence[RetrievedChunk], *, top_k: int
     ) -> list[RetrievedChunk]: ...
+
+
+class HttpReranker:
+    def __init__(self, *, base_url: str, model_name: str, timeout_s: float) -> None:
+        self.model_name = model_name
+        self._url = f"{base_url.rstrip('/')}/rerank"
+        self._timeout_s = timeout_s
+
+    def rerank(
+        self, query: str, candidates: Sequence[RetrievedChunk], *, top_k: int
+    ) -> list[RetrievedChunk]:
+        body = post_json(
+            self._url,
+            {
+                "model": self.model_name,
+                "query": query,
+                "documents": [c.chunk.content for c in candidates],
+            },
+            timeout_s=self._timeout_s,
+        )
+        scored = []
+        for row in sorted(body["results"], key=lambda r: r["relevance_score"], reverse=True):
+            candidate = candidates[row["index"]]
+            scores = {**candidate.scores, "rerank": float(row["relevance_score"])}
+            scored.append(candidate.model_copy(update={"scores": scores}))
+        for rank, chunk in enumerate(scored[:top_k], start=1):
+            chunk.rank = rank
+        return scored[:top_k]
 
 
 class LexicalOverlapReranker:

@@ -1,0 +1,67 @@
+# Reference queries for `kbase eval` (WP13 §1). `expected` lists the documents that
+# answer the query; a hit on any of them counts. Written from the corpus manifest,
+# without looking at what the search returns.
+#
+# category: exact (the terms of the source) | paraphrase (other words, what an agent
+# types) | french | equation
+queries:
+  - {category: exact, text: "SABR implied volatility approximation", expected: [sabr-paulot-second-order-asymptotic, sabr-vol-of-vol-expansion, sabr-libor-market-models, gatheral-volatility-surface]}
+  - {category: exact, text: "Black-Scholes-Merton call option price formula", expected: [hull-options-futures-other-derivatives-11e, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: exact, text: "Heston stochastic volatility characteristic function calibration", expected: [heston-analysis-calibration-matlab, heston-fast-calibration, gatheral-volatility-surface, bergomi-stochastic-volatility-modeling]}
+  - {category: exact, text: "Dupire local volatility formula", expected: [dupire-local-vol-jumps, gatheral-volatility-surface, bergomi-stochastic-volatility-modeling, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: exact, text: "credit valuation adjustment CVA exposure", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-unified-csa-initial-margin, xva-fixed-point-collateral]}
+  - {category: exact, text: "funding valuation adjustment FVA", expected: [xva-funding-valuation-adjustment, xva-unified-csa-initial-margin, xva-ccp-central-clearing-faq]}
+  - {category: exact, text: "SOFR futures term structure", expected: [sofr-term-structure-futures, sofr-interest-rate-modeling, libor-transition-futures-evidence]}
+  - {category: exact, text: "adjoint algorithmic differentiation greeks", expected: [aad-adjoints-automatic-diff-finance, aad-correlation-greeks, savine-modern-computational-finance-aad]}
+  - {category: exact, text: "antithetic variates control variates Monte Carlo variance reduction", expected: [glasserman-monte-carlo-methods-financial-engineering, mc-enhanced-derivative-pricing, mc-stacked-option-pricing]}
+  - {category: exact, text: "Hamilton-Jacobi-Bellman equation stochastic control", expected: [pham-continuous-time-stochastic-control]}
+  - {category: exact, text: "Girsanov theorem risk-neutral measure", expected: [shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering, pham-continuous-time-stochastic-control]}
+  - {category: exact, text: "binomial asset pricing model replicating portfolio", expected: [shreve-stochastic-calculus-finance-1, hull-options-futures-other-derivatives-11e]}
+  - {category: exact, text: "GARCH volatility model estimation", expected: [tsay-analysis-financial-time-series, volatility-option-pricing-review]}
+  - {category: exact, text: "bid-ask spread inventory models market maker", expected: [ohara-market-microstructure-theory]}
+  - {category: exact, text: "Karush-Kuhn-Tucker optimality conditions duality", expected: [boyd-vandenberghe-convex-optimization]}
+  - {category: exact, text: "variance swap replication log contract", expected: [bennett-trading-volatility, gatheral-volatility-surface, bergomi-stochastic-volatility-modeling]}
+  - {category: exact, text: "autocallable structured product pricing", expected: [bouzoubaa-osseiran-exotic-options-hybrids, bennett-trading-volatility]}
+  - {category: exact, text: "OLS heteroskedasticity robust standard errors", expected: [wooldridge-introductory-econometrics]}
+  - {category: exact, text: "template factory pattern payoff class C++", expected: [joshi-cpp-design-patterns-derivatives-pricing, savine-modern-computational-finance-aad]}
+  - {category: exact, text: "stochastic gradient descent convergence", expected: [stochastic-optimization-notes, boyd-vandenberghe-convex-optimization]}
+  - {category: paraphrase, text: "how does implied volatility change with the strike of an option", expected: [gatheral-volatility-surface, hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bergomi-stochastic-volatility-modeling, volatility-option-pricing-review]}
+  - {category: paraphrase, text: "making random simulations of option values converge faster", expected: [glasserman-monte-carlo-methods-financial-engineering, mc-enhanced-derivative-pricing, mc-stacked-option-pricing]}
+  - {category: paraphrase, text: "protecting a derivatives position against small moves in the underlying", expected: [hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: paraphrase, text: "what happens to a trade if the other party goes bankrupt", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-ccp-central-clearing-faq, hull-options-futures-other-derivatives-11e]}
+  - {category: paraphrase, text: "computing all sensitivities of a price at the cost of one extra pricing", expected: [aad-adjoints-automatic-diff-finance, aad-correlation-greeks, savine-modern-computational-finance-aad]}
+  - {category: paraphrase, text: "replacing the old interbank benchmark rate with overnight rates", expected: [libor-transition-futures-evidence, sofr-interest-rate-modeling, sofr-term-structure-futures]}
+  - {category: paraphrase, text: "why informed traders make market makers widen their quotes", expected: [ohara-market-microstructure-theory]}
+  - {category: paraphrase, text: "fitting a volatility model quickly to market option prices", expected: [heston-fast-calibration, heston-analysis-calibration-matlab, sabr-libor-market-models, gatheral-volatility-surface]}
+  - {category: paraphrase, text: "periods of calm and turbulence in stock returns cluster together", expected: [tsay-analysis-financial-time-series, volatility-option-pricing-review]}
+  - {category: paraphrase, text: "the price of a contract that pays only if a level is touched before expiry", expected: [hull-options-futures-other-derivatives-11e, bouzoubaa-osseiran-exotic-options-hybrids, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: paraphrase, text: "choosing the best action over time when the state evolves randomly", expected: [pham-continuous-time-stochastic-control, stochastic-optimization-notes]}
+  - {category: paraphrase, text: "the cost for a bank of borrowing cash to post collateral", expected: [xva-funding-valuation-adjustment, xva-unified-csa-initial-margin, xva-fixed-point-collateral, xva-ccp-central-clearing-faq]}
+  - {category: paraphrase, text: "a discrete up or down stock model to teach no arbitrage pricing", expected: [shreve-stochastic-calculus-finance-1, hull-options-futures-other-derivatives-11e]}
+  - {category: paraphrase, text: "brainteasers and probability questions for a trading job", expected: [zhou-quant-finance-interviews]}
+  - {category: paraphrase, text: "structuring pricing code so new payoffs can be added without changing the engine", expected: [joshi-cpp-design-patterns-derivatives-pricing, savine-modern-computational-finance-aad]}
+  - {category: paraphrase, text: "does adding a variable really cause the outcome or is it correlation", expected: [wooldridge-introductory-econometrics]}
+  - {category: paraphrase, text: "price jumps make the short maturity smile steeper", expected: [gatheral-volatility-surface, dupire-local-vol-jumps, bergomi-stochastic-volatility-modeling]}
+  - {category: paraphrase, text: "minimising a function with constraints that has a single optimum", expected: [boyd-vandenberghe-convex-optimization]}
+  - {category: paraphrase, text: "making money from the gap between implied and realised volatility", expected: [bennett-trading-volatility, bergomi-stochastic-volatility-modeling, gatheral-volatility-surface]}
+  - {category: paraphrase, text: "models for interest rate caps with a volatility smile", expected: [sabr-libor-market-models, sofr-interest-rate-modeling, hull-options-futures-other-derivatives-11e]}
+  - {category: french, text: "formule de prix d'une option d'achat européenne", expected: [hull-options-futures-other-derivatives-11e, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: french, text: "réduction de variance en simulation Monte-Carlo", expected: [glasserman-monte-carlo-methods-financial-engineering, mc-enhanced-derivative-pricing, mc-stacked-option-pricing]}
+  - {category: french, text: "risque de contrepartie et ajustement de crédit", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-unified-csa-initial-margin, hull-options-futures-other-derivatives-11e]}
+  - {category: french, text: "calibration du modèle de volatilité stochastique de Heston", expected: [heston-analysis-calibration-matlab, heston-fast-calibration, gatheral-volatility-surface]}
+  - {category: french, text: "couverture delta d'un portefeuille d'options", expected: [hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: french, text: "surface de volatilité implicite et absence d'arbitrage", expected: [gatheral-volatility-surface, bergomi-stochastic-volatility-modeling, dupire-local-vol-jumps]}
+  - {category: french, text: "changement de mesure de probabilité et théorème de Girsanov", expected: [shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: french, text: "dérivation automatique adjointe pour le calcul des grecques", expected: [aad-adjoints-automatic-diff-finance, aad-correlation-greeks, savine-modern-computational-finance-aad]}
+  - {category: french, text: "contrôle stochastique et équation de la programmation dynamique", expected: [pham-continuous-time-stochastic-control]}
+  - {category: french, text: "microstructure des marchés et fourchette de prix", expected: [ohara-market-microstructure-theory]}
+  - {category: french, text: "optimisation convexe et conditions d'optimalité", expected: [boyd-vandenberghe-convex-optimization]}
+  - {category: french, text: "transition du LIBOR vers le SOFR", expected: [libor-transition-futures-evidence, sofr-interest-rate-modeling, sofr-term-structure-futures]}
+  - {category: equation, text: "dS = \\mu S dt + \\sigma S dW", expected: [hull-options-futures-other-derivatives-11e, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering, bergomi-stochastic-volatility-modeling]}
+  - {category: equation, text: "d_1 = \\frac{\\ln(S/K) + (r + \\sigma^2/2) T}{\\sigma \\sqrt{T}}", expected: [hull-options-futures-other-derivatives-11e, glasserman-monte-carlo-methods-financial-engineering, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: equation, text: "\\frac{\\partial V}{\\partial t} + \\frac{1}{2}\\sigma^2 S^2 \\frac{\\partial^2 V}{\\partial S^2} + r S \\frac{\\partial V}{\\partial S} - r V = 0", expected: [hull-options-futures-other-derivatives-11e, shreve-stochastic-calculus-finance-2, bergomi-stochastic-volatility-modeling, gatheral-volatility-surface]}
+  - {category: equation, text: "\\sigma_{loc}^2(K,T) = \\frac{\\partial_T C}{\\frac{1}{2} K^2 \\partial_{KK} C}", expected: [dupire-local-vol-jumps, gatheral-volatility-surface, bergomi-stochastic-volatility-modeling]}
+  - {category: equation, text: "dv = \\kappa (\\theta - v) dt + \\xi \\sqrt{v} dW", expected: [heston-analysis-calibration-matlab, heston-fast-calibration, gatheral-volatility-surface, bergomi-stochastic-volatility-modeling]}
+  - {category: equation, text: "\\text{CVA} = (1-R) \\int_0^T EE(t) dPD(t)", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-unified-csa-initial-margin, xva-fixed-point-collateral]}
+  - {category: equation, text: "\\sigma_t^2 = \\alpha_0 + \\alpha_1 a_{t-1}^2 + \\beta_1 \\sigma_{t-1}^2", expected: [tsay-analysis-financial-time-series, volatility-option-pricing-review]}
+  - {category: equation, text: "dF = \\sigma F^\\beta dW, d\\sigma = \\nu \\sigma dZ", expected: [sabr-paulot-second-order-asymptotic, sabr-vol-of-vol-expansion, sabr-libor-market-models, gatheral-volatility-surface]}

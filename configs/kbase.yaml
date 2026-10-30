@@ -20,11 +20,14 @@ retrieval:
   candidates_lexical: 50
   fusion: rrf
   rrf_k: 60
+  # provider: none | lexical | http (see configs/kbase-bge.yaml)
   rerank:
-    enabled: true
-    model_name: <modèle de reranking>
+    provider: lexical
+    model_name: lexical-overlap
     top_k: 8
+    candidates: 50
   fts_config: simple           # pas de stemming : préserve SABR, SOFR, CVA
+  lexical_fallback: true       # si la requête stricte ne remplit pas : n'importe quel terme
   min_score: 0.0
 
 provenance:

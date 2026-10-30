@@ -1,0 +1,42 @@
+# Real models on local llama-servers (agenticenv-embed.service): activate with
+# AGX_KBASE_CONFIG=kbase-bge.yaml, after `kbase reindex --model bge-m3 --replace`.
+embeddings:
+  provider: http
+  base_url: http://127.0.0.1:8310/v1
+  model_name: bge-m3
+  model_version: "q8_0"
+  dim: 1024                    # DOIT correspondre à la migration vector(D)
+  batch_size: 16
+  normalize: true
+
+chunking:
+  strategy: structural
+  target_tokens: 800
+  max_tokens: 1200
+  overlap_tokens: 100
+  keep_equation_with_context: true
+  never_split_within: [equation, table]
+
+retrieval:
+  default_k: 8
+  candidates_vector: 50
+  candidates_lexical: 50
+  fusion: rrf
+  rrf_k: 60
+  rerank:
+    provider: http
+    base_url: http://127.0.0.1:8311/v1
+    model_name: bge-reranker-v2-m3
+    top_k: 8
+    candidates: 30
+  fts_config: simple           # pas de stemming : préserve SABR, SOFR, CVA
+  lexical_fallback: true       # si la requête stricte ne remplit pas : n'importe quel terme
+  min_score: 0.0
+
+provenance:
+  require_page: false          # certains formats n'ont pas de pagination
+  require_section: true
+
+ingestion:
+  max_file_size_mb: 50
+  parse_timeout_s: 60

@@ -5,27 +5,21 @@ from __future__ import annotations
 import argparse
 import sys
 
-from corelib.config import get_settings
+from corelib.config import get_settings, repo_root
 from corelib.db import session_scope
 from corelib.errors import AppError
 
 from kbase.config import load_kbase_config
-from kbase.embeddings.base import Embedder
-from kbase.embeddings.hashing import HashingEmbedder
+from kbase.evaluation import evaluate, load_queries
 from kbase.ingestion import ops
 from kbase.ingestion import reindex as reindex_mod
 from kbase.ingestion.chunking import StructuralChunker
 from kbase.ingestion.parsers.base import Parser
 from kbase.ingestion.parsers.markdown import MarkdownParser
 from kbase.ingestion.pipeline import ingest as run_ingest
-from kbase.retrieval.hybrid import HybridRetriever
+from kbase.retrieval.factory import build_embedder, build_retriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
-from kbase.retrieval.rerank import LexicalOverlapReranker
 from kbase.schemas import ChunkPolicy, IngestionRequest
-
-
-def _build_embedder(config_dim: int, normalize: bool) -> Embedder:
-    return HashingEmbedder(dim=config_dim, normalize=normalize)
 
 
 def _build_parsers() -> list[Parser]:
@@ -48,7 +42,7 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
         keep_equation_with_context=config.chunking.keep_equation_with_context,
         never_split_within=config.chunking.never_split_within,
     )
-    embedder = _build_embedder(config.embeddings.dim, config.embeddings.normalize)
+    embedder = build_embedder(config.embeddings)
     try:
         report = run_ingest(
             request,
@@ -71,14 +65,30 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
 
 def _cmd_reindex(args: argparse.Namespace) -> int:
     config = load_kbase_config()
-    embedder = _build_embedder(config.embeddings.dim, config.embeddings.normalize)
+    embedder = build_embedder(config.embeddings)
     try:
         with session_scope() as session:
-            count = reindex_mod.reindex(session, model_name=args.model, embedder=embedder)
+            count = reindex_mod.reindex(
+                session, model_name=args.model, embedder=embedder, replace=args.replace
+            )
     except AppError as exc:
         print(f"reindex failed: {exc.code}: {exc.message}")
         return 1
     print(f"reindexed {count} chunk(s) with model={args.model}")
+    return 0
+
+
+def _cmd_eval(args: argparse.Namespace) -> int:
+    queries = load_queries(repo_root() / args.queries)
+    try:
+        report = evaluate(build_retriever(load_kbase_config()), queries, args.label)
+    except AppError as exc:
+        print(f"eval failed: {exc.code}: {exc.message}")
+        return 1
+    output = report.model_dump_json(indent=2)
+    if args.output:
+        (repo_root() / args.output).write_text(output + "\n", encoding="utf-8")
+    print(output)
     return 0
 
 
@@ -105,20 +115,7 @@ def _cmd_verify(_args: argparse.Namespace) -> int:
 
 def _cmd_search(args: argparse.Namespace) -> int:
     config = load_kbase_config()
-    embedder = _build_embedder(config.embeddings.dim, config.embeddings.normalize)
-    reranker = LexicalOverlapReranker() if config.retrieval.rerank.enabled else None
-    retriever = HybridRetriever(
-        embedder=embedder,
-        reranker=reranker,
-        candidates_vector=config.retrieval.candidates_vector,
-        candidates_lexical=config.retrieval.candidates_lexical,
-        rrf_k=config.retrieval.rrf_k,
-        fts_config=config.retrieval.fts_config,
-        min_score=config.retrieval.min_score,
-        rerank_top_k=config.retrieval.rerank.top_k,
-        require_page=config.provenance.require_page,
-        require_section=config.provenance.require_section,
-    )
+    retriever = build_retriever(config)
     query = RetrievalQuery(
         text=args.query,
         k=args.k or config.retrieval.default_k,
@@ -148,6 +145,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
     reindex_parser = subparsers.add_parser("reindex", help="Re-embed existing chunks")
     reindex_parser.add_argument("--model", required=True)
+    reindex_parser.add_argument(
+        "--replace", action="store_true", help="Drop other models' vectors once done"
+    )
     reindex_parser.set_defaults(func=_cmd_reindex)
 
     stats_parser = subparsers.add_parser("stats", help="Print corpus counters")
@@ -164,6 +164,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     search_parser.add_argument("--no-rerank", action="store_true")
     search_parser.set_defaults(func=_cmd_search)
+
+    eval_parser = subparsers.add_parser("eval", help="Measure search on the reference queries")
+    eval_parser.add_argument("--queries", default="benchmarks/retrieval/queries.yaml")
+    eval_parser.add_argument("--label", required=True)
+    eval_parser.add_argument("--output", help="JSON report, relative to the repo root")
+    eval_parser.set_defaults(func=_cmd_eval)
 
     return parser
 

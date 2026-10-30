@@ -1,0 +1,13 @@
+# systemd **user** unit: a local model for kbase and agentmem (WP13). Instances:
+# agenticenv-embed@embed, agenticenv-embed@rerank.
+[Unit]
+Description=AgenticEnv %i model
+
+[Service]
+Type=simple
+ExecStart=%h/AgenticEnv/infra/scripts/run-embed-server.sh %i
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

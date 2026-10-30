@@ -5,9 +5,8 @@ from typing import Any, Literal
 
 from corelib.config import get_settings
 from kbase.config import load_kbase_config
-from kbase.embeddings.hashing import HashingEmbedder
+from kbase.retrieval.factory import build_retriever
 from kbase.retrieval.hybrid import HybridRetriever
-from kbase.retrieval.rerank import LexicalOverlapReranker
 
 from kbase_mcp.mapping import build_query, search_result_to_payload
 from kbase_mcp.tools.dispatch import dispatch
@@ -15,21 +14,7 @@ from kbase_mcp.tools.dispatch import dispatch
 
 def _build_retriever() -> HybridRetriever:
     get_settings()  # ensures a valid env before the lazy YAML load below (WP03 convention)
-    config = load_kbase_config()
-    embedder = HashingEmbedder(dim=config.embeddings.dim, normalize=config.embeddings.normalize)
-    reranker = LexicalOverlapReranker() if config.retrieval.rerank.enabled else None
-    return HybridRetriever(
-        embedder=embedder,
-        reranker=reranker,
-        candidates_vector=config.retrieval.candidates_vector,
-        candidates_lexical=config.retrieval.candidates_lexical,
-        rrf_k=config.retrieval.rrf_k,
-        fts_config=config.retrieval.fts_config,
-        min_score=config.retrieval.min_score,
-        rerank_top_k=config.retrieval.rerank.top_k,
-        require_page=config.provenance.require_page,
-        require_section=config.provenance.require_section,
-    )
+    return build_retriever(load_kbase_config())
 
 
 def search(

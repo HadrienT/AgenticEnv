@@ -38,8 +38,9 @@ que disent les docstrings.
 | Modèle multilingue (français et anglais, ex. `bge-m3`), comparé sur le jeu du §1 à au moins un autre candidat. |
 | Migration `vector(D)` si la dimension change, `kbase reindex`, garde au démarrage conservée, cohabitation de deux modèles pendant le reindex. |
 
-**Acceptation** : recall@10 en reformulation et en français au moins doublé par
-rapport à la baseline, temps de reindex documenté.
+**Acceptation** : gain mesuré par rapport à la baseline du 2026-10-31 (recall@5 : 0,75
+au total, 0,50 en français), temps de reindex documenté (environ 2 h sur CPU). L'objectif
+initial, « recall doublé », partait d'une mesure trop sévère au niveau des chunks.
 
 ## 3. Vrai reranker — #33
 

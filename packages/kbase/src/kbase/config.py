@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from corelib.config import load_yaml_config
 from pydantic import BaseModel, ConfigDict
 
@@ -13,6 +15,8 @@ class EmbeddingsConfig(BaseModel):
     dim: int
     batch_size: int
     normalize: bool
+    base_url: str | None = None
+    timeout_s: float = 60.0
 
 
 class ChunkingConfig(BaseModel):
@@ -25,9 +29,14 @@ class ChunkingConfig(BaseModel):
 
 
 class RerankConfig(BaseModel):
-    enabled: bool
+    provider: str
     model_name: str
     top_k: int
+    # How many fused candidates the reranker sees: with no more than `k`, it can only
+    # reorder what fusion already picked.
+    candidates: int
+    base_url: str | None = None
+    timeout_s: float = 30.0
 
 
 class RetrievalConfig(BaseModel):
@@ -38,6 +47,7 @@ class RetrievalConfig(BaseModel):
     rrf_k: int
     rerank: RerankConfig
     fts_config: str
+    lexical_fallback: bool = True
     min_score: float
 
 
@@ -62,4 +72,5 @@ class KbaseConfig(BaseModel):
 
 
 def load_kbase_config() -> KbaseConfig:
-    return load_yaml_config("kbase.yaml", KbaseConfig)
+    """`AGX_KBASE_CONFIG` picks another file of `configs/`, e.g. `kbase-bge.yaml`."""
+    return load_yaml_config(os.environ.get("AGX_KBASE_CONFIG", "kbase.yaml"), KbaseConfig)

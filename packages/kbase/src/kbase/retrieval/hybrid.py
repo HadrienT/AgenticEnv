@@ -1,6 +1,6 @@
 """`HybridRetriever`: the sole public entry point for WP05 (blueprint 03-INTERFACES.md
 §3.5, 05-SEQUENCES.md §9). Orchestrates filters -> vector/lexical search -> RRF fusion
--> provenance -> optional reranking -> contradiction detection -> `kb.retrieval_logs`.
+-> provenance -> optional reranking -> `kb.retrieval_logs`.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from corelib.logging import get_logger
 
 from kbase.embeddings.base import Embedder
 from kbase.provenance import assert_complete, build_citation
-from kbase.retrieval import contradictions, fusion, lexical, logs, store, vector
+from kbase.retrieval import fusion, lexical, logs, store, vector
 from kbase.retrieval.filters import to_sql_predicate
 from kbase.retrieval.query import RetrievalQuery, RetrievalResult
 from kbase.retrieval.rerank import Reranker
@@ -37,6 +37,7 @@ class HybridRetriever:
         rerank_top_k: int,
         require_page: bool,
         require_section: bool,
+        lexical_fallback: bool = False,
     ) -> None:
         self._embedder = embedder
         self._reranker = reranker
@@ -48,6 +49,7 @@ class HybridRetriever:
         self._rerank_top_k = rerank_top_k
         self._require_page = require_page
         self._require_section = require_section
+        self._lexical_fallback = lexical_fallback
 
     def retrieve(self, query: RetrievalQuery) -> RetrievalResult:
         started = time.monotonic()
@@ -85,6 +87,21 @@ class HybridRetriever:
                     predicate_params=predicate_params,
                     candidates_n=self._candidates_lexical,
                 )
+                if self._lexical_fallback and len(lexical_hits) < self._candidates_lexical:
+                    seen = {hit.chunk_id for hit in lexical_hits}
+                    lexical_hits += [
+                        hit
+                        for hit in lexical.search(
+                            session,
+                            query_text=query.text,
+                            fts_config=self._fts_config,
+                            predicate_sql=predicate_sql,
+                            predicate_params=predicate_params,
+                            candidates_n=self._candidates_lexical,
+                            any_term=True,
+                        )
+                        if hit.chunk_id not in seen
+                    ][: self._candidates_lexical - len(lexical_hits)]
 
             if query.strategy == "hybrid":
                 fused = fusion.reciprocal_rank_fusion(vector_hits, lexical_hits, rrf_k=self._rrf_k)
@@ -128,8 +145,6 @@ class HybridRetriever:
                 retrieved = retrieved[: query.k]
         else:
             retrieved = retrieved[: query.k]
-
-        warnings.extend(contradictions.detect(retrieved))
 
         result = RetrievalResult(
             query=query,

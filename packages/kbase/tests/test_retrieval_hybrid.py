@@ -85,14 +85,6 @@ def test_result_citations_are_always_complete(golden_corpus: None) -> None:
         assert chunk.citation.section  # require_section=True in this fixture
 
 
-def test_contradiction_warning_when_topk_spans_documents(golden_corpus: None) -> None:
-    query = RetrievalQuery(text="volatility", k=4, strategy="hybrid", rerank=False)
-    result = _retriever().retrieve(query)
-    documents = {c.citation.document for c in result.chunks}
-    if len(documents) > 1:
-        assert any("divergent" in w for w in result.warnings)
-
-
 def test_retrieval_log_row_is_written(golden_corpus: None) -> None:
     query = RetrievalQuery(text="volatility", k=3, strategy="hybrid")
     result = _retriever().retrieve(query)

@@ -41,6 +41,11 @@ install -m 0644 "$REPO/infra/systemd/agenticenv-mcp@.service" "$USER_UNIT_DIR/"
 systemctl --user daemon-reload
 systemctl --user enable --now agenticenv-mcp@kbase agenticenv-mcp@agentmem
 
+echo "==> local embedding and reranking models"
+install -m 0644 "$REPO/infra/systemd/agenticenv-embed@.service" "$USER_UNIT_DIR/"
+systemctl --user daemon-reload
+systemctl --user enable --now agenticenv-embed@embed agenticenv-embed@rerank
+
 echo "==> nightly database backup"
 install -m 0644 "$REPO/infra/systemd/agenticenv-backup.service" "$REPO/infra/systemd/agenticenv-backup.timer" "$USER_UNIT_DIR/"
 systemctl --user daemon-reload
