@@ -65,3 +65,25 @@ def test_check_mc_convergence_requires_expected_price(base_case: CaseSpec, fake_
     )
     with pytest.raises(CaseValidationError):
         check_mc_convergence(case, fake_client, timeout_s=5.0)
+
+
+def test_uses_the_standard_error_when_the_engine_gives_one(fake_client) -> None:
+    """A lucky small run sits on the reference: the standard error still shrinks as it must."""
+    prices = {1000.0: 9.4134, 4000.0: 9.40, 16000.0: 9.33}
+    fake_client.price_fn = lambda c: EngineOutcome(
+        price=prices[c.inputs["n_paths"]], std_error=10.0 / c.inputs["n_paths"] ** 0.5
+    )
+    case = CaseSpec(
+        id="c",
+        family="convergence",
+        instrument="I",
+        model="m",
+        method="mc",
+        engine="e",
+        expected={"price": 9.4134},
+        family_params={"sizes": [1000, 4000, 16000]},
+    )
+
+    result = check_mc_convergence(case, fake_client, timeout_s=1)
+
+    assert result.verdict == "pass"

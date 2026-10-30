@@ -4,8 +4,8 @@
   family: greeks
   instrument: EquityEuropeanOption
   model: black_scholes
-  method: pathwise
-  engine: monte_carlo
+  method: analytic
+  engine: analytic
   inputs:
     option_type: call
     spot: 100.0
@@ -17,7 +17,7 @@
     seed: 42
     n_paths: 100000
   family_params:
-    methods: [pathwise, likelihood_ratio, finite_difference, analytic]
+    methods: [analytic, monte_carlo, binomial]
     which: [delta]
   tolerance:
     rel: 2.0e-2

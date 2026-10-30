@@ -19,5 +19,9 @@ class ModuleFingerprintError(DependencyError):
     """Could not determine the built `quantmodeling` module's commit/compiler/hash."""
 
 
+class EngineFailureError(DependencyError):
+    """The module crashed, hung or refused a call. Fails the case, not the whole run."""
+
+
 class ExternalOracleUnavailableError(ConfigError):
     """The optional external oracle (e.g. QuantLib) is not installed; test-only dependency."""

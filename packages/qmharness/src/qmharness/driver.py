@@ -3,21 +3,25 @@
 No pricing logic lives here (WP09 §12): every method is a thin, generic pass-through to
 the module already built by the target repo. `QuantModelingClient` is the injectable seam
 (same pattern as `codeintel.client.ClangdClient`): production code uses
-`RealQuantModelingClient`, tests inject a fake implementing the same contract.
+`SubprocessQuantModelingClient`, tests inject a fake implementing the same contract.
 """
 
 from __future__ import annotations
 
+import json
 import re
+import select
 import subprocess
+import sys
 from collections.abc import Callable, Sequence
+from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from typing import Any, Protocol
 
-from corelib.errors import DependencyError
 from corelib.hashing import sha256_file
 
-from qmharness.errors import ModuleFingerprintError
+from qmharness.config import ApiEntry
+from qmharness.errors import CaseValidationError, EngineFailureError, ModuleFingerprintError
 from qmharness.schemas import BuildFingerprint, CaseSpec, EngineOutcome, GreeksOutcome
 
 CommandRunner = Callable[[list[str], Path], str]
@@ -37,76 +41,110 @@ class QuantModelingClient(Protocol):
     ) -> list[float]: ...
 
 
-class RealQuantModelingClient:
-    """Wraps the real `quantmodeling` module.
+# Under this, `mc_std_error` is not an error estimate: the module leaves the field
+# unset for deterministic engines, and it reads as a denormal.
+_MIN_STD_ERROR = 1.0e-200
+_KEEP_STDERR_CHARS = 2000
 
-    `[À CONFIRMER]` (same caveat as WP03's `registry_matrix` AST heuristic): the exact
-    call signature is assumed to be `quantmodeling.price(instrument=..., model=...,
-    method=..., engine=..., **inputs)` returning an object exposing `.price`,
-    an optional `.std_error`, and an optional `.diagnostics` mapping — mirroring the
-    visitor-pattern `PricingResult` described in 10-TARGET-REPO.md §1. Validate against
-    the real module once quant-modeling is checked out before trusting this in production.
+
+class SubprocessQuantModelingClient:
+    """Calls the real `quantmodeling` module through `qmharness.worker`, one process per
+    run. `timeout_s` really bounds each call: the worker is killed and restarted past
+    it. A crash or a timeout raises `EngineFailureError`, which fails that case only.
     """
 
-    def __init__(self, module: Any) -> None:
-        self._module = module
+    def __init__(self, module_path: Path, api: Sequence[ApiEntry]) -> None:
+        self._module_path = module_path
+        self._api = {(e.instrument, e.model, e.method): e for e in api}
+        self._process: subprocess.Popen[str] | None = None
+
+    def close(self) -> None:
+        if self._process is not None:
+            self._process.kill()
+            self._process.wait()
+            self._process = None
+
+    def _worker(self) -> subprocess.Popen[str]:
+        if self._process is None or self._process.poll() is not None:
+            self._process = subprocess.Popen(
+                [sys.executable, "-m", "qmharness.worker", str(self._module_path)],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        return self._process
+
+    def _call(self, request: dict[str, Any], *, timeout_s: float) -> Any:
+        process = self._worker()
+        assert process.stdin is not None and process.stdout is not None
+        try:
+            process.stdin.write(json.dumps(request) + "\n")
+            process.stdin.flush()
+        except BrokenPipeError:
+            pass  # the crash is reported below, with its stderr
+        ready, _, _ = select.select([process.stdout], [], [], timeout_s)
+        if not ready:
+            self.close()
+            raise EngineFailureError(
+                f"quantmodeling call timed out after {timeout_s:.0f}s",
+                details={"function": request["function"]},
+            )
+        line = process.stdout.readline()
+        if not line:
+            process.wait()
+            stderr = process.stderr.read() if process.stderr else ""
+            self._process = None
+            raise EngineFailureError(
+                f"quantmodeling crashed (exit code {process.returncode})",
+                details={"function": request["function"], "stderr": stderr[-_KEEP_STDERR_CHARS:]},
+            )
+        response = json.loads(line)
+        if not response["ok"]:
+            raise EngineFailureError(
+                f"quantmodeling refused the call: {response['error']}",
+                details={"function": request["function"]},
+            )
+        return response["result"]
+
+    def _price_raw(self, case: CaseSpec, *, timeout_s: float) -> dict[str, Any]:
+        entry = self._api.get((case.instrument, case.model, case.method))
+        if entry is None:
+            raise CaseValidationError(
+                f"no quantmodeling function for {case.instrument}/{case.model}/{case.method}",
+                details={"case_id": case.id},
+            )
+        request = {
+            "kind": "price",
+            "function": entry.function,
+            "input_class": entry.input_class,
+            "inputs": case.inputs,
+        }
+        result: dict[str, Any] = self._call(request, timeout_s=timeout_s)
+        return result
 
     def price(self, case: CaseSpec, *, timeout_s: float) -> EngineOutcome:
-        raw = self._module.price(
-            instrument=case.instrument,
-            model=case.model,
-            method=case.method,
-            engine=case.engine,
-            **case.inputs,
-        )
-        std_error = getattr(raw, "std_error", None)
+        raw = self._price_raw(case, timeout_s=timeout_s)
+        std_error = raw.get("mc_std_error")
         return EngineOutcome(
-            price=float(raw.price),
-            std_error=float(std_error) if std_error is not None else None,
-            diagnostics=dict(getattr(raw, "diagnostics", None) or {}),
+            price=float(raw["npv"]),
+            std_error=float(std_error) if std_error and std_error > _MIN_STD_ERROR else None,
+            diagnostics={"message": raw.get("diagnostics", "")},
         )
 
     def greeks(self, case: CaseSpec, which: Sequence[str], *, timeout_s: float) -> GreeksOutcome:
-        raw = self._module.greeks(
-            instrument=case.instrument,
-            model=case.model,
-            method=case.method,
-            engine=case.engine,
-            which=list(which),
-            **case.inputs,
-        )
-        return GreeksOutcome(
-            values=dict(raw.values),
-            std_errors=dict(getattr(raw, "std_errors", None) or {}),
-        )
+        greeks = self._price_raw(case, timeout_s=timeout_s)["greeks"]
+        values = {name: float(greeks[name]) for name in which if greeks.get(name) is not None}
+        errors = {
+            name: float(greeks[f"{name}_std_error"])
+            for name in which
+            if greeks.get(f"{name}_std_error") is not None
+        }
+        return GreeksOutcome(values=values, std_errors=errors)
 
     def sample_series(self, name: str, params: dict[str, Any], *, timeout_s: float) -> list[float]:
-        fn = getattr(self._module, name, None)
-        if fn is None:
-            raise DependencyError(
-                f"quantmodeling has no sample series {name!r}", details={"name": name}
-            )
-        return [float(v) for v in fn(**params)]
-
-
-def load_quantmodeling_module(build_dir: Path) -> Any:
-    """Imports `quantmodeling` from the current sandbox build only, never from a wheel
-    installed elsewhere (WP09 §8). Prepends `build_dir` and its documented pybind11
-    output subdir (10-TARGET-REPO.md §1: `bindings/python`) to `sys.path`."""
-    import importlib
-    import sys
-
-    for candidate in (build_dir, build_dir / "bindings" / "python"):
-        path_str = str(candidate)
-        if candidate.is_dir() and path_str not in sys.path:
-            sys.path.insert(0, path_str)
-    try:
-        return importlib.import_module("quantmodeling")
-    except ImportError as exc:
-        raise DependencyError(
-            "quantmodeling module not importable from the current build",
-            details={"build_dir": str(build_dir)},
-        ) from exc
+        request = {"kind": "series", "function": name, "params": params}
+        return [float(v) for v in self._call(request, timeout_s=timeout_s)]
 
 
 def _default_run(args: list[str], cwd: Path) -> str:
@@ -136,11 +174,12 @@ def _read_cmake_cache(build_dir: Path) -> dict[str, str]:
     return values
 
 
-def _find_module_file(build_dir: Path) -> Path:
-    matches = sorted(build_dir.rglob("quantmodeling*.so"))
+def find_module_file(build_dir: Path) -> Path:
+    """The extension this interpreter can load: a build tree may hold one per Python."""
+    matches = sorted(build_dir.rglob(f"quantmodeling{EXTENSION_SUFFIXES[0]}"))
     if not matches:
         raise ModuleFingerprintError(
-            "no quantmodeling*.so found under the build directory",
+            f"no quantmodeling{EXTENSION_SUFFIXES[0]} found under the build directory",
             details={"build_dir": str(build_dir)},
         )
     return matches[0]
@@ -162,7 +201,7 @@ def build_fingerprint(
             compiler_version = output_lines[0] if output_lines else "unknown"
         except ModuleFingerprintError:
             compiler_version = "unknown"
-    module_path = _find_module_file(build_dir)
+    module_path = find_module_file(build_dir)
     return BuildFingerprint(
         commit=commit,
         build_preset=preset,

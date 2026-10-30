@@ -22,6 +22,16 @@ class ModesConfig(BaseModel):
     standard_max_seconds: int
 
 
+class ApiEntry(BaseModel):
+    """Which module function prices `(instrument, model, method)`, and its input class."""
+
+    instrument: str
+    model: str
+    method: str
+    function: str
+    input_class: str
+
+
 class QmharnessConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -30,6 +40,7 @@ class QmharnessConfig(BaseModel):
     build_preset: str
     tolerances: TolerancesConfig
     modes: ModesConfig
+    api: list[ApiEntry]
 
 
 def load_qmharness_config() -> QmharnessConfig:

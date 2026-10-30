@@ -3,14 +3,15 @@
 # compare, checks) never reads YAML itself (06-CONFIG.md: config loading only happens
 # outside the pure business-logic layer).
 
-# Where versioned CaseSpec YAML files live, relative to the target repo root.
+# Where versioned CaseSpec YAML files live, relative to this repo: quant-modeling is
+# the product and stays free of the harness.
 golden_dir: benchmarks/golden
 
 # Where the quant-modeling C++ build directory lives, relative to the target repo root.
-build_dir: build/release
+build_dir: build
 
 # CMake preset used for the build being harnessed (must match WP02's cppdev presets).
-build_preset: release
+build_preset: default
 
 tolerances:
   golden_abs: 1.0e-8
@@ -23,3 +24,12 @@ tolerances:
 modes:
   quick_max_seconds: 60
   standard_max_seconds: 600
+
+# Which function of the `quantmodeling` module (quant-modeling/src/module.cpp) prices
+# what. Inputs are set as attributes of `input_class`.
+api:
+  - {instrument: EquityEuropeanOption, model: black_scholes, method: analytic, function: price_vanilla_bs_analytic, input_class: VanillaBSInput}
+  - {instrument: EquityEuropeanOption, model: black_scholes, method: monte_carlo, function: price_vanilla_bs_mc, input_class: VanillaBSInput}
+  - {instrument: EquityEuropeanOption, model: black_scholes, method: binomial, function: price_vanilla_bs_binomial, input_class: VanillaBSInput}
+  - {instrument: EquityEuropeanOption, model: black_scholes, method: trinomial, function: price_vanilla_bs_trinomial, input_class: VanillaBSInput}
+  - {instrument: EquityEuropeanOption, model: black_scholes, method: pde, function: price_vanilla_bs_pde, input_class: VanillaBSInput}

@@ -10,7 +10,7 @@ from corelib.ids import new_id
 
 from qmharness.checks import convergence, cross_engine, golden, greeks, invariants, statistics
 from qmharness.driver import QuantModelingClient
-from qmharness.errors import CaseValidationError
+from qmharness.errors import CaseValidationError, EngineFailureError
 from qmharness.schemas import (
     FAMILIES_BY_MODE,
     BuildFingerprint,
@@ -63,7 +63,12 @@ def run(
         if case.family not in families:
             continue
         t0 = perf_counter()
-        result = _run_case(case, client, timeout_s=timeout_s)
+        try:
+            result = _run_case(case, client, timeout_s=timeout_s)
+        except EngineFailureError as exc:
+            result = CaseResult(
+                case_id=case.id, family=case.family, verdict="fail", message=exc.message
+            )
         result.duration_ms = int((perf_counter() - t0) * 1000)
         results.append(result)
     ended_at = datetime.now(UTC)

@@ -12,30 +12,29 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from corelib.config import repo_root
 from corelib.errors import AppError
 
 from qmharness.compare import compare_builds
 from qmharness.config import load_qmharness_config
-from qmharness.driver import RealQuantModelingClient, build_fingerprint, load_quantmodeling_module
 from qmharness.loader import discover_golden_files, load_cases
 from qmharness.report import comparison_report_to_markdown, run_report_to_markdown
-from qmharness.runner import run as run_harness
 from qmharness.schemas import RunReport
+from qmharness.session import run_build
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
     config = load_qmharness_config()
-    root = Path(args.root)
-    build_dir = root / (args.build_dir or config.build_dir)
-    preset = args.preset or config.build_preset
-    golden_dir = root / (args.golden_dir or config.golden_dir)
-
     try:
-        module = load_quantmodeling_module(build_dir)
-        client = RealQuantModelingClient(module)
-        fingerprint = build_fingerprint(root, build_dir, preset)
-        cases = load_cases(discover_golden_files(golden_dir))
-        report = run_harness(cases, mode=args.mode, client=client, fingerprint=fingerprint)
+        report = run_build(
+            Path(args.root),
+            config=config,
+            mode=args.mode,
+            timeout_s=config.modes.quick_max_seconds,
+            build_dir=args.build_dir,
+            preset=args.preset,
+            golden_dir=args.golden_dir,
+        )
     except AppError as exc:
         print(f"qm run failed: {exc.code}: {exc.message}")
         return 1
@@ -74,8 +73,7 @@ def _cmd_compare(args: argparse.Namespace) -> int:
 
 def _cmd_list_cases(args: argparse.Namespace) -> int:
     config = load_qmharness_config()
-    root = Path(args.root)
-    golden_dir = root / (args.golden_dir or config.golden_dir)
+    golden_dir = repo_root() / (args.golden_dir or config.golden_dir)
     try:
         cases = load_cases(discover_golden_files(golden_dir))
     except AppError as exc:

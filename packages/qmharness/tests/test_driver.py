@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 
 import pytest
-from corelib.errors import DependencyError
-from qmharness.driver import build_fingerprint, load_quantmodeling_module
+from qmharness.driver import build_fingerprint, find_module_file
 from qmharness.errors import ModuleFingerprintError
+
+_MODULE_NAME = f"quantmodeling{EXTENSION_SUFFIXES[0]}"
 
 
 def _write_cmake_cache(build_dir: Path) -> None:
@@ -24,7 +26,7 @@ def test_build_fingerprint_reads_cache_and_hashes_module(tmp_path: Path) -> None
     _write_cmake_cache(build_dir)
     module_dir = build_dir / "bindings" / "python"
     module_dir.mkdir(parents=True)
-    module_file = module_dir / "quantmodeling.cpython-312.so"
+    module_file = module_dir / _MODULE_NAME
     module_file.write_bytes(b"fake shared object contents")
 
     def fake_run(args: list[str], cwd: Path) -> str:
@@ -57,6 +59,8 @@ def test_build_fingerprint_raises_without_module_file(tmp_path: Path) -> None:
         )
 
 
-def test_load_quantmodeling_module_raises_dependency_error(tmp_path: Path) -> None:
-    with pytest.raises(DependencyError):
-        load_quantmodeling_module(tmp_path / "does-not-exist")
+def test_find_module_file_needs_a_module_for_this_python(tmp_path: Path) -> None:
+    (tmp_path / _MODULE_NAME).write_bytes(b"")
+
+    with pytest.raises(ModuleFingerprintError):
+        find_module_file(tmp_path)

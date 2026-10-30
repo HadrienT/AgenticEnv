@@ -51,7 +51,9 @@ def check_mc_convergence(
         variant = case.model_copy(update={"inputs": {**case.inputs, size_field: size}})
         outcome = client.price(variant, timeout_s=timeout_s)
         error = abs(outcome.price - reference)
-        errors.append(error)
+        # On one seed the distance to the reference is noise (a small run can land on
+        # it by luck). The engine's own standard error is what must shrink with N.
+        errors.append(outcome.std_error if outcome.std_error is not None else error)
         observed[f"error_at_{int(size)}"] = error
 
     slope = fit_loglog_slope(sizes, errors)
