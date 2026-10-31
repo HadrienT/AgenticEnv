@@ -1,0 +1,309 @@
+diff --git a/include/thread_pool.hpp b/include/thread_pool.hpp
+index cae73ec..d184187 100644
+--- a/include/thread_pool.hpp
++++ b/include/thread_pool.hpp
+@@ -1,11 +1,23 @@
+ #pragma once
++#include <chrono>
++#include <condition_variable>
+ #include <cstddef>
++#include <deque>
++#include <exception>
+ #include <functional>
+ #include <future>
++#include <memory>
++#include <mutex>
++#include <optional>
++#include <thread>
++#include <tuple>
+ #include <type_traits>
++#include <utility>
++#include <vector>
+ namespace qm {
+ class ThreadPool {
+ public:
++    // threads == 0 is treated as 1, so that submitted work always makes progress.
+     explicit ThreadPool(std::size_t threads);
+     ~ThreadPool();  // runs everything still queued, then joins
+     ThreadPool(const ThreadPool&) = delete;
+@@ -24,5 +36,91 @@ public:
+     // Runs body(i) for i in [begin, end), blocks until done, and rethrows the first
+     // exception a body threw. Same no-deadlock guarantee from inside a task.
+     void parallel_for(std::size_t begin, std::size_t end, const std::function<void(std::size_t)>& body);
++
++private:
++    struct Task {
++        virtual ~Task() = default;
++        virtual void run() noexcept = 0;
++    };
++    using TaskPtr = std::unique_ptr<Task>;
++
++    template <class R, class... Bound>
++    class BoundTask;
++
++    void enqueue(TaskPtr task);
++    void worker_loop();
++    // Runs queued tasks on the calling thread until done() is true. done() is called
++    // with mutex_ held, so it must not block.
++    void help_until(const std::function<bool()>& done);
++    // Called and returns with `lock` held; the task runs with it released.
++    void run_task(TaskPtr task, std::unique_lock<std::mutex>& lock);
++    void stop_and_join();
++
++    std::mutex mutex_;
++    std::condition_variable work_cv_;    // workers: task queued, or stopping
++    std::condition_variable waiter_cv_;  // help_until: task queued or finished
++    std::deque<TaskPtr> queue_;          // workers take the front, helpers the back
++    std::size_t waiters_ = 0;            // threads asleep on waiter_cv_
++    std::size_t idle_workers_ = 0;       // workers free to take the next queued task
++    bool stopping_ = false;
++    std::vector<std::thread> workers_;
+ };
++
++// Owns the decayed callable and arguments. They are destroyed before the future
++// becomes ready, so whatever they own is released by the time wait() returns.
++template <class R, class... Bound>
++class ThreadPool::BoundTask final : public ThreadPool::Task {
++public:
++    template <class... U>
++    explicit BoundTask(std::promise<R> promise, U&&... bound)
++        : promise_(std::move(promise)), bound_(std::in_place, std::forward<U>(bound)...) {}
++
++    void run() noexcept override {
++        const auto call = [](Bound&&... bound) -> R { return std::invoke(std::forward<Bound>(bound)...); };
++        std::exception_ptr error;
++        try {
++            if constexpr (std::is_void_v<R>) {
++                std::apply(call, std::move(*bound_));
++                bound_.reset();
++                promise_.set_value();
++            } else {
++                R result = std::apply(call, std::move(*bound_));
++                bound_.reset();
++                promise_.set_value(std::forward<R>(result));
++            }
++        } catch (...) {
++            error = std::current_exception();
++        }
++        if (error) {
++            bound_.reset();
++            promise_.set_exception(std::move(error));
++        }
++    }
++
++private:
++    std::promise<R> promise_;
++    std::optional<std::tuple<Bound...>> bound_;
++};
++
++template <class F, class... A>
++auto ThreadPool::submit(F&& f, A&&... args)
++    -> std::future<std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>> {
++    using R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>;
++    std::promise<R> promise;
++    std::future<R> future = promise.get_future();
++    enqueue(std::make_unique<BoundTask<R, std::decay_t<F>, std::decay_t<A>...>>(
++        std::move(promise), std::forward<F>(f), std::forward<A>(args)...));
++    return future;
++}
++
++template <class T>
++T ThreadPool::wait(std::future<T>& fut) {
++    if (!fut.valid()) {
++        throw std::future_error(std::future_errc::no_state);
++    }
++    // Anything but timeout ends the wait: a deferred future never becomes ready on
++    // its own, and get() runs it right here.
++    help_until([&fut] { return fut.wait_for(std::chrono::seconds(0)) != std::future_status::timeout; });
++    return fut.get();
++}
+ }  // namespace qm
+diff --git a/src/thread_pool.cpp b/src/thread_pool.cpp
+index bbfd384..4787e37 100644
+--- a/src/thread_pool.cpp
++++ b/src/thread_pool.cpp
+@@ -1 +1,184 @@
+ #include "thread_pool.hpp"
++
++#include <algorithm>
++#include <atomic>
++
++namespace qm {
++namespace {
++
++// A future may be completed by something that cannot signal the pool (a foreign
++// promise, std::async, a promise set midway through a task), so sleeping helpers
++// also poll, backing off between these bounds.
++constexpr std::chrono::microseconds kMinPoll{50};
++constexpr std::chrono::microseconds kMaxPoll{1000};
++
++// Chunks per participating thread: small enough to balance uneven bodies, large
++// enough to keep the shared counters out of the way of tiny ones.
++constexpr std::size_t kChunksPerThread = 8;
++
++// Shared between the caller and its helper tasks. A helper can still be queued after
++// parallel_for has returned, so the state outlives the call; `body` belongs to the
++// caller and is only touched after claiming a chunk, which keeps the caller blocked.
++struct ForLoop {
++    ForLoop(const std::function<void(std::size_t)>& fn, std::size_t first, std::size_t count_, std::size_t chunk_)
++        : body(&fn), begin(first), count(count_), chunk(chunk_), remaining(count_) {}
++
++    void run_chunks() noexcept {
++        for (;;) {
++            const std::size_t lo = next.fetch_add(chunk, std::memory_order_relaxed);
++            if (lo >= count) {
++                return;
++            }
++            const std::size_t n = std::min(chunk, count - lo);
++            // A throwing body does not cancel the others: every index still runs.
++            for (std::size_t i = lo; i < lo + n; ++i) {
++                try {
++                    (*body)(begin + i);
++                } catch (...) {
++                    if (!failed.exchange(true, std::memory_order_relaxed)) {
++                        error = std::current_exception();
++                    }
++                }
++            }
++            remaining.fetch_sub(n, std::memory_order_acq_rel);
++        }
++    }
++
++    const std::function<void(std::size_t)>* body;
++    std::size_t begin;
++    std::size_t count;
++    std::size_t chunk;
++    std::atomic<std::size_t> next{0};
++    std::atomic<std::size_t> remaining;
++    std::atomic<bool> failed{false};
++    std::exception_ptr error;  // published to the caller by remaining reaching 0
++};
++
++}  // namespace
++
++ThreadPool::ThreadPool(std::size_t threads) {
++    threads = std::max<std::size_t>(threads, 1);
++    workers_.reserve(threads);
++    idle_workers_ = threads;
++    try {
++        for (std::size_t i = 0; i < threads; ++i) {
++            workers_.emplace_back([this] { worker_loop(); });
++        }
++    } catch (...) {
++        stop_and_join();
++        throw;
++    }
++}
++
++ThreadPool::~ThreadPool() { stop_and_join(); }
++
++void ThreadPool::stop_and_join() {
++    {
++        std::lock_guard lock(mutex_);
++        stopping_ = true;
++    }
++    work_cv_.notify_all();
++    // A running task may still submit children: its worker sees them when it comes
++    // back to the queue, and only leaves once the queue is empty.
++    for (std::thread& worker : workers_) {
++        worker.join();
++    }
++}
++
++void ThreadPool::enqueue(TaskPtr task) {
++    {
++        std::lock_guard lock(mutex_);
++        queue_.push_back(std::move(task));
++        if (waiters_ > 0) {
++            waiter_cv_.notify_all();
++        }
++    }
++    work_cv_.notify_one();
++}
++
++void ThreadPool::worker_loop() {
++    std::unique_lock lock(mutex_);
++    for (;;) {
++        work_cv_.wait(lock, [this] { return stopping_ || !queue_.empty(); });
++        if (queue_.empty()) {
++            --idle_workers_;
++            return;
++        }
++        TaskPtr task = std::move(queue_.front());
++        queue_.pop_front();
++        --idle_workers_;
++        run_task(std::move(task), lock);
++        ++idle_workers_;
++    }
++}
++
++void ThreadPool::run_task(TaskPtr task, std::unique_lock<std::mutex>& lock) {
++    lock.unlock();
++    task->run();
++    task.reset();
++    lock.lock();
++    if (waiters_ > 0) {
++        waiter_cv_.notify_all();
++    }
++}
++
++void ThreadPool::help_until(const std::function<bool()>& done) {
++    std::chrono::microseconds poll = kMinPoll;
++    std::unique_lock lock(mutex_);
++    // done() is checked under the lock and tasks signal under it after completing,
++    // so a completion cannot slip between the check and the sleep.
++    while (!done()) {
++        // Tasks an idle worker will pick up are left to it. Running a task here buries
++        // the waiting frame under it, which hangs if that task in turn needs the frame
++        // to make progress; a free worker has no such problem.
++        if (queue_.size() > idle_workers_) {
++            // Newest first. That is most likely the child being waited on, and it
++            // bounds nesting: taking the oldest would start the next unrelated parent,
++            // which waits and takes the next, one stack frame per queued task.
++            TaskPtr task = std::move(queue_.back());
++            queue_.pop_back();
++            run_task(std::move(task), lock);
++            poll = kMinPoll;
++            continue;
++        }
++        ++waiters_;
++        waiter_cv_.wait_for(lock, poll);
++        --waiters_;
++        poll = std::min(poll * 2, kMaxPoll);
++    }
++}
++
++void ThreadPool::parallel_for(std::size_t begin, std::size_t end, const std::function<void(std::size_t)>& body) {
++    if (begin >= end) {
++        return;
++    }
++    const std::size_t count = end - begin;
++    const std::size_t threads = workers_.size() + 1;  // the caller works too
++    const std::size_t chunk = std::max<std::size_t>(count / (threads * kChunksPerThread), 1);
++    const auto loop = std::make_shared<ForLoop>(body, begin, count, chunk);
++
++    struct Helper final : Task {
++        explicit Helper(std::shared_ptr<ForLoop> l) : loop(std::move(l)) {}
++        void run() noexcept override { loop->run_chunks(); }
++        std::shared_ptr<ForLoop> loop;
++    };
++    const std::size_t chunks = count / chunk + (count % chunk != 0 ? 1 : 0);
++    const std::size_t helpers = std::min(workers_.size(), chunks - 1);
++    try {
++        for (std::size_t i = 0; i < helpers; ++i) {
++            enqueue(std::make_unique<Helper>(loop));
++        }
++    } catch (...) {
++        // Helpers only add parallelism: the caller can finish the loop on its own.
++    }
++
++    loop->run_chunks();
++    help_until([&loop] { return loop->remaining.load(std::memory_order_acquire) == 0; });
++    // Take the exception out: a helper still queued may hold the last reference to
++    // `loop`, and must not end up freeing an exception the caller is looking at.
++    if (std::exception_ptr error = std::exchange(loop->error, nullptr)) {
++        std::rethrow_exception(std::move(error));
++    }
++}
++
++}  // namespace qm

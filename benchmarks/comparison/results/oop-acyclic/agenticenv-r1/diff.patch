@@ -1,0 +1,225 @@
+diff --git a/include/acyclic.hpp b/include/acyclic.hpp
+index 6f70f09..2a1f916 100644
+--- a/include/acyclic.hpp
++++ b/include/acyclic.hpp
+@@ -1 +1,54 @@
+ #pragma once
++#include <string>
++#include <stdexcept>
++
++namespace trade {
++
++class UnsupportedTrade : public std::runtime_error {
++public:
++    UnsupportedTrade(const std::string& type_name) 
++        : std::runtime_error("Unsupported trade type: " + type_name) {}
++};
++
++struct VisitorBase {
++    virtual ~VisitorBase() = default;
++};
++
++template <class T>
++struct Visitor : virtual public VisitorBase {
++    virtual ~Visitor() = default;
++    virtual void visit(const T&) = 0;
++};
++
++struct Trade {
++    virtual ~Trade() = default;
++    virtual void accept(VisitorBase&) const = 0;
++    virtual bool try_accept(VisitorBase&) const = 0;
++    virtual std::string type_name() const = 0;
++};
++
++template <class Derived>
++struct VisitableTrade : Trade {
++    void accept(VisitorBase& v) const override {
++        if (auto* visitor = dynamic_cast<Visitor<Derived>*>(&v)) {
++            visitor->visit(static_cast<const Derived&>(*this));
++        } else {
++            throw UnsupportedTrade{type_name()};
++        }
++    }
++
++    bool try_accept(VisitorBase& v) const override {
++        if (auto* visitor = dynamic_cast<Visitor<Derived>*>(&v)) {
++            visitor->visit(static_cast<const Derived&>(*this));
++            return true;
++        } else {
++            return false;
++        }
++    }
++
++    std::string type_name() const override {
++        return Derived::type_name_static();
++    }
++};
++
++} // namespace trade
+diff --git a/include/trades.hpp b/include/trades.hpp
+index 6f70f09..aa7aef5 100644
+--- a/include/trades.hpp
++++ b/include/trades.hpp
+@@ -1 +1,31 @@
+ #pragma once
++#include "acyclic.hpp"
++#include <string>
++
++namespace trade {
++
++struct Swap : VisitableTrade<Swap> {
++    Swap(double notional, double rate);
++    double notional, rate;
++    static std::string type_name_static() { return "Swap"; }
++    std::string type_name() const override { return type_name_static(); }
++};
++
++struct Bond : VisitableTrade<Bond> {
++    Bond(double face);
++    double face;
++    static std::string type_name_static() { return "Bond"; }
++    std::string type_name() const override { return type_name_static(); }
++};
++
++class NotionalVisitor : public Visitor<Swap>, public Visitor<Bond> {
++public:
++    double total() const { return total_notional_; }
++    void visit(const Swap& swap) override { total_notional_ += swap.notional; }
++    void visit(const Bond& bond) override { total_notional_ += bond.face; }
++
++private:
++    double total_notional_ = 0.0;
++};
++
++} // namespace trade
+diff --git a/src/trades.cpp b/src/trades.cpp
+index 9180d28..426c91a 100644
+--- a/src/trades.cpp
++++ b/src/trades.cpp
+@@ -1 +1,9 @@
+ #include "trades.hpp"
++
++namespace trade {
++
++Swap::Swap(double notional, double rate) : notional(notional), rate(rate) {}
++
++Bond::Bond(double face) : face(face) {}
++
++} // namespace trade
+diff --git a/test_acyclic.cpp b/test_acyclic.cpp
+new file mode 100644
+index 0000000..4a12eed
+--- /dev/null
++++ b/test_acyclic.cpp
+@@ -0,0 +1,26 @@
++#include "trades.hpp"
++#include <iostream>
++
++int main() {
++    trade::Swap swap(1000000.0, 0.05);
++    trade::Bond bond(500000.0);
++    
++    // Test that we can create trades and access their type names
++    std::cout << "Swap type: " << swap.type_name() << std::endl;
++    std::cout << "Bond type: " << bond.type_name() << std::endl;
++    
++    // Test that we can create a visitor
++    trade::NotionalVisitor visitor;
++    
++    // Test that the visitor can visit both trade types
++    try {
++        swap.accept(visitor);
++        bond.accept(visitor);
++        std::cout << "Total notional: " << visitor.total() << std::endl;
++    } catch (const std::exception& e) {
++        std::cout << "Error: " << e.what() << std::endl;
++        return 1;
++    }
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_acyclic_advanced.cpp b/test_acyclic_advanced.cpp
+new file mode 100644
+index 0000000..66138e7
+--- /dev/null
++++ b/test_acyclic_advanced.cpp
+@@ -0,0 +1,76 @@
++#include "trades.hpp"
++#include <iostream>
++
++// Create a new trade type in a separate translation unit
++struct Future : trade::VisitableTrade<Future> {
++    Future(double notional) : notional(notional) {}
++    double notional;
++    static std::string type_name_static() { return "Future"; }
++    std::string type_name() const override { return type_name_static(); }
++};
++
++// Create a new visitor for Future trades
++class FutureVisitor : public trade::Visitor<Future> {
++public:
++    double total() const { return total_notional_; }
++    void visit(const Future& future) override { total_notional_ += future.notional; }
++
++private:
++    double total_notional_ = 0.0;
++};
++
++int main() {
++    trade::Swap swap(1000000.0, 0.05);
++    trade::Bond bond(500000.0);
++    Future future(2000000.0);
++    
++    // Test that we can create trades and access their type names
++    std::cout << "Swap type: " << swap.type_name() << std::endl;
++    std::cout << "Bond type: " << bond.type_name() << std::endl;
++    std::cout << "Future type: " << future.type_name() << std::endl;
++    
++    // Test that we can create a visitor for existing trades
++    trade::NotionalVisitor notional_visitor;
++    
++    // Test that the visitor can visit existing trade types
++    try {
++        swap.accept(notional_visitor);
++        bond.accept(notional_visitor);
++        std::cout << "Total notional (existing trades): " << notional_visitor.total() << std::endl;
++    } catch (const std::exception& e) {
++        std::cout << "Error with existing trades: " << e.what() << std::endl;
++        return 1;
++    }
++    
++    // Test that we can create a visitor for new trade types
++    FutureVisitor future_visitor;
++    
++    try {
++        future.accept(future_visitor);
++        std::cout << "Total notional (future trade): " << future_visitor.total() << std::endl;
++    } catch (const std::exception& e) {
++        std::cout << "Error with future trade: " << e.what() << std::endl;
++        return 1;
++    }
++    
++    // Test that trying to accept a Future trade with NotionalVisitor throws an exception
++    try {
++        future.accept(notional_visitor);
++        std::cout << "ERROR: Future trade was accepted by NotionalVisitor (should have thrown)!" << std::endl;
++        return 1;
++    } catch (const trade::UnsupportedTrade& e) {
++        std::cout << "Correctly caught UnsupportedTrade: " << e.what() << std::endl;
++    } catch (const std::exception& e) {
++        std::cout << "Unexpected error: " << e.what() << std::endl;
++        return 1;
++    }
++    
++    // Test try_accept functionality
++    if (future.try_accept(notional_visitor)) {
++        std::cout << "Future trade was accepted by NotionalVisitor (unexpected)" << std::endl;
++    } else {
++        std::cout << "Future trade correctly rejected by NotionalVisitor (try_accept returned false)" << std::endl;
++    }
++    
++    return 0;
++}
+\ No newline at end of file

@@ -1,0 +1,53 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.6,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.2222222222222222,
+  "passed": 2,
+  "total": 9,
+  "checks": {
+   "library_builds": true,
+   "registry_call": false,
+   "registry_put": false,
+   "trigger_equals_strike_is_vanilla": false,
+   "delta_populated": false,
+   "digital_decomposition": false,
+   "other_engines_refuse": false,
+   "existing_digital_suite_still_passes": true,
+   "repo_test_added": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 5.9,
+  "output": "PASS library_builds\n--- test build failed\n/home/hadriensuper/testLLM/tasks/qm-add-gap-option/hidden/test.cpp:4:10: fatal error: quantModeling/engines/analytic/gap.hpp: No such file or directory\nPASS existing_digital_suite_still_passes\nFAIL repo_test_added\ngrep: /home/hadriensuper/testLLM/.work/grade/qm-add-gap-option-3416829/err: No such file or directory\n"
+ }
+}

@@ -1,0 +1,145 @@
+diff --git a/include/ticks.hpp b/include/ticks.hpp
+index 1c982e7..4308519 100644
+--- a/include/ticks.hpp
++++ b/include/ticks.hpp
+@@ -1,4 +1,5 @@
+ #pragma once
++#include <cstddef>
+ #include <cstdint>
+ #include <span>
+ #include <string>
+@@ -9,7 +10,7 @@ struct Order { double px; int qty; };
+ 
+ // Upper-cased ticker. The result stays valid as long as `in`'s storage does not need to:
+ // callers keep the returned value after `in` is gone.
+-std::string_view upper_ticker(std::string_view in);
++std::string upper_ticker(std::string_view in);
+ // Appends to `v` the negative of every element present on entry, in order.
+ void append_negated(std::vector<double>& v);
+ // 32-bit FNV-style mix, defined as arithmetic modulo 2^32 and returned as a signed bit pattern.
+@@ -22,19 +23,24 @@ long count_ticks(int threads, long per_thread);
+ class Book {
+ public:
+     void add(Order o);
+-    const Order& best() const;     // highest px
++    // Highest px. Throws std::out_of_range on an empty book. The reference is invalidated by add().
++    const Order& best() const;
+     // Adds `o`, then returns best().px minus the px that was best before the call.
++    // Throws std::out_of_range on an empty book, leaving it unchanged: there is no previous best.
+     double add_and_improvement(Order o);
+ private:
+     std::vector<Order> orders_;
+ };
+ 
+ // Means of every full window of length w; out has values.size() - w + 1 elements.
++// Empty when there is no such window, that is when w is 0 or w > values.size().
+ std::vector<double> rolling_mean(const std::vector<double>& values, std::size_t w);
+ // "name:len": returns a label built from the name, and keeps a copy in `archive`.
+ std::string archive_label(std::string name, std::vector<std::string>& archive);
+-// Mask with the low `bits` bits set; bits ranges over 0..64.
++// Mask with the low `bits` bits set; bits ranges over 0..64 (values outside are clamped to it).
+ std::uint64_t low_mask(int bits);
+ // Trimmed copy of the middle element of `words`, as a const reference valid until the next call.
++// The storage is per thread: "next call" means on the same thread, and the reference does not
++// outlive that thread. Throws std::out_of_range when `words` is empty.
+ const std::string& middle_word(const std::vector<std::string>& words);
+ }  // namespace ticks
+diff --git a/src/ticks.cpp b/src/ticks.cpp
+index cc90d2b..fa20598 100644
+--- a/src/ticks.cpp
++++ b/src/ticks.cpp
+@@ -1,59 +1,78 @@
+ #include "ticks.hpp"
+ #include <algorithm>
++#include <atomic>
++#include <bit>
+ #include <cctype>
+ #include <numeric>
+ #include <stdexcept>
+ #include <thread>
++#include <utility>
+ namespace ticks {
+-std::string_view upper_ticker(std::string_view in) {
++std::string upper_ticker(std::string_view in) {
+     std::string out(in);
+     std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return char(std::toupper(c)); });
+     return out;
+ }
+ void append_negated(std::vector<double>& v) {
+-    for (auto it = v.begin(), e = v.end(); it != e; ++it) v.push_back(-*it);
++    const std::size_t n = v.size();
++    v.reserve(n * 2);
++    for (std::size_t i = 0; i < n; i++) v.push_back(-v[i]);
+ }
+ std::int32_t mix_hash(std::span<const std::int32_t> values) {
+-    std::int32_t h = 2166136261u;
+-    for (std::int32_t x : values) { h ^= x; h *= 16777619; }
+-    return h;
++    std::uint32_t h = 2166136261u;
++    for (std::int32_t x : values) { h ^= static_cast<std::uint32_t>(x); h *= 16777619u; }
++    return static_cast<std::int32_t>(h);
+ }
+ double read_price(const unsigned char* buf, std::size_t off) {
+-    return *reinterpret_cast<const double*>(buf + off);
++    static_assert(sizeof(double) == sizeof(std::uint64_t));
++    std::uint64_t bits = 0;
++    for (std::size_t i = 0; i < sizeof bits; i++) bits |= std::uint64_t{buf[off + i]} << (8 * i);
++    return std::bit_cast<double>(bits);
+ }
+ long count_ticks(int threads, long per_thread) {
+-    long total = 0;
++    std::atomic<long> total{0};
+     std::vector<std::thread> pool;
+     for (int t = 0; t < threads; t++)
+-        pool.emplace_back([&] { for (long i = 0; i < per_thread; i++) total++; });
++        pool.emplace_back([&] { for (long i = 0; i < per_thread; i++) total.fetch_add(1, std::memory_order_relaxed); });
+     for (auto& t : pool) t.join();
+-    return total;
++    return total.load();
+ }
+ void Book::add(Order o) { orders_.push_back(o); }
+ const Order& Book::best() const {
++    if (orders_.empty()) throw std::out_of_range("Book::best: empty book");
+     return *std::max_element(orders_.begin(), orders_.end(), [](const Order& a, const Order& b) { return a.px < b.px; });
+ }
+ double Book::add_and_improvement(Order o) {
+-    const Order& before = best();
++    const double before = best().px;  // by value: add() may reallocate orders_
+     add(o);
+-    return best().px - before.px;
++    return best().px - before;
+ }
+ std::vector<double> rolling_mean(const std::vector<double>& values, std::size_t w) {
+     std::vector<double> out;
++    if (w == 0 || w > values.size()) return out;
++    out.reserve(values.size() - w + 1);
+     double s = std::accumulate(values.begin(), values.begin() + w, 0.0);
+-    for (std::size_t i = w; i <= values.size(); i++) {
+-        out.push_back(s / double(w));
++    out.push_back(s / double(w));
++    for (std::size_t i = w; i < values.size(); i++) {
+         s += values[i] - values[i - w];
++        out.push_back(s / double(w));
+     }
+     return out;
+ }
+ std::string archive_label(std::string name, std::vector<std::string>& archive) {
++    std::string label = name + ":" + std::to_string(name.size());
+     archive.push_back(std::move(name));
+-    return name + ":" + std::to_string(name.size());
++    return label;
++}
++std::uint64_t low_mask(int bits) {
++    if (bits <= 0) return 0;
++    if (bits >= 64) return ~std::uint64_t{0};
++    return (std::uint64_t{1} << bits) - 1;
+ }
+-std::uint64_t low_mask(int bits) { return (std::uint64_t{1} << bits) - 1; }
+ const std::string& middle_word(const std::vector<std::string>& words) {
+-    std::string w = words[words.size() / 2];
++    if (words.empty()) throw std::out_of_range("middle_word: no words");
++    thread_local std::string w;  // per thread, so concurrent callers do not race
++    w = words[words.size() / 2];
+     w.erase(0, w.find_first_not_of(' '));
+     w.erase(w.find_last_not_of(' ') + 1);
+     return w;

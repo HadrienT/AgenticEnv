@@ -1,0 +1,226 @@
+diff --git a/Makefile b/Makefile
+index 5f2ed41..19a42a9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -3,4 +3,5 @@ NVCC ?= nvcc
+ FLAGS = -std=c++17 -ccbin g++-13 -O3 -Iinclude
+ SRC = $(wildcard src/*.cu) $(wildcard src/*.cpp)
+ lib.o: $(SRC)
++	@mkdir -p build
+ 	$(NVCC) $(FLAGS) -c $(SRC) -odir build
+diff --git a/include/gpu_mc.h b/include/gpu_mc.h
+index b8f9274..ae2c408 100644
+--- a/include/gpu_mc.h
++++ b/include/gpu_mc.h
+@@ -2,6 +2,9 @@
+ struct McResult { double price; double std_error; };
+ // European call under Black-Scholes, simulated on the CUDA device `device`, double
+ // precision. std_error is the standard error of the returned price. The same (nPaths,
+-// seed) gives the same result on any device and on every call.
++// seed) gives the same result on any device and on every call. With nPaths == 1 the sample
++// variance is undefined, so std_error is +infinity. Throws std::invalid_argument on bad inputs
++// (S, K, sigma, T negative or non-finite, r, q non-finite, nPaths == 0) and std::runtime_error
++// on CUDA failures. The caller's current CUDA device is left unchanged.
+ McResult gpu_bs_call(double S, double K, double r, double q, double sigma, double T,
+                      unsigned long long nPaths, unsigned long long seed, int device);
+diff --git a/src/gpu_mc.cu b/src/gpu_mc.cu
+index 320dc70..960f63a 100644
+--- a/src/gpu_mc.cu
++++ b/src/gpu_mc.cu
+@@ -1,2 +1,195 @@
++// Monte Carlo pricer for a European call under Black-Scholes, on one CUDA device.
++//
++// Why the result cannot depend on batching or on the device:
++//  - Path i draws from Philox4x32-10 with counter i and key `seed`, so a path is a pure
++//    function of (i, seed); no generator state exists to split between threads or batches.
++//  - Floating-point sums depend on grouping, so the grouping is part of the algorithm: paths
++//    belong to fixed "leaves" of kPathsPerLeaf consecutive indices, each summed in index
++//    order, and leaves are merged on the host in index order. How leaves are spread over
++//    kernel launches and threads changes nothing, down to the last bit.
++
+ #include "gpu_mc.h"
+-McResult gpu_bs_call(double, double, double, double, double, double, unsigned long long, unsigned long long, int) { return {0, 0}; }
++
++#include <cuda_runtime.h>
++
++#include <cmath>
++#include <cstddef>
++#include <limits>
++#include <stdexcept>
++#include <string>
++#include <vector>
++
++namespace {
++
++constexpr unsigned long long kPathsPerLeaf = 1ULL << 12;  // Fixed: changing it changes results.
++constexpr unsigned kThreadsPerBlock = 256;
++
++// Tuning only, with no effect on results. One launch holds 2^28 paths, a fraction of a second
++// of GPU time so that the other process keeps getting its turn, and needs 1 MiB of buffer.
++#ifndef GPU_MC_LEAVES_PER_LAUNCH
++#define GPU_MC_LEAVES_PER_LAUNCH (1ULL << 16)
++#endif
++constexpr unsigned long long kLeavesPerLaunch = GPU_MC_LEAVES_PER_LAUNCH;
++
++struct Block128 {
++    unsigned w[4];
++};
++
++// Philox4x32-10 (Salmon et al., SC'11). The key is 64 bits wide, so every bit of the seed counts.
++__host__ __device__ inline Block128 philox4x32_10(Block128 ctr, unsigned k0, unsigned k1) {
++    constexpr unsigned long long kM0 = 0xD2511F53ULL, kM1 = 0xCD9E8D57ULL;
++    constexpr unsigned kW0 = 0x9E3779B9U, kW1 = 0xBB67AE85U;
++    for (int round = 0; round < 10; ++round) {
++        const unsigned long long p0 = kM0 * ctr.w[0];
++        const unsigned long long p1 = kM1 * ctr.w[2];
++        const unsigned hi0 = static_cast<unsigned>(p0 >> 32), lo0 = static_cast<unsigned>(p0);
++        const unsigned hi1 = static_cast<unsigned>(p1 >> 32), lo1 = static_cast<unsigned>(p1);
++        ctr = Block128{{hi1 ^ ctr.w[1] ^ k0, lo1, hi0 ^ ctr.w[3] ^ k1, lo0}};
++        k0 += kW0;
++        k1 += kW1;
++    }
++    return ctr;
++}
++
++// Box-Muller on one Philox block, keeping only the cosine branch: one independent N(0,1) per
++// path index. Uniforms use 64 bits so the tail reaches about 9.4 sigma, and the half-step offset
++// keeps the argument of log strictly positive.
++__host__ __device__ inline double standard_normal(unsigned long long path, unsigned long long seed) {
++    const Block128 block = philox4x32_10(
++        Block128{{static_cast<unsigned>(path), static_cast<unsigned>(path >> 32), 0U, 0U}},
++        static_cast<unsigned>(seed), static_cast<unsigned>(seed >> 32));
++    const unsigned long long radial = (static_cast<unsigned long long>(block.w[1]) << 32) | block.w[0];
++    const unsigned long long angular = (static_cast<unsigned long long>(block.w[3]) << 32) | block.w[2];
++    const double u1 = (static_cast<double>(radial) + 0.5) * 0x1p-64;
++    const double u2 = static_cast<double>(angular >> 11) * 0x1p-53;
++    return sqrt(-2.0 * log(u1)) * cospi(2.0 * u2);
++}
++
++struct KernelParams {
++    double S, K;
++    double logDrift;   // (r - q - sigma^2 / 2) T
++    double volSqrtT;   // sigma sqrt(T)
++    unsigned long long nPaths, seed;
++};
++
++// mean and sum of squared deviations of the undiscounted payoffs of one leaf.
++struct LeafStats {
++    double mean, m2;
++};
++
++__host__ __device__ inline double payoff(unsigned long long path, const KernelParams& p) {
++    const double terminal = p.S * exp(p.logDrift + p.volSqrtT * standard_normal(path, p.seed));
++    return fmax(terminal - p.K, 0.0);
++}
++
++__global__ void simulate_leaves(KernelParams p, unsigned long long firstLeaf, unsigned leafCount,
++                                LeafStats* out) {
++    const unsigned slot = blockIdx.x * blockDim.x + threadIdx.x;
++    if (slot >= leafCount) return;
++
++    const unsigned long long first = (firstLeaf + slot) * kPathsPerLeaf;
++    const unsigned long long remaining = p.nPaths - first;
++    const unsigned count = static_cast<unsigned>(remaining < kPathsPerLeaf ? remaining : kPathsPerLeaf);
++
++    // Sums are taken around the first payoff rather than zero: x^2 sums would cancel away the
++    // whole variance when it is tiny next to the mean (low volatility, deep in the money).
++    const double reference = payoff(first, p);
++    double sum = 0.0, sumSquares = 0.0;
++    for (unsigned i = 1; i < count; ++i) {
++        const double y = payoff(first + i, p) - reference;
++        sum += y;
++        sumSquares += y * y;
++    }
++    out[slot].mean = reference + sum / count;
++    out[slot].m2 = fmax(sumSquares - sum * sum / count, 0.0);
++}
++
++void check(cudaError_t status, const char* what) {
++    if (status != cudaSuccess)
++        throw std::runtime_error(std::string("gpu_bs_call: ") + what + ": " + cudaGetErrorString(status));
++}
++
++// Selects a device for this thread and gives the caller's selection back on every exit path.
++class ScopedDevice {
++public:
++    explicit ScopedDevice(int device) {
++        check(cudaGetDevice(&previous_), "cudaGetDevice");
++        check(cudaSetDevice(device), "cudaSetDevice");
++    }
++    ~ScopedDevice() { cudaSetDevice(previous_); }
++    ScopedDevice(const ScopedDevice&) = delete;
++    ScopedDevice& operator=(const ScopedDevice&) = delete;
++
++private:
++    int previous_ = 0;
++};
++
++class DeviceBuffer {
++public:
++    explicit DeviceBuffer(std::size_t bytes) { check(cudaMalloc(&ptr_, bytes), "cudaMalloc"); }
++    ~DeviceBuffer() { cudaFree(ptr_); }
++    DeviceBuffer(const DeviceBuffer&) = delete;
++    DeviceBuffer& operator=(const DeviceBuffer&) = delete;
++    void* get() const { return ptr_; }
++
++private:
++    void* ptr_ = nullptr;
++};
++
++}  // namespace
++
++McResult gpu_bs_call(double S, double K, double r, double q, double sigma, double T,
++                     unsigned long long nPaths, unsigned long long seed, int device) {
++    if (!(S >= 0.0) || !(K >= 0.0) || !(sigma >= 0.0) || !(T >= 0.0) || !std::isfinite(S) ||
++        !std::isfinite(K) || !std::isfinite(sigma) || !std::isfinite(T) || !std::isfinite(r) ||
++        !std::isfinite(q))
++        throw std::invalid_argument("gpu_bs_call: S, K, sigma and T must be finite and >= 0, r and q finite");
++    if (nPaths == 0) throw std::invalid_argument("gpu_bs_call: nPaths must be at least 1");
++
++    const KernelParams params{S, K, (r - q - 0.5 * sigma * sigma) * T, sigma * std::sqrt(T), nPaths, seed};
++    const unsigned long long totalLeaves = (nPaths - 1) / kPathsPerLeaf + 1;  // Cannot overflow.
++    const std::size_t launchLeaves =
++        static_cast<std::size_t>(totalLeaves < kLeavesPerLaunch ? totalLeaves : kLeavesPerLaunch);
++
++    ScopedDevice scopedDevice(device);
++    DeviceBuffer deviceLeaves(launchLeaves * sizeof(LeafStats));
++    std::vector<LeafStats> hostLeaves(launchLeaves);
++
++    cudaGetLastError();  // A launch reports failure here: start without anyone else's stale error.
++
++    // Pairwise merge in leaf order (Chan, Golub, LeVeque). Extended precision keeps rounding well
++    // below the standard error, even at very low volatility.
++    long double mean = 0.0L, m2 = 0.0L;
++    unsigned long long merged = 0;
++
++    for (unsigned long long firstLeaf = 0; firstLeaf < totalLeaves; firstLeaf += launchLeaves) {
++        const unsigned long long left = totalLeaves - firstLeaf;
++        const unsigned leafCount = static_cast<unsigned>(left < launchLeaves ? left : launchLeaves);
++        const unsigned blocks = (leafCount + kThreadsPerBlock - 1) / kThreadsPerBlock;
++
++        simulate_leaves<<<blocks, kThreadsPerBlock>>>(params, firstLeaf, leafCount,
++                                                      static_cast<LeafStats*>(deviceLeaves.get()));
++        check(cudaGetLastError(), "kernel launch");
++        check(cudaMemcpy(hostLeaves.data(), deviceLeaves.get(), leafCount * sizeof(LeafStats),
++                         cudaMemcpyDeviceToHost),
++              "kernel execution or copy to host");
++
++        for (unsigned i = 0; i < leafCount; ++i) {
++            const unsigned long long rest = nPaths - merged;
++            const unsigned long long count = rest < kPathsPerLeaf ? rest : kPathsPerLeaf;
++            const long double fraction = static_cast<long double>(count) / (merged + count);
++            const long double delta = hostLeaves[i].mean - mean;
++            mean += delta * fraction;
++            m2 += hostLeaves[i].m2 + delta * delta * merged * fraction;
++            merged += count;
++        }
++    }
++
++    const long double discount = std::exp(-static_cast<long double>(r) * T);
++    const long double n = static_cast<long double>(nPaths);
++    McResult result;
++    result.price = static_cast<double>(discount * mean);
++    result.std_error = nPaths > 1 ? static_cast<double>(discount * std::sqrt(m2 / (n - 1.0L) / n))
++                                  : std::numeric_limits<double>::infinity();
++    return result;
++}

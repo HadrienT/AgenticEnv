@@ -1,0 +1,56 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.5,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 12,
+  "checks": {
+   "lazy_recompute": false,
+   "same_value_no_invalidate": false,
+   "diamond_single_recalc": false,
+   "chain_propagates": false,
+   "observer_dies_first": false,
+   "observable_dies_first": false,
+   "unregister_during_notify": false,
+   "factory_builtin": false,
+   "factory_unknown_throws": false,
+   "third_party_registration": false,
+   "decorator_memoizes": false,
+   "decorator_invalidate": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 1.8,
+  "output": "/home/hadriensuper/testLLM/.work/grade/oop-lazy-observer-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-lazy-observer/hidden/test.cpp:14:16: error: expected constructor, destructor, or type conversion before \u2018(\u2019 \n"
+ }
+}

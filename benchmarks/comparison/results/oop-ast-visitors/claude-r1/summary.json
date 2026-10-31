@@ -1,0 +1,56 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.5,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 12,
+  "checks": {
+   "eval": false,
+   "eval_unknown_var": false,
+   "print_precedence": false,
+   "vars_sorted": false,
+   "fold_constants": false,
+   "fold_identities": false,
+   "fold_does_not_mutate": false,
+   "diff_rules": false,
+   "diff_numeric_fuzz": false,
+   "clone_independent": false,
+   "deep_tree_destructor": false,
+   "no_leaks_asan": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 3.5,
+  "output": "FAIL eval\nFAIL eval_unknown_var\nFAIL print_precedence\nFAIL vars_sorted\nFAIL fold_constants\nFAIL fold_identities\nFAIL fold_does_not_mutate\nFAIL diff_rules\nFAIL diff_numeric_fuzz\nFAIL clone_independent\nFAIL deep_tree_destructor\nFAIL no_leaks_asan\n[eval] exception: not implemented\n[eval_unknown_var] exception: not implemented\n[print_precedence] exception: not implemented\n[vars_sorted] exception: not implemented\n[fold_constants] exception: not implemented\n[fold_identities] exception: not implemented\n[fold_does_not_mutate] exception: not implemented\n[diff_rules] exception: not implemented\n[diff_numeric_fuzz] exception: not implemented\n[clone_independent] exception: not implemented\n[deep_tree_destructor] exception: not implemented\n"
+ }
+}

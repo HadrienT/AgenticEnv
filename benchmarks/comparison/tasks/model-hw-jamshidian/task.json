@@ -1,0 +1,1 @@
+{"category":"models","checks":["zcb_time_zero_fits_curve","zcb_conditional","bond_call","bond_put","parity","jamshidian_annual","jamshidian_semiannual","receiver_payer_parity","atm_forward_rate","short_rate_mc_consistency"]}

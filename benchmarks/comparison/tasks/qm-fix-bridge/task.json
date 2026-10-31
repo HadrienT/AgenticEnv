@@ -1,0 +1,1 @@
+{"category": "quant-modeling", "base": "qm", "resource": "qm", "checks": ["path_covariance_uneven_grid", "path_covariance_even_grid", "bridge_leaves_first_variate", "existing_simulation_suite", "library_builds"]}

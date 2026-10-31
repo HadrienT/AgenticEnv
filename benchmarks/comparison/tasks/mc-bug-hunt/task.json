@@ -1,0 +1,1 @@
+{"category":"monte-carlo","checks":["european_drift","european_q_discount","antithetic_se","asian_average_dates","barrier_bridge","threads_independent","threads_same_price","digital_at_strike","regression_european_put"]}

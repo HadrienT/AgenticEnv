@@ -1,0 +1,1 @@
+{"category":"models","checks":["roundtrip_core_grid","roundtrip_wings","roundtrip_tiny_time_value","put_side","time_value_zero","below_intrinsic_is_nan","above_upper_bound_is_nan","no_exceptions_on_garbage","speed"]}

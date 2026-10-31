@@ -1,0 +1,48 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.0,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.25,
+  "passed": 1,
+  "total": 4,
+  "checks": {
+   "andersen_case_price": false,
+   "standard_case_price": false,
+   "existing_cos_suite": false,
+   "library_builds": true
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 3.8,
+  "output": "PASS library_builds\nFAIL andersen_case_price\nFAIL standard_case_price\n  got 0 want 13.08467014 tol 0.002\n  got 0.9851160442 want 7.526116652 tol 0.0001\nFAIL existing_cos_suite\n[  FAILED  ] HestonCOS.ReducesToBlackScholesWhenVolOfVolVanishes (0 ms)\n[  FAILED  ] HestonCOS.StaysWithinBoundsAndMonotoneAsTheForwardCrossesTheRange (52 ms)\n[  FAILED  ] HestonCOS.CallPriceIsDecreasingInStrike (0 ms)\n[  FAILED  ] HestonCOS.PriceStabilizesAsTermCountIncreases (0 ms)\n[  FAILED  ] HestonCOS.FellerViolatingParamsStillProduceAFiniteSaneCallPrice (0 ms)\n"
+ }
+}

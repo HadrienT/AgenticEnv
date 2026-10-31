@@ -1,0 +1,13 @@
+diff --git a/src/engines/mc/barrier.cpp b/src/engines/mc/barrier.cpp
+index ee0d305..b65081b 100644
+--- a/src/engines/mc/barrier.cpp
++++ b/src/engines/mc/barrier.cpp
+@@ -129,7 +129,7 @@ namespace quantModeling
+                         // the exponent is negative.
+                         const Real log_Ha = std::log(H / S_prev);
+                         const Real log_Hb = std::log(H / S);
+-                        const Real exponent = -2.0 * log_Ha * log_Hb / (sig * sig * dt_v);
++                        const Real exponent = -1.0 * log_Ha * log_Hb / (sig * sig * dt_v);
+                         if (exponent < 0.0)
+                         {
+                             if (use_cmc)

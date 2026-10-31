@@ -1,0 +1,226 @@
+diff --git a/src/lsm.cpp b/src/lsm.cpp
+index 4acc997..9892fde 100644
+--- a/src/lsm.cpp
++++ b/src/lsm.cpp
+@@ -1,5 +1,219 @@
+ #include "lsm.hpp"
+-#include <stdexcept>
++#include <random>
++#include <vector>
++#include <algorithm>
++#include <numeric>
++#include <cmath>
++#include <iostream>
++
+ namespace mc {
+-McResult american_put_lsm(double, double, double, double, double, int, std::int64_t, std::uint64_t) { throw std::logic_error("not implemented"); }
++    
++// Polynomial basis functions of degree 3
++inline double basis_func(int i, double x) {
++    switch (i) {
++        case 0: return 1.0;
++        case 1: return x;
++        case 2: return x * x;
++        case 3: return x * x * x;
++        default: return 0.0;
++    }
+ }
++
++// Simple matrix operations for least squares regression
++std::vector<double> solve_least_squares(const std::vector<std::vector<double>>& A, 
++                                       const std::vector<double>& b) {
++    int n_points = A.size();
++    int n_basis = A[0].size();
++    
++    // Simple approach: solve using normal equations (A^T * A) * x = A^T * b
++    // Create A^T * A matrix (n_basis x n_basis)
++    std::vector<std::vector<double>> ATA(n_basis, std::vector<double>(n_basis, 0.0));
++    for (int i = 0; i < n_basis; ++i) {
++        for (int j = 0; j < n_basis; ++j) {
++            for (int k = 0; k < n_points; ++k) {
++                ATA[i][j] += A[k][i] * A[k][j];
++            }
++        }
++    }
++    
++    // Create A^T * b vector (n_basis)
++    std::vector<double> ATb(n_basis, 0.0);
++    for (int i = 0; i < n_basis; ++i) {
++        for (int k = 0; k < n_points; ++k) {
++            ATb[i] += A[k][i] * b[k];
++        }
++    }
++    
++    // Solve using Gaussian elimination with partial pivoting
++    std::vector<std::vector<double>> augmented(ATA);
++    for (int i = 0; i < n_basis; ++i) {
++        augmented[i].push_back(ATb[i]);
++    }
++    
++    // Forward elimination
++    for (int i = 0; i < n_basis; ++i) {
++        // Find pivot
++        int pivot_row = i;
++        for (int j = i + 1; j < n_basis; ++j) {
++            if (std::abs(augmented[j][i]) > std::abs(augmented[pivot_row][i])) {
++                pivot_row = j;
++            }
++        }
++        
++        // Swap rows
++        if (pivot_row != i) {
++            std::swap(augmented[i], augmented[pivot_row]);
++        }
++        
++        // Eliminate
++        for (int j = i + 1; j < n_basis; ++j) {
++            double factor = augmented[j][i] / augmented[i][i];
++            for (int k = i; k <= n_basis; ++k) {
++                augmented[j][k] -= factor * augmented[i][k];
++            }
++        }
++    }
++    
++    // Back substitution
++    std::vector<double> x(n_basis, 0.0);
++    for (int i = n_basis - 1; i >= 0; --i) {
++        double sum = 0.0;
++        for (int j = i + 1; j < n_basis; ++j) {
++            sum += augmented[i][j] * x[j];
++        }
++        x[i] = (augmented[i][n_basis] - sum) / augmented[i][i];
++    }
++    
++    return x;
++}
++
++McResult american_put_lsm(double S0, double K, double r, double sigma, double T, int steps,
++                          std::int64_t paths, std::uint64_t seed) {
++    // Generate time grid
++    std::vector<double> times(steps + 1);
++    for (int i = 0; i <= steps; ++i) {
++        times[i] = i * T / steps;
++    }
++    
++    // Initialize random number generator
++    std::mt19937 gen(seed);
++    
++    // Precompute discount factors
++    std::vector<double> discount_factors(steps + 1);
++    for (int i = 0; i <= steps; ++i) {
++        discount_factors[i] = std::exp(-r * times[i]);
++    }
++    
++    // Generate all paths at once for better performance
++    std::vector<std::vector<double>> paths_data(paths, std::vector<double>(steps + 1));
++    
++    // Generate paths using the analytical solution for geometric Brownian motion
++    const double dt = T / steps;
++    const double mu = r - 0.5 * sigma * sigma;
++    
++    for (std::int64_t path = 0; path < paths; ++path) {
++        paths_data[path][0] = S0;
++        for (int step = 1; step <= steps; ++step) {
++            std::normal_distribution<double> dist(0.0, 1.0);
++            double z = dist(gen);
++            paths_data[path][step] = paths_data[path][step-1] * std::exp(mu * dt + sigma * std::sqrt(dt) * z);
++        }
++    }
++    
++    // Backward induction
++    // At maturity, payoff is max(K - S, 0)
++    std::vector<double> continuation_values(paths, 0.0);
++    std::vector<double> payoffs(paths, 0.0);
++    
++    // Initialize payoffs at maturity
++    for (std::int64_t path = 0; path < paths; ++path) {
++        payoffs[path] = std::max(K - paths_data[path][steps], 0.0);
++    }
++    
++    // Work backwards from step T-dt to step 0
++    for (int step = steps - 1; step >= 0; --step) {
++        // For each path, store the spot price and payoff
++        std::vector<std::pair<double, double>> data_points;
++        for (std::int64_t path = 0; path < paths; ++path) {
++            const double spot = paths_data[path][step];
++            const double payoff = std::max(K - spot, 0.0);
++            // Only consider paths where immediate exercise is better than continuation
++            if (payoff > 0.0) {
++                data_points.push_back({spot, payoff});
++            }
++        }
++        
++        // If we don't have enough data points, no regression needed
++        if (data_points.size() < 4) {
++            // Set continuation values to 0 (no early exercise)
++            for (std::int64_t path = 0; path < paths; ++path) {
++                continuation_values[path] = 0.0;
++            }
++        } else {
++            // Perform regression using least squares
++            const int n_points = data_points.size();
++            const int n_basis = 4;
++            
++            // Create design matrix A (n_points x n_basis)
++            std::vector<std::vector<double>> A(n_points, std::vector<double>(n_basis, 0.0));
++            std::vector<double> b(n_points, 0.0);
++            
++            for (int i = 0; i < n_points; ++i) {
++                const double x = data_points[i].first;
++                for (int j = 0; j < n_basis; ++j) {
++                    A[i][j] = basis_func(j, x);
++                }
++                b[i] = data_points[i].second;
++            }
++            
++            // Solve normal equations using simple Gaussian elimination
++            std::vector<double> coefficients = solve_least_squares(A, b);
++            
++            // Calculate continuation values for all paths
++            for (std::int64_t path = 0; path < paths; ++path) {
++                const double spot = paths_data[path][step];
++                double continuation_value = 0.0;
++                for (int i = 0; i < n_basis; ++i) {
++                    continuation_value += coefficients[i] * basis_func(i, spot);
++                }
++                continuation_values[path] = continuation_value;
++            }
++        }
++        
++        // Update payoffs based on exercise decisions
++        for (std::int64_t path = 0; path < paths; ++path) {
++            const double payoff = std::max(K - paths_data[path][step], 0.0);
++            const double continuation_value = continuation_values[path];
++            // If immediate exercise is better than continuation, exercise
++            if (payoff > continuation_value) {
++                payoffs[path] = payoff;
++            }
++        }
++    }
++    
++    // Calculate the final price as the average discounted payoff
++    double sum = 0.0;
++    for (std::int64_t path = 0; path < paths; ++path) {
++        sum += payoffs[path] * discount_factors[0];
++    }
++    double price = sum / paths;
++    
++    // Ensure price is never below intrinsic value at t=0
++    double intrinsic_value = std::max(K - S0, 0.0);
++    if (price < intrinsic_value) {
++        price = intrinsic_value;
++    }
++    
++    // Calculate standard error
++    double sum_sq = 0.0;
++    for (std::int64_t path = 0; path < paths; ++path) {
++        const double diff = payoffs[path] * discount_factors[0] - price;
++        sum_sq += diff * diff;
++    }
++    double variance = sum_sq / (paths - 1);
++    double std_error = std::sqrt(variance / paths);
++    
++    return {price, std_error};
++}
++
++}  // namespace mc

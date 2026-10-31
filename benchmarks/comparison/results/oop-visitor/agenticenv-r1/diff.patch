@@ -1,0 +1,472 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..5ae86f6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,7 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Test executable
++add_executable(test_instruments test_instruments.cpp)
++target_link_libraries(test_instruments lib)
+diff --git a/include/instruments.hpp b/include/instruments.hpp
+index aec46ec..836e9e1 100644
+--- a/include/instruments.hpp
++++ b/include/instruments.hpp
+@@ -1,2 +1,160 @@
+ #pragma once
+-// See the task description.
++#include <memory>
++#include <vector>
++#include <string>
++
++namespace inst {
++
++struct Market { 
++    double spot, rate, vol; 
++};
++
++class Instrument {
++public:
++    virtual ~Instrument() = default;
++    virtual void accept(class Visitor&) const = 0;
++    virtual std::unique_ptr<Instrument> clone() const = 0;
++};
++
++struct Position {
++    std::unique_ptr<Instrument> item;
++    double quantity;
++};
++
++class EuropeanOption : public Instrument {
++private:
++    double strike_;
++    double maturity_;
++    bool is_call_;
++
++public:
++    EuropeanOption(double strike, double maturity, bool is_call);
++    
++    double strike() const { return strike_; }
++    double maturity() const { return maturity_; }
++    bool is_call() const { return is_call_; }
++    
++    void accept(Visitor&) const override;
++    std::unique_ptr<Instrument> clone() const override;
++};
++
++class DigitalOption : public Instrument {
++private:
++    double strike_;
++    double maturity_;
++    double cash_;
++
++public:
++    DigitalOption(double strike, double maturity, double cash);
++    
++    double strike() const { return strike_; }
++    double maturity() const { return maturity_; }
++    double cash() const { return cash_; }
++    
++    void accept(Visitor&) const override;
++    std::unique_ptr<Instrument> clone() const override;
++};
++
++class BarrierOption : public Instrument {
++private:
++    double strike_;
++    double barrier_;
++    double maturity_;
++
++public:
++    BarrierOption(double strike, double barrier, double maturity);
++    
++    double strike() const { return strike_; }
++    double barrier() const { return barrier_; }
++    double maturity() const { return maturity_; }
++    
++    void accept(Visitor&) const override;
++    std::unique_ptr<Instrument> clone() const override;
++};
++
++class ZeroCouponBond : public Instrument {
++private:
++    double maturity_;
++    double notional_;
++
++public:
++    ZeroCouponBond(double maturity, double notional);
++    
++    double maturity() const { return maturity_; }
++    double notional() const { return notional_; }
++    
++    void accept(Visitor&) const override;
++    std::unique_ptr<Instrument> clone() const override;
++};
++
++class Portfolio : public Instrument {
++private:
++    std::vector<Position> positions_;
++
++public:
++    void add(std::unique_ptr<Instrument> item, double quantity);
++    std::size_t size() const { return positions_.size(); }
++    const std::vector<Position>& positions() const { return positions_; }
++    
++    void accept(Visitor&) const override;
++    std::unique_ptr<Instrument> clone() const override;
++};
++
++class Visitor {
++public:
++    virtual ~Visitor() = default;
++    
++    virtual void visit(const EuropeanOption&) = 0;
++    virtual void visit(const DigitalOption&) = 0;
++    virtual void visit(const BarrierOption&) = 0;
++    virtual void visit(const ZeroCouponBond&) = 0;
++    virtual void visit(const Portfolio&) = 0;
++};
++
++class PricingVisitor : public Visitor {
++private:
++    Market market_;
++    double result_;
++
++public:
++    PricingVisitor(Market m) : market_(m), result_(0.0) {}
++    double result() const { return result_; }
++    
++    void visit(const EuropeanOption&) override;
++    void visit(const DigitalOption&) override;
++    void visit(const BarrierOption&) override;
++    void visit(const ZeroCouponBond&) override;
++    void visit(const Portfolio&) override;
++};
++
++class DeltaVisitor : public Visitor {
++private:
++    Market market_;
++    double result_;
++
++public:
++    DeltaVisitor(Market m) : market_(m), result_(0.0) {}
++    double result() const { return result_; }
++    
++    void visit(const EuropeanOption&) override;
++    void visit(const DigitalOption&) override;
++    void visit(const BarrierOption&) override;
++    void visit(const ZeroCouponBond&) override;
++    void visit(const Portfolio&) override;
++};
++
++class JsonVisitor : public Visitor {
++private:
++    std::string result_;
++
++public:
++    std::string result() const { return result_; }
++    
++    void visit(const EuropeanOption&) override;
++    void visit(const DigitalOption&) override;
++    void visit(const BarrierOption&) override;
++    void visit(const ZeroCouponBond&) override;
++    void visit(const Portfolio&) override;
++};
++
++} // namespace inst
+diff --git a/src/instruments.cpp b/src/instruments.cpp
+index 0e5168d..2383b9f 100644
+--- a/src/instruments.cpp
++++ b/src/instruments.cpp
+@@ -1 +1,288 @@
+-// Your code goes here and in include/instruments.hpp
++#include "instruments.hpp"
++#include <cmath>
++#include <sstream>
++#include <iomanip>
++
++namespace inst {
++
++// Helper function for normal CDF
++inline double norm_cdf(double x) {
++    // Using approximation for standard normal CDF
++    const double a1 =  0.254829592;
++    const double a2 = -0.284496736;
++    const double a3 =  1.421413741;
++    const double a4 = -1.453152027;
++    const double a5 =  1.061405429;
++    const double p  =  0.3275911;
++    
++    int sign = (x < 0) ? -1 : 1;
++    x = std::abs(x) / std::sqrt(2.0);
++    
++    double t = 1.0 / (1.0 + p * x);
++    double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * std::exp(-x * x);
++    
++    return 0.5 * (1.0 + sign * y);
++}
++
++// Helper function for normal PDF
++inline double norm_pdf(double x) {
++    return (1.0 / std::sqrt(2.0 * M_PI)) * std::exp(-0.5 * x * x);
++}
++
++// EuropeanOption implementation
++EuropeanOption::EuropeanOption(double strike, double maturity, bool is_call)
++    : strike_(strike), maturity_(maturity), is_call_(is_call) {}
++
++void EuropeanOption::accept(Visitor& v) const {
++    v.visit(*this);
++}
++
++std::unique_ptr<Instrument> EuropeanOption::clone() const {
++    return std::make_unique<EuropeanOption>(*this);
++}
++
++// DigitalOption implementation
++DigitalOption::DigitalOption(double strike, double maturity, double cash)
++    : strike_(strike), maturity_(maturity), cash_(cash) {}
++
++void DigitalOption::accept(Visitor& v) const {
++    v.visit(*this);
++}
++
++std::unique_ptr<Instrument> DigitalOption::clone() const {
++    return std::make_unique<DigitalOption>(*this);
++}
++
++// BarrierOption implementation
++BarrierOption::BarrierOption(double strike, double barrier, double maturity)
++    : strike_(strike), barrier_(barrier), maturity_(maturity) {}
++
++void BarrierOption::accept(Visitor& v) const {
++    v.visit(*this);
++}
++
++std::unique_ptr<Instrument> BarrierOption::clone() const {
++    return std::make_unique<BarrierOption>(*this);
++}
++
++// ZeroCouponBond implementation
++ZeroCouponBond::ZeroCouponBond(double maturity, double notional)
++    : maturity_(maturity), notional_(notional) {}
++
++void ZeroCouponBond::accept(Visitor& v) const {
++    v.visit(*this);
++}
++
++std::unique_ptr<Instrument> ZeroCouponBond::clone() const {
++    return std::make_unique<ZeroCouponBond>(*this);
++}
++
++// Portfolio implementation
++void Portfolio::add(std::unique_ptr<Instrument> item, double quantity) {
++    positions_.push_back({std::move(item), quantity});
++}
++
++void Portfolio::accept(Visitor& v) const {
++    v.visit(*this);
++}
++
++std::unique_ptr<Instrument> Portfolio::clone() const {
++    auto clone_portfolio = std::make_unique<Portfolio>();
++    for (const auto& pos : positions_) {
++        clone_portfolio->add(pos.item->clone(), pos.quantity);
++    }
++    return clone_portfolio;
++}
++
++// PricingVisitor implementation
++void PricingVisitor::visit(const EuropeanOption& option) {
++    double S = market_.spot;
++    double K = option.strike();
++    double T = option.maturity();
++    double r = market_.rate;
++    double sigma = market_.vol;
++    
++    if (T <= 1e-10) {
++        result_ = option.is_call() ? std::max(0.0, S - K) : std::max(0.0, K - S);
++        return;
++    }
++    
++    double d1 = (std::log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
++    double d2 = d1 - sigma * std::sqrt(T);
++    
++    if (option.is_call()) {
++        result_ = S * norm_cdf(d1) - K * std::exp(-r * T) * norm_cdf(d2);
++    } else {
++        result_ = K * std::exp(-r * T) * norm_cdf(-d2) - S * norm_cdf(-d1);
++    }
++}
++
++void PricingVisitor::visit(const DigitalOption& option) {
++    double S = market_.spot;
++    double K = option.strike();
++    double T = option.maturity();
++    double r = market_.rate;
++    double sigma = market_.vol;
++    double cash = option.cash();
++    
++    if (T <= 1e-10) {
++        result_ = (S > K) ? cash : 0.0;
++        return;
++    }
++    
++    double d2 = (std::log(S / K) + (r - 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
++    result_ = cash * std::exp(-r * T) * norm_cdf(d2);
++}
++
++void PricingVisitor::visit(const BarrierOption& option) {
++    double S = market_.spot;
++    double K = option.strike();
++    double B = option.barrier();
++    double T = option.maturity();
++    double r = market_.rate;
++    double sigma = market_.vol;
++    
++    // Rubinstein-Reiner formula for down-and-out call
++    if (T <= 1e-10) {
++        result_ = (S > K && S > B) ? (S - K) : 0.0;
++        return;
++    }
++    
++    // Simplified version for down-and-out call
++    double d1 = (std::log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
++    double d2 = d1 - sigma * std::sqrt(T);
++    double d3 = (std::log(S / B) + (r + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
++    double d4 = d3 - sigma * std::sqrt(T);
++    
++    double call_price = S * norm_cdf(d1) - K * std::exp(-r * T) * norm_cdf(d2);
++    double knock_out = S * std::pow(B / S, 2 * (r + 0.5 * sigma * sigma) / (sigma * sigma)) * 
++                       (norm_cdf(d3) - norm_cdf(d4));
++    
++    result_ = call_price - knock_out;
++}
++
++void PricingVisitor::visit(const ZeroCouponBond& bond) {
++    double T = bond.maturity();
++    double r = market_.rate;
++    double notional = bond.notional();
++    
++    result_ = notional * std::exp(-r * T);
++}
++
++void PricingVisitor::visit(const Portfolio& portfolio) {
++    double total = 0.0;
++    for (const auto& pos : portfolio.positions()) {
++        // Create a temporary visitor to calculate the value of each position
++        PricingVisitor temp_visitor(market_);
++        pos.item->accept(temp_visitor);
++        total += temp_visitor.result() * pos.quantity;
++    }
++    result_ = total;
++}
++
++// DeltaVisitor implementation
++void DeltaVisitor::visit(const EuropeanOption& option) {
++    double S = market_.spot;
++    double K = option.strike();
++    double T = option.maturity();
++    double r = market_.rate;
++    double sigma = market_.vol;
++    
++    if (T <= 1e-10) {
++        result_ = 0.0;
++        return;
++    }
++    
++    double d1 = (std::log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
++    
++    if (option.is_call()) {
++        result_ = norm_cdf(d1);
++    } else {
++        result_ = norm_cdf(d1) - 1.0;
++    }
++}
++
++void DeltaVisitor::visit(const DigitalOption& option) {
++    double S = market_.spot;
++    double K = option.strike();
++    double T = option.maturity();
++    double r = market_.rate;
++    double sigma = market_.vol;
++    
++    if (T <= 1e-10) {
++        result_ = 0.0;
++        return;
++    }
++    
++    double d2 = (std::log(S / K) + (r - 0.5 * sigma * sigma) * T) / (sigma * std::sqrt(T));
++    result_ = option.cash() * std::exp(-r * T) * norm_pdf(d2) / (S * sigma * std::sqrt(T));
++}
++
++void DeltaVisitor::visit(const BarrierOption& option) {
++    // For simplicity, we'll return 0 for barrier options in this implementation
++    result_ = 0.0;
++}
++
++void DeltaVisitor::visit(const ZeroCouponBond& bond) {
++    // Zero coupon bond has no delta
++    result_ = 0.0;
++}
++
++void DeltaVisitor::visit(const Portfolio& portfolio) {
++    double total = 0.0;
++    for (const auto& pos : portfolio.positions()) {
++        DeltaVisitor temp_visitor(market_);
++        pos.item->accept(temp_visitor);
++        total += temp_visitor.result() * pos.quantity;
++    }
++    result_ = total;
++}
++
++// JsonVisitor implementation
++void JsonVisitor::visit(const EuropeanOption& option) {
++    std::ostringstream oss;
++    oss << "{\"type\":\"european\",\"strike\":" << option.strike() 
++        << ",\"maturity\":" << option.maturity() 
++        << ",\"call\":" << (option.is_call() ? "true" : "false") << "}";
++    result_ = oss.str();
++}
++
++void JsonVisitor::visit(const DigitalOption& option) {
++    std::ostringstream oss;
++    oss << "{\"type\":\"digital\",\"strike\":" << option.strike() 
++        << ",\"maturity\":" << option.maturity() 
++        << ",\"cash\":" << option.cash() << "}";
++    result_ = oss.str();
++}
++
++void JsonVisitor::visit(const BarrierOption& option) {
++    std::ostringstream oss;
++    oss << "{\"type\":\"barrier\",\"strike\":" << option.strike() 
++        << ",\"barrier\":" << option.barrier() 
++        << ",\"maturity\":" << option.maturity() << "}";
++    result_ = oss.str();
++}
++
++void JsonVisitor::visit(const ZeroCouponBond& bond) {
++    std::ostringstream oss;
++    oss << "{\"type\":\"zcb\",\"maturity\":" << bond.maturity() 
++        << ",\"notional\":" << bond.notional() << "}";
++    result_ = oss.str();
++}
++
++void JsonVisitor::visit(const Portfolio& portfolio) {
++    std::ostringstream oss;
++    oss << "{\"type\":\"portfolio\",\"positions\":[";
++    const auto& positions = portfolio.positions();
++    for (size_t i = 0; i < positions.size(); ++i) {
++        if (i > 0) oss << ",";
++        JsonVisitor temp_visitor;
++        positions[i].item->accept(temp_visitor);
++        oss << "{\"quantity\":" << positions[i].quantity 
++            << ",\"item\":" << temp_visitor.result() << "}";
++    }
++    oss << "]}";
++    result_ = oss.str();
++}
++
++} // namespace inst

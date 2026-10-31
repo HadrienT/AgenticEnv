@@ -1,0 +1,53 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.5,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 9,
+  "checks": {
+   "roundtrip_core_grid": false,
+   "roundtrip_wings": false,
+   "roundtrip_tiny_time_value": false,
+   "put_side": false,
+   "time_value_zero": false,
+   "below_intrinsic_is_nan": false,
+   "above_upper_bound_is_nan": false,
+   "no_exceptions_on_garbage": false,
+   "speed": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 2.0,
+  "output": "FAIL roundtrip_core_grid\nFAIL roundtrip_wings\nFAIL roundtrip_tiny_time_value\nFAIL put_side\nFAIL time_value_zero\nFAIL below_intrinsic_is_nan\nFAIL above_upper_bound_is_nan\nFAIL no_exceptions_on_garbage\nFAIL speed\n[roundtrip_core_grid] exception: not implemented\n[roundtrip_wings] exception: not implemented\n[roundtrip_tiny_time_value] exception: not implemented\n[put_side] exception: not implemented\n[time_value_zero] exception: not implemented\n[below_intrinsic_is_nan] exception: not implemented\n[above_upper_bound_is_nan] exception: not implemented\n[no_exceptions_on_garbage] exception: not implemented\n"
+ }
+}

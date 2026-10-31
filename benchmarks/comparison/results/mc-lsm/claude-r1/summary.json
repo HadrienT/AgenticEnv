@@ -1,0 +1,53 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.7,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 9,
+  "checks": {
+   "ls_table_itm": false,
+   "ls_table_high_vol": false,
+   "ls_table_otm": false,
+   "above_european": false,
+   "deep_itm_floor": false,
+   "no_exercise_value": false,
+   "se_is_honest": false,
+   "basis_not_ill_conditioned": false,
+   "speed": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 1.9,
+  "output": "FAIL ls_table_itm\nFAIL ls_table_high_vol\nFAIL ls_table_otm\nFAIL above_european\nFAIL deep_itm_floor\nFAIL no_exercise_value\nFAIL se_is_honest\nFAIL basis_not_ill_conditioned\nFAIL speed\n[ls_table_itm] exception: not implemented\n[ls_table_high_vol] exception: not implemented\n[ls_table_otm] exception: not implemented\n[above_european] exception: not implemented\n[deep_itm_floor] exception: not implemented\n[no_exercise_value] exception: not implemented\n[se_is_honest] exception: not implemented\n[basis_not_ill_conditioned] exception: not implemented\n"
+ }
+}

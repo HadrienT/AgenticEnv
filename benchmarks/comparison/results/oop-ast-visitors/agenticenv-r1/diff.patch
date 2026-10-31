@@ -1,0 +1,1048 @@
+diff --git a/include/ast.hpp b/include/ast.hpp
+index dab756e..82d627a 100644
+--- a/include/ast.hpp
++++ b/include/ast.hpp
+@@ -3,15 +3,159 @@
+ #include <memory>
+ #include <set>
+ #include <string>
++#include <iostream>
+ namespace ast {
+ class Node;
+ using Ptr = std::unique_ptr<Node>;
+ using Env = std::map<std::string, double>;
+ 
+-// Node hierarchy and its visitor are yours to design: see the task description.
++// Forward declarations for visitor classes
++class EvalVisitor;
++class PrintVisitor;
++class VarsVisitor;
++class CloneVisitor;
++class FoldVisitor;
++class DiffVisitor;
++
++// Base Node class
+ class Node {
+ public:
+     virtual ~Node() = default;
++    virtual void accept(EvalVisitor& visitor) const = 0;
++    virtual void accept(PrintVisitor& visitor) const = 0;
++    virtual void accept(VarsVisitor& visitor) const = 0;
++    virtual void accept(CloneVisitor& visitor) const = 0;
++    virtual void accept(FoldVisitor& visitor) const = 0;
++    virtual void accept(DiffVisitor& visitor) const = 0;
++    virtual Ptr clone() const = 0;
++};
++
++// Concrete Node types
++class NumNode : public Node {
++public:
++    double value;
++    NumNode(double v) : value(v) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class VarNode : public Node {
++public:
++    std::string name;
++    VarNode(std::string n) : name(std::move(n)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class AddNode : public Node {
++public:
++    Ptr left, right;
++    AddNode(Ptr l, Ptr r) : left(std::move(l)), right(std::move(r)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class SubNode : public Node {
++public:
++    Ptr left, right;
++    SubNode(Ptr l, Ptr r) : left(std::move(l)), right(std::move(r)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class MulNode : public Node {
++public:
++    Ptr left, right;
++    MulNode(Ptr l, Ptr r) : left(std::move(l)), right(std::move(r)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class NegNode : public Node {
++public:
++    Ptr operand;
++    NegNode(Ptr op) : operand(std::move(op)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class PowNode : public Node {
++public:
++    Ptr base;
++    double exponent;
++    PowNode(Ptr b, double e) : base(std::move(b)), exponent(e) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class ExpNode : public Node {
++public:
++    Ptr operand;
++    ExpNode(Ptr op) : operand(std::move(op)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
++};
++
++class LogNode : public Node {
++public:
++    Ptr operand;
++    LogNode(Ptr op) : operand(std::move(op)) {}
++    
++    void accept(EvalVisitor& visitor) const override;
++    void accept(PrintVisitor& visitor) const override;
++    void accept(VarsVisitor& visitor) const override;
++    void accept(CloneVisitor& visitor) const override;
++    void accept(FoldVisitor& visitor) const override;
++    void accept(DiffVisitor& visitor) const override;
++    Ptr clone() const override;
+ };
+ 
+ Ptr num(double v);
+diff --git a/src/ast.cpp b/src/ast.cpp
+index bce524c..877dceb 100644
+--- a/src/ast.cpp
++++ b/src/ast.cpp
+@@ -1,20 +1,862 @@
+ #include "ast.hpp"
+ #include <stdexcept>
++#include <sstream>
++#include <cmath>
++#include <algorithm>
++#include <memory>
++
+ namespace ast {
+-#define TODO throw std::logic_error("not implemented")
+-Ptr num(double) { TODO; }
+-Ptr var(std::string) { TODO; }
+-Ptr add(Ptr, Ptr) { TODO; }
+-Ptr sub(Ptr, Ptr) { TODO; }
+-Ptr mul(Ptr, Ptr) { TODO; }
+-Ptr neg(Ptr) { TODO; }
+-Ptr pow_(Ptr, double) { TODO; }
+-Ptr exp_(Ptr) { TODO; }
+-Ptr log_(Ptr) { TODO; }
+-double eval(const Node&, const Env&) { TODO; }
+-std::string print(const Node&) { TODO; }
+-std::set<std::string> vars(const Node&) { TODO; }
+-Ptr clone(const Node&) { TODO; }
+-Ptr fold(const Node&) { TODO; }
+-Ptr diff(const Node&, const std::string&) { TODO; }
++// Helper function to check if a node is a number
++bool is_num(const Node& node) {
++    return dynamic_cast<const NumNode*>(&node) != nullptr;
+ }
++
++// Helper function to get the value of a number node
++double get_num_value(const Node& node) {
++    const NumNode* num_node = dynamic_cast<const NumNode*>(&node);
++    if (num_node) {
++        return num_node->value;
++    }
++    throw std::runtime_error("Node is not a number");
++}
++
++// Helper function to check if a node is a variable
++bool is_var(const Node& node) {
++    return dynamic_cast<const VarNode*>(&node) != nullptr;
++}
++
++// Helper function to get the name of a variable node
++std::string get_var_name(const Node& node) {
++    const VarNode* var_node = dynamic_cast<const VarNode*>(&node);
++    if (var_node) {
++        return var_node->name;
++    }
++    throw std::runtime_error("Node is not a variable");
++}
++
++// Visitor implementations
++class EvalVisitor {
++public:
++    const Env& env;
++    double result;
++    
++    EvalVisitor(const Env& e) : env(e), result(0) {}
++    
++    void visit(const NumNode& node) {
++        result = node.value;
++    }
++    
++    void visit(const VarNode& node) {
++        auto it = env.find(node.name);
++        if (it == env.end()) {
++            throw std::out_of_range("Unknown variable: " + node.name);
++        }
++        result = it->second;
++    }
++    
++    void visit(const AddNode& node) {
++        EvalVisitor left_visitor(env);
++        node.left->accept(left_visitor);
++        EvalVisitor right_visitor(env);
++        node.right->accept(right_visitor);
++        result = left_visitor.result + right_visitor.result;
++    }
++    
++    void visit(const SubNode& node) {
++        EvalVisitor left_visitor(env);
++        node.left->accept(left_visitor);
++        EvalVisitor right_visitor(env);
++        node.right->accept(right_visitor);
++        result = left_visitor.result - right_visitor.result;
++    }
++    
++    void visit(const MulNode& node) {
++        EvalVisitor left_visitor(env);
++        node.left->accept(left_visitor);
++        EvalVisitor right_visitor(env);
++        node.right->accept(right_visitor);
++        result = left_visitor.result * right_visitor.result;
++    }
++    
++    void visit(const NegNode& node) {
++        EvalVisitor operand_visitor(env);
++        node.operand->accept(operand_visitor);
++        result = -operand_visitor.result;
++    }
++    
++    void visit(const PowNode& node) {
++        EvalVisitor base_visitor(env);
++        node.base->accept(base_visitor);
++        result = std::pow(base_visitor.result, node.exponent);
++    }
++    
++    void visit(const ExpNode& node) {
++        EvalVisitor operand_visitor(env);
++        node.operand->accept(operand_visitor);
++        result = std::exp(operand_visitor.result);
++    }
++    
++    void visit(const LogNode& node) {
++        EvalVisitor operand_visitor(env);
++        node.operand->accept(operand_visitor);
++        result = std::log(operand_visitor.result);
++    }
++};
++
++class PrintVisitor {
++public:
++    std::string result;
++    int precedence;
++    
++    PrintVisitor() : result(""), precedence(0) {}
++    
++    void visit(const NumNode& node) {
++        std::ostringstream oss;
++        oss.precision(17);
++        oss << node.value;
++        result = oss.str();
++    }
++    
++    void visit(const VarNode& node) {
++        result = node.name;
++    }
++    
++    void visit(const AddNode& node) {
++        PrintVisitor left_visitor;
++        node.left->accept(left_visitor);
++        PrintVisitor right_visitor;
++        node.right->accept(right_visitor);
++        
++        bool need_parens_left = (left_visitor.precedence < 1);
++        bool need_parens_right = (right_visitor.precedence <= 1);
++        
++        if (need_parens_left) {
++            result = "(" + left_visitor.result + ") + " + right_visitor.result;
++        } else if (need_parens_right) {
++            result = left_visitor.result + " + (" + right_visitor.result + ")";
++        } else {
++            result = left_visitor.result + " + " + right_visitor.result;
++        }
++        precedence = 1;
++    }
++    
++    void visit(const SubNode& node) {
++        PrintVisitor left_visitor;
++        node.left->accept(left_visitor);
++        PrintVisitor right_visitor;
++        node.right->accept(right_visitor);
++        
++        bool need_parens_left = (left_visitor.precedence < 1);
++        bool need_parens_right = (right_visitor.precedence <= 1);
++        
++        if (need_parens_left) {
++            result = "(" + left_visitor.result + ") - " + right_visitor.result;
++        } else if (need_parens_right) {
++            result = left_visitor.result + " - (" + right_visitor.result + ")";
++        } else {
++            result = left_visitor.result + " - " + right_visitor.result;
++        }
++        precedence = 1;
++    }
++    
++    void visit(const MulNode& node) {
++        PrintVisitor left_visitor;
++        node.left->accept(left_visitor);
++        PrintVisitor right_visitor;
++        node.right->accept(right_visitor);
++        
++        bool need_parens_left = (left_visitor.precedence < 2);
++        bool need_parens_right = (right_visitor.precedence <= 2);
++        
++        if (need_parens_left) {
++            result = "(" + left_visitor.result + ") * " + right_visitor.result;
++        } else if (need_parens_right) {
++            result = left_visitor.result + " * (" + right_visitor.result + ")";
++        } else {
++            result = left_visitor.result + " * " + right_visitor.result;
++        }
++        precedence = 2;
++    }
++    
++    void visit(const NegNode& node) {
++        PrintVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        
++        // For unary minus, we need parentheses if the operand has lower precedence
++        bool need_parens = (operand_visitor.precedence < 3);
++        
++        if (need_parens) {
++            result = "-(" + operand_visitor.result + ")";
++        } else {
++            result = "-" + operand_visitor.result;
++        }
++        precedence = 3;
++    }
++    
++    void visit(const PowNode& node) {
++        PrintVisitor base_visitor;
++        node.base->accept(base_visitor);
++        
++        // For power, we need parentheses if the base has lower precedence
++        bool need_parens = (base_visitor.precedence < 4);
++        
++        if (need_parens) {
++            result = "(" + base_visitor.result + ")^" + std::to_string(node.exponent);
++        } else {
++            result = base_visitor.result + "^" + std::to_string(node.exponent);
++        }
++        precedence = 4;
++    }
++    
++    void visit(const ExpNode& node) {
++        PrintVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = "exp(" + operand_visitor.result + ")";
++        precedence = 0;
++    }
++    
++    void visit(const LogNode& node) {
++        PrintVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = "log(" + operand_visitor.result + ")";
++        precedence = 0;
++    }
++};
++
++class VarsVisitor {
++public:
++    std::set<std::string> result;
++    
++    void visit(const NumNode& node) {
++        // Nothing to do for numbers
++    }
++    
++    void visit(const VarNode& node) {
++        result.insert(node.name);
++    }
++    
++    void visit(const AddNode& node) {
++        VarsVisitor left_visitor;
++        node.left->accept(left_visitor);
++        VarsVisitor right_visitor;
++        node.right->accept(right_visitor);
++        result.insert(left_visitor.result.begin(), left_visitor.result.end());
++        result.insert(right_visitor.result.begin(), right_visitor.result.end());
++    }
++    
++    void visit(const SubNode& node) {
++        VarsVisitor left_visitor;
++        node.left->accept(left_visitor);
++        VarsVisitor right_visitor;
++        node.right->accept(right_visitor);
++        result.insert(left_visitor.result.begin(), left_visitor.result.end());
++        result.insert(right_visitor.result.begin(), right_visitor.result.end());
++    }
++    
++    void visit(const MulNode& node) {
++        VarsVisitor left_visitor;
++        node.left->accept(left_visitor);
++        VarsVisitor right_visitor;
++        node.right->accept(right_visitor);
++        result.insert(left_visitor.result.begin(), left_visitor.result.end());
++        result.insert(right_visitor.result.begin(), right_visitor.result.end());
++    }
++    
++    void visit(const NegNode& node) {
++        VarsVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result.insert(operand_visitor.result.begin(), operand_visitor.result.end());
++    }
++    
++    void visit(const PowNode& node) {
++        VarsVisitor base_visitor;
++        node.base->accept(base_visitor);
++        result.insert(base_visitor.result.begin(), base_visitor.result.end());
++    }
++    
++    void visit(const ExpNode& node) {
++        VarsVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result.insert(operand_visitor.result.begin(), operand_visitor.result.end());
++    }
++    
++    void visit(const LogNode& node) {
++        VarsVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result.insert(operand_visitor.result.begin(), operand_visitor.result.end());
++    }
++};
++
++class CloneVisitor {
++public:
++    Ptr result;
++    
++    void visit(const NumNode& node) {
++        result = std::make_unique<NumNode>(node.value);
++    }
++    
++    void visit(const VarNode& node) {
++        result = std::make_unique<VarNode>(node.name);
++    }
++    
++    void visit(const AddNode& node) {
++        CloneVisitor left_visitor;
++        node.left->accept(left_visitor);
++        CloneVisitor right_visitor;
++        node.right->accept(right_visitor);
++        result = std::make_unique<AddNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++    }
++    
++    void visit(const SubNode& node) {
++        CloneVisitor left_visitor;
++        node.left->accept(left_visitor);
++        CloneVisitor right_visitor;
++        node.right->accept(right_visitor);
++        result = std::make_unique<SubNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++    }
++    
++    void visit(const MulNode& node) {
++        CloneVisitor left_visitor;
++        node.left->accept(left_visitor);
++        CloneVisitor right_visitor;
++        node.right->accept(right_visitor);
++        result = std::make_unique<MulNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++    }
++    
++    void visit(const NegNode& node) {
++        CloneVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = std::make_unique<NegNode>(std::move(operand_visitor.result));
++    }
++    
++    void visit(const PowNode& node) {
++        CloneVisitor base_visitor;
++        node.base->accept(base_visitor);
++        result = std::make_unique<PowNode>(std::move(base_visitor.result), node.exponent);
++    }
++    
++    void visit(const ExpNode& node) {
++        CloneVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = std::make_unique<ExpNode>(std::move(operand_visitor.result));
++    }
++    
++    void visit(const LogNode& node) {
++        CloneVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = std::make_unique<LogNode>(std::move(operand_visitor.result));
++    }
++};
++
++class FoldVisitor {
++public:
++    Ptr result;
++    
++    void visit(const NumNode& node) {
++        result = std::make_unique<NumNode>(node.value);
++    }
++    
++    void visit(const VarNode& node) {
++        result = std::make_unique<VarNode>(node.name);
++    }
++    
++    void visit(const AddNode& node) {
++        FoldVisitor left_visitor;
++        node.left->accept(left_visitor);
++        FoldVisitor right_visitor;
++        node.right->accept(right_visitor);
++        
++        // Try to fold constants
++        if (is_num(*left_visitor.result) && is_num(*right_visitor.result)) {
++            double left_val = get_num_value(*left_visitor.result);
++            double right_val = get_num_value(*right_visitor.result);
++            result = std::make_unique<NumNode>(left_val + right_val);
++        } else {
++            result = std::make_unique<AddNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++        }
++    }
++    
++    void visit(const SubNode& node) {
++        FoldVisitor left_visitor;
++        node.left->accept(left_visitor);
++        FoldVisitor right_visitor;
++        node.right->accept(right_visitor);
++        
++        // Try to fold constants
++        if (is_num(*left_visitor.result) && is_num(*right_visitor.result)) {
++            double left_val = get_num_value(*left_visitor.result);
++            double right_val = get_num_value(*right_visitor.result);
++            result = std::make_unique<NumNode>(left_val - right_val);
++        } else {
++            result = std::make_unique<SubNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++        }
++    }
++    
++    void visit(const MulNode& node) {
++        FoldVisitor left_visitor;
++        node.left->accept(left_visitor);
++        FoldVisitor right_visitor;
++        node.right->accept(right_visitor);
++        
++        // Try to fold constants
++        if (is_num(*left_visitor.result) && is_num(*right_visitor.result)) {
++            double left_val = get_num_value(*left_visitor.result);
++            double right_val = get_num_value(*right_visitor.result);
++            result = std::make_unique<NumNode>(left_val * right_val);
++        } else {
++            result = std::make_unique<MulNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++        }
++    }
++    
++    void visit(const NegNode& node) {
++        FoldVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        
++        // Try to fold constants
++        if (is_num(*operand_visitor.result)) {
++            double val = get_num_value(*operand_visitor.result);
++            result = std::make_unique<NumNode>(-val);
++        } else {
++            result = std::make_unique<NegNode>(std::move(operand_visitor.result));
++        }
++    }
++    
++    void visit(const PowNode& node) {
++        FoldVisitor base_visitor;
++        node.base->accept(base_visitor);
++        
++        // Try to fold constants
++        if (is_num(*base_visitor.result) && node.exponent == 0) {
++            result = std::make_unique<NumNode>(1.0);
++        } else if (is_num(*base_visitor.result) && node.exponent == 1) {
++            double val = get_num_value(*base_visitor.result);
++            result = std::make_unique<NumNode>(val);
++        } else {
++            result = std::make_unique<PowNode>(std::move(base_visitor.result), node.exponent);
++        }
++    }
++    
++    void visit(const ExpNode& node) {
++        FoldVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = std::make_unique<ExpNode>(std::move(operand_visitor.result));
++    }
++    
++    void visit(const LogNode& node) {
++        FoldVisitor operand_visitor;
++        node.operand->accept(operand_visitor);
++        result = std::make_unique<LogNode>(std::move(operand_visitor.result));
++    }
++};
++
++class DiffVisitor {
++public:
++    std::string var_name;
++    Ptr result;
++    
++    DiffVisitor(const std::string& var) : var_name(var) {}
++    
++    void visit(const NumNode& node) {
++        result = std::make_unique<NumNode>(0.0);
++    }
++    
++    void visit(const VarNode& node) {
++        if (node.name == var_name) {
++            result = std::make_unique<NumNode>(1.0);
++        } else {
++            result = std::make_unique<NumNode>(0.0);
++        }
++    }
++    
++    void visit(const AddNode& node) {
++        DiffVisitor left_visitor(var_name);
++        node.left->accept(left_visitor);
++        DiffVisitor right_visitor(var_name);
++        node.right->accept(right_visitor);
++        result = std::make_unique<AddNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++    }
++    
++    void visit(const SubNode& node) {
++        DiffVisitor left_visitor(var_name);
++        node.left->accept(left_visitor);
++        DiffVisitor right_visitor(var_name);
++        node.right->accept(right_visitor);
++        result = std::make_unique<SubNode>(std::move(left_visitor.result), std::move(right_visitor.result));
++    }
++    
++    void visit(const MulNode& node) {
++        // Product rule: (f * g)' = f' * g + f * g'
++        DiffVisitor left_visitor(var_name);
++        node.left->accept(left_visitor);
++        DiffVisitor right_visitor(var_name);
++        node.right->accept(right_visitor);
++        
++        Ptr left_term = std::make_unique<MulNode>(std::move(left_visitor.result), node.right->clone());
++        Ptr right_term = std::make_unique<MulNode>(node.left->clone(), std::move(right_visitor.result));
++        result = std::make_unique<AddNode>(std::move(left_term), std::move(right_term));
++    }
++    
++    void visit(const NegNode& node) {
++        DiffVisitor operand_visitor(var_name);
++        node.operand->accept(operand_visitor);
++        result = std::make_unique<NegNode>(std::move(operand_visitor.result));
++    }
++    
++    void visit(const PowNode& node) {
++        // Power rule: (f^n)' = n * f^(n-1) * f'
++        if (node.exponent == 0) {
++            result = std::make_unique<NumNode>(0.0);
++        } else {
++            DiffVisitor base_visitor(var_name);
++            node.base->accept(base_visitor);
++            Ptr base_term = std::make_unique<PowNode>(node.base->clone(), node.exponent - 1);
++            Ptr diff_term = std::make_unique<MulNode>(std::make_unique<NumNode>(node.exponent), std::move(base_term));
++            result = std::make_unique<MulNode>(std::move(diff_term), std::move(base_visitor.result));
++        }
++    }
++    
++    void visit(const ExpNode& node) {
++        // Derivative of exp(f) is exp(f) * f'
++        DiffVisitor operand_visitor(var_name);
++        node.operand->accept(operand_visitor);
++        Ptr exp_term = std::make_unique<ExpNode>(node.operand->clone());
++        result = std::make_unique<MulNode>(std::move(exp_term), std::move(operand_visitor.result));
++    }
++    
++    void visit(const LogNode& node) {
++        // Derivative of log(f) is (1/f) * f'
++        DiffVisitor operand_visitor(var_name);
++        node.operand->accept(operand_visitor);
++        Ptr inv_term = std::make_unique<MulNode>(std::make_unique<NumNode>(1.0), node.operand->clone());
++        result = std::make_unique<MulNode>(std::move(inv_term), std::move(operand_visitor.result));
++    }
++};
++
++// Node method implementations
++void NumNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NumNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NumNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NumNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NumNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NumNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void VarNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void VarNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void VarNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void VarNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void VarNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void VarNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void AddNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void AddNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void AddNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void AddNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void AddNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void AddNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void SubNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void SubNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void SubNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void SubNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void SubNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void SubNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void MulNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void MulNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void MulNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void MulNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void MulNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void MulNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NegNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NegNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NegNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NegNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NegNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void NegNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void PowNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void PowNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void PowNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void PowNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void PowNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void PowNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void ExpNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void ExpNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void ExpNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void ExpNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void ExpNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void ExpNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void LogNode::accept(EvalVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void LogNode::accept(PrintVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void LogNode::accept(VarsVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void LogNode::accept(CloneVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void LogNode::accept(FoldVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++void LogNode::accept(DiffVisitor& visitor) const {
++    visitor.visit(*this);
++}
++
++// Factory functions
++Ptr num(double v) {
++    return std::make_unique<NumNode>(v);
++}
++
++Ptr var(std::string name) {
++    return std::make_unique<VarNode>(std::move(name));
++}
++
++Ptr add(Ptr a, Ptr b) {
++    return std::make_unique<AddNode>(std::move(a), std::move(b));
++}
++
++Ptr sub(Ptr a, Ptr b) {
++    return std::make_unique<SubNode>(std::move(a), std::move(b));
++}
++
++Ptr mul(Ptr a, Ptr b) {
++    return std::make_unique<MulNode>(std::move(a), std::move(b));
++}
++
++Ptr neg(Ptr a) {
++    return std::make_unique<NegNode>(std::move(a));
++}
++
++Ptr pow_(Ptr base, double exponent) {
++    return std::make_unique<PowNode>(std::move(base), exponent);
++}
++
++Ptr exp_(Ptr a) {
++    return std::make_unique<ExpNode>(std::move(a));
++}
++
++Ptr log_(Ptr a) {
++    return std::make_unique<LogNode>(std::move(a));
++}
++
++// Free functions
++double eval(const Node& n, const Env& env) {
++    EvalVisitor visitor(env);
++    n.accept(visitor);
++    return visitor.result;
++}
++
++std::string print(const Node& n) {
++    PrintVisitor visitor;
++    n.accept(visitor);
++    return visitor.result;
++}
++
++std::set<std::string> vars(const Node& n) {
++    VarsVisitor visitor;
++    n.accept(visitor);
++    return visitor.result;
++}
++
++// Clone visitor implementation
++Ptr NumNode::clone() const {
++    return std::make_unique<NumNode>(value);
++}
++
++Ptr VarNode::clone() const {
++    return std::make_unique<VarNode>(name);
++}
++
++Ptr AddNode::clone() const {
++    return std::make_unique<AddNode>(left->clone(), right->clone());
++}
++
++Ptr SubNode::clone() const {
++    return std::make_unique<SubNode>(left->clone(), right->clone());
++}
++
++Ptr MulNode::clone() const {
++    return std::make_unique<MulNode>(left->clone(), right->clone());
++}
++
++Ptr NegNode::clone() const {
++    return std::make_unique<NegNode>(operand->clone());
++}
++
++Ptr PowNode::clone() const {
++    return std::make_unique<PowNode>(base->clone(), exponent);
++}
++
++Ptr ExpNode::clone() const {
++    return std::make_unique<ExpNode>(operand->clone());
++}
++
++Ptr LogNode::clone() const {
++    return std::make_unique<LogNode>(operand->clone());
++}
++
++Ptr clone(const Node& n) {
++    CloneVisitor visitor;
++    n.accept(visitor);
++    return std::move(visitor.result);
++}
++
++Ptr fold(const Node& n) {
++    FoldVisitor visitor;
++    n.accept(visitor);
++    return std::move(visitor.result);
++}
++
++Ptr diff(const Node& n, const std::string& x) {
++    DiffVisitor visitor(x);
++    n.accept(visitor);
++    return std::move(visitor.result);
++}
++}  // namespace ast

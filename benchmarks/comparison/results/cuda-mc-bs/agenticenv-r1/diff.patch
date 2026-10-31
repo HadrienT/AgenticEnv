@@ -1,0 +1,123 @@
+diff --git a/src/gpu_mc.cu b/src/gpu_mc.cu
+index 320dc70..fb04f5e 100644
+--- a/src/gpu_mc.cu
++++ b/src/gpu_mc.cu
+@@ -1,2 +1,117 @@
+ #include "gpu_mc.h"
+-McResult gpu_bs_call(double, double, double, double, double, double, unsigned long long, unsigned long long, int) { return {0, 0}; }
++#include <cuda_runtime.h>
++#include <cmath>
++#include <algorithm>
++#include <limits>
++
++// Constants for the Black-Scholes Monte Carlo pricing
++#define BLOCK_SIZE 256
++
++// Custom XORWOW random number generator kernel
++__device__ void xorwow_rng(unsigned int* state, unsigned int* output) {
++    unsigned int t = state[0] ^ (state[0] >> 2);
++    state[0] = state[1];
++    state[1] = state[2];
++    state[2] = state[3];
++    state[3] = state[4];
++    state[4] = state[5];
++    state[5] = state[5] ^ (state[5] << 4) ^ t ^ (t << 1);
++    *output = state[5];
++}
++
++// Kernel for Monte Carlo pricing - computes partial sums
++__global__ void mc_pricing_kernel(
++    double S, double K, double r, double q, double sigma, double T,
++    unsigned long long nPaths, unsigned long long seed,
++    double* partial_sums, double* partial_sums_sq) {
++    
++    unsigned long long tid = blockIdx.x * blockDim.x + threadIdx.x;
++    unsigned long long stride = gridDim.x * blockDim.x;
++    
++    // Each thread processes multiple paths if needed
++    for (unsigned long long i = tid; i < nPaths; i += stride) {
++        // Initialize RNG state for this path - using seed + path index for reproducibility
++        unsigned int rng_state[6];
++        rng_state[0] = (unsigned int)(seed + i * 1103515245 + 12345);
++        rng_state[1] = (unsigned int)(seed + i * 1103515245 + 12346);
++        rng_state[2] = (unsigned int)(seed + i * 1103515245 + 12347);
++        rng_state[3] = (unsigned int)(seed + i * 1103515245 + 12348);
++        rng_state[4] = (unsigned int)(seed + i * 1103515245 + 12349);
++        rng_state[5] = (unsigned int)(seed + i * 1103515245 + 12350);
++        
++        // Generate random number using custom RNG
++        unsigned int rand_val;
++        xorwow_rng(rng_state, &rand_val);
++        
++        // Convert to uniform random variable in [0,1)
++        double u = rand_val / 4294967296.0;
++        
++        // Generate standard normal random variable using Box-Muller transform
++        // Using the Box-Muller transform with two uniform variables
++        double u2 = (rand_val >> 16) / 65536.0;  // Second uniform variable
++        double z = sqrt(-2.0 * log(u)) * cos(2.0 * M_PI * u2);
++        
++        // Calculate stock price at maturity
++        double ST = S * exp((r - q - 0.5 * sigma * sigma) * T + sigma * sqrt(T) * z);
++        
++        // Calculate payoff for call option
++        double payoff = fmax(ST - K, 0.0);
++        
++        // Store partial sums for reduction
++        atomicAdd(partial_sums, payoff);
++        atomicAdd(partial_sums_sq, payoff * payoff);
++    }
++}
++
++McResult gpu_bs_call(double S, double K, double r, double q, double sigma, double T,
++                     unsigned long long nPaths, unsigned long long seed, int device) {
++    
++    // Set device
++    cudaSetDevice(device);
++    
++    // Calculate number of blocks needed
++    unsigned long long num_blocks = (nPaths + BLOCK_SIZE - 1) / BLOCK_SIZE;
++    num_blocks = std::min(num_blocks, (unsigned long long)65535);  // Limit to max blocks
++    
++    // Allocate device memory for partial sums
++    double* d_partial_sums = nullptr;
++    double* d_partial_sums_sq = nullptr;
++    
++    // Allocate memory for partial sums (only 2 doubles needed)
++    cudaMalloc(&d_partial_sums, sizeof(double));
++    cudaMalloc(&d_partial_sums_sq, sizeof(double));
++    
++    // Initialize partial sums to zero
++    double zero = 0.0;
++    cudaMemcpy(d_partial_sums, &zero, sizeof(double), cudaMemcpyHostToDevice);
++    cudaMemcpy(d_partial_sums_sq, &zero, sizeof(double), cudaMemcpyHostToDevice);
++    
++    // Launch kernel
++    mc_pricing_kernel<<<num_blocks, BLOCK_SIZE>>>(
++        S, K, r, q, sigma, T, nPaths, seed, d_partial_sums, d_partial_sums_sq);
++    
++    // Wait for kernel to complete
++    cudaDeviceSynchronize();
++    
++    // Copy results back to host
++    double sum = 0.0;
++    double sum_sq = 0.0;
++    cudaMemcpy(&sum, d_partial_sums, sizeof(double), cudaMemcpyDeviceToHost);
++    cudaMemcpy(&sum_sq, d_partial_sums_sq, sizeof(double), cudaMemcpyDeviceToHost);
++    
++    // Calculate mean and variance
++    double mean = sum / nPaths;
++    double variance = (sum_sq / nPaths) - (mean * mean);
++    
++    // Calculate standard error
++    double std_error = sqrt(variance / nPaths);
++    
++    // Calculate final price (discounted)
++    double price = mean * exp(-r * T);
++    
++    // Cleanup
++    cudaFree(d_partial_sums);
++    cudaFree(d_partial_sums_sq);
++    
++    return {price, std_error};
++}

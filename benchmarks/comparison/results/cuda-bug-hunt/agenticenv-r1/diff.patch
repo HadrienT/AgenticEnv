@@ -1,0 +1,172 @@
+diff --git a/src/gpu_asian.cu b/src/gpu_asian.cu
+index 6d9cefb..5a9e25f 100644
+--- a/src/gpu_asian.cu
++++ b/src/gpu_asian.cu
+@@ -16,11 +16,17 @@ __device__ inline float gauss(unsigned int& s) {
+     return sqrtf(-2.0f * logf(u1)) * cosf(6.2831855f * u2);
+ }
+ 
+-__global__ void asian_kernel(float S, float K, float drift, float vol, int n, unsigned int pathsPerThread,
+-                             unsigned int seed, Tally* tally) {
+-    unsigned int state = seed * 2654435761u + threadIdx.x;
+-    for (int i = 0; i < 16; i++) lcg(state);
+-    for (unsigned int p = 0; p < pathsPerThread; p++) {
++__global__ void asian_kernel(float S, float K, float drift, float vol, int n, 
++                             unsigned long long nPaths, unsigned int seed, Tally* tally) {
++    unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
++    unsigned int total_threads = gridDim.x * blockDim.x;
++    
++    // Each thread processes multiple paths if needed
++    for (unsigned long long path = tid; path < nPaths; path += total_threads) {
++        // Initialize random state for this path
++        unsigned int state = seed + path;
++        for (int i = 0; i < 16; i++) lcg(state);
++        
+         float x = 0, sum = 0;
+         for (int k = 0; k < n; k++) {
+             x += drift + vol * gauss(state);
+@@ -28,31 +34,63 @@ __global__ void asian_kernel(float S, float K, float drift, float vol, int n, un
+         }
+         float pay = sum / n - K;
+         if (pay < 0) pay = 0;
+-        tally[0].sum += pay;
+-        tally[0].sq += pay * pay;
+-        tally[0].count += 1;
++        
++        // Use atomic operations to safely accumulate results
++        atomicAdd(&tally[0].sum, pay);
++        atomicAdd(&tally[0].sq, pay * pay);
++        atomicAdd(&tally[0].count, 1);
+     }
+ }
+ 
+ McResult gpu_asian_call(double S, double K, double r, double sigma, double T, int n,
+                         unsigned long long nPaths, unsigned int seed, int device) {
+-    cudaSetDevice(0);
++    cudaSetDevice(device);
++    
++    // Use a reasonable number of blocks and threads
+     const int threads = 256;
+-    const int blocks = 2048;
+-    unsigned int pathsPerThread = nPaths / (blocks * threads);
++    const int max_blocks = 1024;  // Limit to prevent excessive resource usage
++    int blocks = (int)((nPaths + threads - 1) / threads);
++    if (blocks > max_blocks) blocks = max_blocks;
++    
++    // Allocate memory for tally with a small buffer (256KB max)
+     Tally* d;
+-    cudaMalloc(&d, sizeof(Tally) * 64 * 1024 * 1024 / sizeof(Tally));
++    size_t max_tally_size = 256 * 1024 * 1024 / sizeof(Tally);  // 256MB limit
++    size_t tally_size = (max_tally_size < 1024) ? max_tally_size : 1024;  // Use 1024 elements max
++    cudaMalloc(&d, sizeof(Tally) * tally_size);
++    
++    // Initialize tally to zero
+     Tally zero = {0, 0, 0};
+-    cudaMemcpy(d, &zero, sizeof(Tally), cudaMemcpyHostToDevice);
+-
+-    float dt = T / (n - 1);
+-    float drift = (r - 0.5 * sigma * sigma) * dt, vol = sigma * sqrt(dt);
+-    asian_kernel<<<blocks, threads>>>(S, K, drift, vol, n, pathsPerThread, seed, d);
+-
++    cudaMemset(d, 0, sizeof(Tally));
++    
++    // Calculate proper time step for Asian option
++    float dt = T / n;
++    float drift = (r - 0.5 * sigma * sigma) * dt;
++    float vol = sigma * sqrtf(dt);
++    
++    // Launch kernel
++    asian_kernel<<<blocks, threads>>>(S, K, drift, vol, n, nPaths, seed, d);
++    
++    // Check for kernel launch errors
++    cudaError_t err = cudaGetLastError();
++    if (err != cudaSuccess) {
++        // Handle error appropriately
++        return {0.0, 0.0, 0};
++    }
++    
++    // Wait for kernel to complete
++    cudaDeviceSynchronize();
++    
++    // Copy result back
+     Tally h;
+     cudaMemcpy(&h, d, sizeof(Tally), cudaMemcpyDeviceToHost);
++    
++    // Calculate final results
+     double m = double(h.sum) / h.count;
+     double v = double(h.sq) / h.count - m * m;
+     double df = exp(-r * T);
+-    return {df * m, df * sqrt(v / h.count), h.count};
++    
++    // Clean up
++    cudaFree(d);
++    
++    return {df * m, df * sqrt(v / nPaths), h.count};
+ }
+diff --git a/test_asian.cpp b/test_asian.cpp
+new file mode 100644
+index 0000000..546176f
+--- /dev/null
++++ b/test_asian.cpp
+@@ -0,0 +1,27 @@
++#include <iostream>
++#include "include/gpu_asian.h"
++
++int main() {
++    // Test parameters
++    double S = 100.0;
++    double K = 100.0;
++    double r = 0.05;
++    double sigma = 0.2;
++    double T = 1.0;
++    int n = 12;
++    unsigned long long nPaths = 1000000;
++    unsigned int seed = 12345;
++    
++    std::cout << "Testing Asian option pricer with:" << std::endl;
++    std::cout << "S = " << S << ", K = " << K << ", r = " << r 
++              << ", sigma = " << sigma << ", T = " << T << ", n = " << n 
++              << ", paths = " << nPaths << ", seed = " << seed << std::endl;
++    
++    McResult result = gpu_asian_call(S, K, r, sigma, T, n, nPaths, seed, 0);
++    
++    std::cout << "Price: " << result.price << std::endl;
++    std::cout << "Std Error: " << result.std_error << std::endl;
++    std::cout << "Paths used: " << result.paths << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/verify_fix b/verify_fix
+new file mode 100644
+index 0000000..e5d50ec
+Binary files /dev/null and b/verify_fix differ
+diff --git a/verify_fix.cpp b/verify_fix.cpp
+new file mode 100644
+index 0000000..c244880
+--- /dev/null
++++ b/verify_fix.cpp
+@@ -0,0 +1,22 @@
++// Simple verification that the fix addresses the main issues
++#include <iostream>
++#include <cmath>
++
++// Test the time step calculation
++int main() {
++    double T = 1.0;
++    int n = 12;
++    
++    // Old (incorrect) way
++    double old_dt = T / (n - 1);
++    std::cout << "Old dt = T/(n-1) = " << T << "/(" << n << "-1) = " << old_dt << std::endl;
++    
++    // New (correct) way
++    double new_dt = T / n;
++    std::cout << "New dt = T/n = " << T << "/" << n << " = " << new_dt << std::endl;
++    
++    // Verify they're different
++    std::cout << "Are they different? " << (std::abs(old_dt - new_dt) > 1e-10 ? "YES" : "NO") << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

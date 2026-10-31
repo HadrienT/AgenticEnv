@@ -1,0 +1,408 @@
+diff --git a/src/multi_gpu.cu b/src/multi_gpu.cu
+index 823c9a4..130bdf8 100644
+--- a/src/multi_gpu.cu
++++ b/src/multi_gpu.cu
+@@ -1,2 +1,402 @@
++// Monte Carlo pricer for an arithmetic Asian call, spread over several CUDA devices.
++//
++// The result must not depend on the device list, so nothing in the simulation may:
++//  - Each random number comes from a counter-based generator (Philox) addressed by
++//    (seed, path index, step), so a path is the same wherever it runs.
++//  - The paths are cut into blocks and each block into slots, in a layout derived only
++//    from (nPaths, n). Devices pull blocks from a shared counter, which balances the load
++//    between GPUs that the other process keeps busy to different degrees.
++//  - The statistics are merged slot by slot and block by block in index order, so the
++//    floating point rounding is the same however the blocks were shared out.
++//
++// Only per-slot statistics live on the device, never per-path data: the device buffer is
++// capped at kMaxSlotsPerBlock * sizeof(Moments) = 6 MiB whatever nPaths is.
++
+ #include "multi_gpu.h"
+-MultiResult gpu_asian_multi(double, double, double, double, double, int, unsigned long long, unsigned long long, const std::vector<int>&) { return {}; }
++
++#include <cuda_runtime.h>
++
++#include <algorithm>
++#include <atomic>
++#include <cmath>
++#include <condition_variable>
++#include <cstddef>
++#include <cstdint>
++#include <exception>
++#include <mutex>
++#include <stdexcept>
++#include <string>
++#include <thread>
++#include <utility>
++#include <vector>
++
++namespace {
++
++using PathCount = unsigned long long;
++
++constexpr PathCount kMaxSlotsPerBlock = 1ULL << 18;
++// Keeps one kernel launch well under a second on a shared V100.
++constexpr PathCount kTargetPathStepsPerBlock = 1ULL << 29;
++// Below this a launch no longer fills the GPU; only reached for very long paths.
++constexpr PathCount kMinPathsPerLongBlock = 1ULL << 14;
++// Small runs still get enough blocks to be shared between the devices.
++constexpr PathCount kMinBlocks = 64;
++constexpr int kThreadsPerCudaBlock = 256;
++
++// Running mean and sum of squared deviations. Unlike a sum and a sum of squares, these give
++// an exact zero variance for identical payoffs instead of rounding noise.
++struct Moments {
++    double count;
++    double mean;
++    double m2;
++};
++
++__host__ __device__ inline void addSample(Moments& m, double x) {
++    m.count += 1.0;
++    const double delta = x - m.mean;
++    m.mean += delta / m.count;
++    m.m2 += delta * (x - m.mean);
++}
++
++inline void merge(Moments& into, const Moments& other) {
++    const double count = into.count + other.count;
++    const double delta = other.mean - into.mean;
++    into.m2 += other.m2 + delta * delta * (into.count / count) * other.count;
++    into.mean += delta * (other.count / count);
++    into.count = count;
++}
++
++struct AsianParams {
++    double spot;
++    double strike;
++    double stepDrift;
++    double stepVol;
++    int steps;
++    unsigned long long seed;
++};
++
++struct Philox4x32Block {
++    uint32_t word[4];
++};
++
++// Philox4x32-10 (Salmon et al., "Parallel random numbers: as easy as 1, 2, 3", SC11).
++__host__ __device__ inline Philox4x32Block philox4x32(Philox4x32Block ctr, uint32_t key0,
++                                                      uint32_t key1) {
++    const uint32_t M0 = 0xD2511F53u;
++    const uint32_t M1 = 0xCD9E8D57u;
++    for (int round = 0; round < 10; ++round) {
++        const uint64_t product0 = static_cast<uint64_t>(M0) * ctr.word[0];
++        const uint64_t product1 = static_cast<uint64_t>(M1) * ctr.word[2];
++        const uint32_t hi0 = static_cast<uint32_t>(product0 >> 32);
++        const uint32_t lo0 = static_cast<uint32_t>(product0);
++        const uint32_t hi1 = static_cast<uint32_t>(product1 >> 32);
++        const uint32_t lo1 = static_cast<uint32_t>(product1);
++        ctr.word[0] = hi1 ^ ctr.word[1] ^ key0;
++        ctr.word[1] = lo1;
++        ctr.word[2] = hi0 ^ ctr.word[3] ^ key1;
++        ctr.word[3] = lo0;
++        key0 += 0x9E3779B9u;
++        key1 += 0xBB67AE85u;
++    }
++    return ctr;
++}
++
++// Box-Muller on 53-bit uniforms: two independent N(0,1) for one (seed, path, pair).
++__host__ __device__ inline void standardNormalPair(unsigned long long seed,
++                                                   unsigned long long path, uint32_t pair,
++                                                   double& z0, double& z1) {
++    Philox4x32Block ctr;
++    ctr.word[0] = static_cast<uint32_t>(path);
++    ctr.word[1] = static_cast<uint32_t>(path >> 32);
++    ctr.word[2] = pair;
++    ctr.word[3] = 0;
++    const Philox4x32Block bits = philox4x32(ctr, static_cast<uint32_t>(seed),
++                                            static_cast<uint32_t>(seed >> 32));
++
++    const uint64_t raw0 = (static_cast<uint64_t>(bits.word[0]) << 32) | bits.word[1];
++    const uint64_t raw1 = (static_cast<uint64_t>(bits.word[2]) << 32) | bits.word[3];
++    const double twoPowMinus53 = 1.0 / 9007199254740992.0;
++    const double twoPi = 6.283185307179586476925286766559;
++    // uRadius lies in (0, 1], so its logarithm is finite; uAngle lies in [0, 1).
++    const double uRadius = (static_cast<double>(raw0 >> 11) + 1.0) * twoPowMinus53;
++    const double uAngle = static_cast<double>(raw1 >> 11) * twoPowMinus53;
++
++    const double radius = sqrt(-2.0 * log(uRadius));
++    z0 = radius * cos(twoPi * uAngle);
++    z1 = radius * sin(twoPi * uAngle);
++}
++
++// Undiscounted payoff of the path of absolute index `path`.
++__host__ __device__ inline double pathPayoff(const AsianParams& p, unsigned long long path) {
++    double spot = p.spot;
++    double sumOfSpots = 0.0;
++    double z = 0.0;
++    double spareZ = 0.0;
++    for (int step = 0; step < p.steps; ++step) {
++        if (step % 2 == 0) {
++            standardNormalPair(p.seed, path, static_cast<uint32_t>(step / 2), z, spareZ);
++        } else {
++            z = spareZ;
++        }
++        spot *= exp(p.stepDrift + p.stepVol * z);
++        sumOfSpots += spot;
++    }
++    const double payoff = sumOfSpots / p.steps - p.strike;
++    return payoff > 0.0 ? payoff : 0.0;
++}
++
++// Slot s covers the paths [firstPath + s * pathsPerSlot, ...) of a block of `blockPaths`.
++__global__ void asianBlockKernel(Moments* slots, AsianParams params,
++                                 unsigned long long firstPath, unsigned long long blockPaths,
++                                 unsigned long long pathsPerSlot) {
++    const unsigned long long slot =
++        static_cast<unsigned long long>(blockIdx.x) * blockDim.x + threadIdx.x;
++    const unsigned long long begin = slot * pathsPerSlot;
++    if (begin >= blockPaths) {
++        return;
++    }
++    const unsigned long long remaining = blockPaths - begin;
++    const unsigned long long end = begin + (pathsPerSlot < remaining ? pathsPerSlot : remaining);
++
++    Moments stats = {0.0, 0.0, 0.0};
++    for (unsigned long long offset = begin; offset < end; ++offset) {
++        addSample(stats, pathPayoff(params, firstPath + offset));
++    }
++    slots[slot] = stats;
++}
++
++struct BlockLayout {
++    PathCount blockPaths;
++    PathCount blocks;
++    PathCount pathsPerSlot;
++    PathCount slotsPerBlock;
++};
++
++PathCount ceilDiv(PathCount value, PathCount divisor) {
++    return value / divisor + (value % divisor != 0 ? 1 : 0);
++}
++
++// Must depend on nothing but nPaths and n: this is what makes the rounding reproducible.
++BlockLayout makeLayout(PathCount nPaths, int n) {
++    const PathCount forBlockDuration = std::max(
++        kTargetPathStepsPerBlock / static_cast<PathCount>(n), kMinPathsPerLongBlock);
++    const PathCount forSharing = ceilDiv(nPaths, kMinBlocks);
++
++    BlockLayout layout;
++    layout.blockPaths = std::min(forBlockDuration, forSharing);
++    layout.blocks = ceilDiv(nPaths, layout.blockPaths);
++    layout.pathsPerSlot = ceilDiv(layout.blockPaths, kMaxSlotsPerBlock);
++    layout.slotsPerBlock = ceilDiv(layout.blockPaths, layout.pathsPerSlot);
++    return layout;
++}
++
++// State shared by the workers. A worker that fails records its exception and raises
++// `stop`, which every other worker observes; none of them can wait for a dead peer.
++class Run {
++public:
++    Run(std::size_t workers, PathCount firstSharedBlock)
++        : workers_(workers), nextBlock_(firstSharedBlock) {}
++
++    void fail(std::exception_ptr error) {
++        {
++            std::lock_guard<std::mutex> lock(mutex_);
++            if (!failure_) {
++                failure_ = std::move(error);
++            }
++            stop_.store(true);
++        }
++        allReady_.notify_all();
++    }
++
++    // Holds the devices back until all are initialised, otherwise the first context up
++    // would take most of a short run. Returns false if the run was aborted meanwhile.
++    bool waitForAllDevices() {
++        std::unique_lock<std::mutex> lock(mutex_);
++        if (++ready_ == workers_) {
++            allReady_.notify_all();
++        }
++        allReady_.wait(lock, [this] { return ready_ == workers_ || stop_.load(); });
++        return !stop_.load();
++    }
++
++    bool stopped() const { return stop_.load(); }
++    PathCount takeBlock() { return nextBlock_.fetch_add(1); }
++
++    // Only meaningful once every worker has been joined.
++    std::exception_ptr failure() const { return failure_; }
++
++private:
++    const std::size_t workers_;
++    std::atomic<PathCount> nextBlock_;
++    std::atomic<bool> stop_{false};
++    std::mutex mutex_;
++    std::condition_variable allReady_;
++    std::size_t ready_ = 0;
++    std::exception_ptr failure_;
++};
++
++void check(cudaError_t status, int device, const char* action) {
++    if (status != cudaSuccess) {
++        throw std::runtime_error("gpu_asian_multi: device " + std::to_string(device) + ": " +
++                                 action + " failed: " + cudaGetErrorString(status));
++    }
++}
++
++class DeviceBuffer {
++public:
++    DeviceBuffer(std::size_t bytes, int device) {
++        check(cudaMalloc(&pointer_, bytes), device, "cudaMalloc");
++    }
++    ~DeviceBuffer() { cudaFree(pointer_); }
++    DeviceBuffer(const DeviceBuffer&) = delete;
++    DeviceBuffer& operator=(const DeviceBuffer&) = delete;
++
++    Moments* slots() const { return static_cast<Moments*>(pointer_); }
++
++private:
++    void* pointer_ = nullptr;
++};
++
++// Runs one launch to completion; asynchronous launch errors surface here.
++void launchBlock(const DeviceBuffer& buffer, const AsianParams& params, PathCount firstPath,
++                 PathCount paths, PathCount pathsPerSlot, PathCount slots, int device) {
++    const unsigned cudaBlocks = static_cast<unsigned>(ceilDiv(slots, kThreadsPerCudaBlock));
++    asianBlockKernel<<<std::max(cudaBlocks, 1u), kThreadsPerCudaBlock>>>(
++        buffer.slots(), params, firstPath, paths, pathsPerSlot);
++    check(cudaGetLastError(), device, "kernel launch");
++    check(cudaDeviceSynchronize(), device, "kernel execution");
++}
++
++void simulateOnDevice(int device, std::size_t worker, const AsianParams& params,
++                      const BlockLayout& layout, PathCount nPaths, Run& run,
++                      std::vector<Moments>& blockTotals, PathCount& pathsDone) {
++    check(cudaSetDevice(device), device, "cudaSetDevice");
++
++    std::vector<Moments> hostSlots(layout.slotsPerBlock);
++    const DeviceBuffer buffer(hostSlots.size() * sizeof(Moments), device);
++
++    // Modules load lazily: an empty launch makes the device ready before the start line.
++    launchBlock(buffer, params, 0, 0, layout.pathsPerSlot, 0, device);
++    if (!run.waitForAllDevices()) {
++        return;
++    }
++
++    // The first blocks are reserved, one per device, so that each device gets some work.
++    PathCount block = worker;
++    while (block < layout.blocks && !run.stopped()) {
++        const PathCount firstPath = block * layout.blockPaths;
++        const PathCount paths = std::min(layout.blockPaths, nPaths - firstPath);
++        const PathCount slots = ceilDiv(paths, layout.pathsPerSlot);
++
++        launchBlock(buffer, params, firstPath, paths, layout.pathsPerSlot, slots, device);
++        check(cudaMemcpy(hostSlots.data(), buffer.slots(), slots * sizeof(Moments),
++                         cudaMemcpyDeviceToHost),
++              device, "cudaMemcpy");
++
++        Moments total = hostSlots[0];
++        for (PathCount slot = 1; slot < slots; ++slot) {
++            merge(total, hostSlots[slot]);
++        }
++        if (!std::isfinite(total.mean) || !std::isfinite(total.m2)) {
++            throw std::runtime_error("gpu_asian_multi: device " + std::to_string(device) +
++                                     ": non-finite payoffs");
++        }
++        blockTotals[block] = total;
++        pathsDone += paths;
++        block = run.takeBlock();
++    }
++}
++
++void validateDevices(const std::vector<int>& devices) {
++    if (devices.empty()) {
++        throw std::invalid_argument("gpu_asian_multi: empty device list");
++    }
++
++    int deviceCount = 0;
++    const cudaError_t status = cudaGetDeviceCount(&deviceCount);
++    if (status == cudaErrorNoDevice) {
++        cudaGetLastError();  // leave no stale error on the caller's thread
++        deviceCount = 0;
++    } else {
++        check(status, -1, "cudaGetDeviceCount");
++    }
++
++    std::vector<int> sorted(devices);
++    std::sort(sorted.begin(), sorted.end());
++    for (std::size_t i = 0; i < sorted.size(); ++i) {
++        if (sorted[i] < 0 || sorted[i] >= deviceCount) {
++            throw std::invalid_argument("gpu_asian_multi: no CUDA device " +
++                                        std::to_string(sorted[i]));
++        }
++        if (i > 0 && sorted[i] == sorted[i - 1]) {
++            throw std::invalid_argument("gpu_asian_multi: duplicated device " +
++                                        std::to_string(sorted[i]));
++        }
++    }
++}
++
++void validateParameters(double S, double K, double r, double sigma, double T, int n,
++                        PathCount nPaths) {
++    if (!std::isfinite(S) || !std::isfinite(K) || !std::isfinite(r) || !std::isfinite(sigma) ||
++        !std::isfinite(T) || S < 0.0 || sigma < 0.0 || T < 0.0 || n <= 0 || nPaths == 0) {
++        throw std::invalid_argument("gpu_asian_multi: invalid contract or simulation size");
++    }
++}
++
++}  // namespace
++
++MultiResult gpu_asian_multi(double S, double K, double r, double sigma, double T, int n,
++                            unsigned long long nPaths, unsigned long long seed,
++                            const std::vector<int>& devices) {
++    validateDevices(devices);
++    validateParameters(S, K, r, sigma, T, n, nPaths);
++
++    const double dt = T / n;
++    const AsianParams params = {S,  K, (r - 0.5 * sigma * sigma) * dt, sigma * std::sqrt(dt),
++                                n, seed};
++    const BlockLayout layout = makeLayout(nPaths, n);
++
++    // Every element below is written by a single worker and read after the joins.
++    std::vector<Moments> blockTotals(layout.blocks);
++    std::vector<PathCount> pathsPerDevice(devices.size(), 0);
++    Run run(devices.size(), devices.size());
++
++    std::vector<std::thread> workers;
++    workers.reserve(devices.size());
++    try {
++        for (std::size_t i = 0; i < devices.size(); ++i) {
++            workers.emplace_back([&, i] {
++                try {
++                    simulateOnDevice(devices[i], i, params, layout, nPaths, run, blockTotals,
++                                     pathsPerDevice[i]);
++                } catch (...) {
++                    run.fail(std::current_exception());
++                }
++            });
++        }
++    } catch (...) {
++        // Thread creation failed: the workers already started must still be released.
++        run.fail(std::current_exception());
++    }
++    for (std::thread& worker : workers) {
++        worker.join();
++    }
++    if (run.failure()) {
++        std::rethrow_exception(run.failure());
++    }
++
++    Moments total = blockTotals[0];
++    for (std::size_t block = 1; block < blockTotals.size(); ++block) {
++        merge(total, blockTotals[block]);
++    }
++
++    const double discount = std::exp(-r * T);
++    // A single path gives 0 / 0: its standard error is undefined and comes out as NaN.
++    const double variance = total.m2 / (total.count - 1.0);
++
++    MultiResult result;
++    result.price = discount * total.mean;
++    result.std_error = discount * std::sqrt(variance / total.count);
++    result.paths_per_device = std::move(pathsPerDevice);
++    return result;
++}

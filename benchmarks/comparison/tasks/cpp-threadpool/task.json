@@ -1,0 +1,1 @@
+{"category":"cpp","checks":["returns_values","args_and_move_only","exception_in_future","drains_on_destruct","nested_single_thread","recursive_fib","parallel_for_covers","parallel_for_exception","parallel_for_nested","really_parallel","tsan_clean"]}

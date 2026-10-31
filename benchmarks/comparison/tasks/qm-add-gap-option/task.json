@@ -1,0 +1,1 @@
+{"category": "quant-modeling", "base": "qm", "resource": "qm", "checks": ["library_builds", "registry_call", "registry_put", "trigger_equals_strike_is_vanilla", "delta_populated", "digital_decomposition", "other_engines_refuse", "existing_digital_suite_still_passes", "repo_test_added"]}

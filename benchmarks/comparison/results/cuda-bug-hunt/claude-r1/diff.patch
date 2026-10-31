@@ -1,0 +1,225 @@
+diff --git a/src/gpu_asian.cu b/src/gpu_asian.cu
+index 6d9cefb..a244b2c 100644
+--- a/src/gpu_asian.cu
++++ b/src/gpu_asian.cu
+@@ -3,56 +3,181 @@
+ #include <math.h>
+ #include <stdint.h>
+ #include <stdio.h>
++#include <chrono>
++#include <limits>
++#include <thread>
++#include <vector>
+ 
+-struct Tally { float sum; float sq; unsigned int count; };
++struct Tally { double sum; double sq; unsigned long long count; };
+ 
+-__device__ inline unsigned int lcg(unsigned int& s) {
+-    s = s * 1664525u + 1013904223u;
+-    return s;
++// One launch simulates at most this many time steps (paths * n), so the GPU is handed back to
++// the other process between launches and a launch failure loses little work. This is a constant
++// on purpose: the batching must not depend on timing, or the floating-point summation order, and
++// therefore the last bits of the result, would change between runs of the same seed.
++static const unsigned long long kStepsPerLaunch = 1ull << 31;
++static const int kBlocks = 2048;
++static const int kThreads = 256;
++static const int kMaxAttempts = 8;  // Retries when the other process holds the resources we need.
++
++// Philox4x32-10 (Salmon et al., 2011). It is counter-based: each draw depends only on (seed, path,
++// step), so paths are independent of the thread that runs them and 2^64 of them never overlap.
++__device__ inline void philox(uint32_t c[4], uint32_t k0, uint32_t k1) {
++    for (int round = 0; round < 10; round++) {
++        const uint64_t p0 = 0xD2511F53ull * c[0];
++        const uint64_t p1 = 0xCD9E8D57ull * c[2];
++        const uint32_t c0 = uint32_t(p1 >> 32) ^ c[1] ^ k0;
++        const uint32_t c2 = uint32_t(p0 >> 32) ^ c[3] ^ k1;
++        c[0] = c0;
++        c[1] = uint32_t(p1);
++        c[2] = c2;
++        c[3] = uint32_t(p0);
++        k0 += 0x9E3779B9u;
++        k1 += 0xBB67AE85u;
++    }
+ }
+-__device__ inline float gauss(unsigned int& s) {
+-    float u1 = lcg(s) * 2.3283064e-10f;
+-    float u2 = lcg(s) * 2.3283064e-10f;
+-    return sqrtf(-2.0f * logf(u1)) * cosf(6.2831855f * u2);
++
++// Two independent standard normals (Box-Muller) for one (path, pair) position.
++__device__ inline void gauss_pair(unsigned long long path, unsigned int pair, unsigned int seed, double z[2]) {
++    uint32_t c[4] = {uint32_t(path), uint32_t(path >> 32), pair, 0};
++    philox(c, seed, 0x41534941u);
++    const uint64_t r1 = (uint64_t(c[0]) << 32) | c[1];
++    const uint64_t r2 = (uint64_t(c[2]) << 32) | c[3];
++    const double u1 = double((r1 >> 11) + 1) * 0x1p-53;  // (0, 1]: log(u1) is always finite.
++    const double u2 = double(r2 >> 11) * 0x1p-53;        // [0, 1)
++    const double radius = sqrt(-2.0 * log(u1));
++    double s, co;
++    sincos(2.0 * M_PI * u2, &s, &co);
++    z[0] = radius * co;
++    z[1] = radius * s;
+ }
+ 
+-__global__ void asian_kernel(float S, float K, float drift, float vol, int n, unsigned int pathsPerThread,
+-                             unsigned int seed, Tally* tally) {
+-    unsigned int state = seed * 2654435761u + threadIdx.x;
+-    for (int i = 0; i < 16; i++) lcg(state);
+-    for (unsigned int p = 0; p < pathsPerThread; p++) {
+-        float x = 0, sum = 0;
++// Simulates paths [firstPath, firstPath + nPaths). Every thread owns one tally slot, so there is
++// no shared write, and the split below gives each path to exactly one thread.
++__global__ void asian_kernel(double S, double K, double drift, double vol, int n, unsigned long long firstPath,
++                             unsigned long long nPaths, unsigned int seed, Tally* tally) {
++    const unsigned long long slot = blockIdx.x * blockDim.x + threadIdx.x;
++    const unsigned long long slots = gridDim.x * blockDim.x;
++    const unsigned long long base = nPaths / slots, extra = nPaths % slots;
++    const unsigned long long count = base + (slot < extra ? 1 : 0);
++    const unsigned long long start = firstPath + slot * base + (slot < extra ? slot : extra);
++
++    double paySum = 0, paySq = 0;
++    for (unsigned long long p = 0; p < count; p++) {
++        double x = 0, sum = 0, z[2];
+         for (int k = 0; k < n; k++) {
+-            x += drift + vol * gauss(state);
+-            sum += S * expf(x);
++            if ((k & 1) == 0) gauss_pair(start + p, k / 2, seed, z);
++            x += drift + vol * z[k & 1];
++            sum += exp(x);
+         }
+-        float pay = sum / n - K;
++        double pay = S * (sum / n) - K;
+         if (pay < 0) pay = 0;
+-        tally[0].sum += pay;
+-        tally[0].sq += pay * pay;
+-        tally[0].count += 1;
++        paySum += pay;
++        paySq += pay * pay;
++    }
++    tally[slot] = {paySum, paySq, count};
++}
++
++static bool busy(cudaError_t e) {
++    return e == cudaErrorMemoryAllocation || e == cudaErrorLaunchOutOfResources;
++}
++
++static void waitForDevice(int attempt) {
++    std::this_thread::sleep_for(std::chrono::milliseconds(50 << attempt));
++}
++
++static void report(const char* what, cudaError_t e) {
++    fprintf(stderr, "gpu_asian_call: %s: %s\n", what, cudaGetErrorString(e));
++}
++
++// Runs every batch on the current device. The caller's McResult::paths is 0 on failure.
++static McResult simulate(double S, double K, double r, double sigma, double T, int n, unsigned long long nPaths,
++                         unsigned int seed) {
++    const double nan = std::numeric_limits<double>::quiet_NaN();
++    const McResult failed = {nan, nan, 0};
++
++    const size_t slots = size_t(kBlocks) * kThreads;
++    Tally* d = nullptr;
++    cudaError_t e = cudaSuccess;
++    for (int attempt = 0; attempt < kMaxAttempts; attempt++) {
++        e = cudaMalloc(&d, slots * sizeof(Tally));
++        if (e == cudaSuccess || !busy(e)) break;
++        waitForDevice(attempt);
+     }
++    if (e != cudaSuccess) {
++        report("cudaMalloc", e);
++        return failed;
++    }
++
++    const double dt = T / n;
++    const double drift = (r - 0.5 * sigma * sigma) * dt, vol = sigma * sqrt(dt);
++    const unsigned long long stepsPerPath = (unsigned long long)n;
++    const unsigned long long maxBatch = kStepsPerLaunch > stepsPerPath ? kStepsPerLaunch / stepsPerPath : 1;
++
++    std::vector<Tally> h(slots);
++    double sum = 0, sq = 0;
++    unsigned long long count = 0;
++    for (unsigned long long done = 0; done < nPaths;) {
++        const unsigned long long left = nPaths - done;
++        const unsigned long long batch = left < maxBatch ? left : maxBatch;
++
++        // A batch is a pure function of (seed, path range), so a retry repeats it exactly.
++        for (int attempt = 0; attempt < kMaxAttempts; attempt++) {
++            cudaGetLastError();
++            asian_kernel<<<kBlocks, kThreads>>>(S, K, drift, vol, n, done, batch, seed, d);
++            e = cudaGetLastError();
++            if (e == cudaSuccess) e = cudaMemcpy(h.data(), d, slots * sizeof(Tally), cudaMemcpyDeviceToHost);
++            if (e == cudaSuccess || !busy(e)) break;
++            waitForDevice(attempt);
++        }
++        if (e != cudaSuccess) {
++            report("batch", e);
++            cudaFree(d);
++            return failed;
++        }
++
++        // Fixed order: the rounding of the total is the same in every run.
++        double batchSum = 0, batchSq = 0;
++        for (size_t i = 0; i < slots; i++) {
++            batchSum += h[i].sum;
++            batchSq += h[i].sq;
++            count += h[i].count;
++        }
++        sum += batchSum;
++        sq += batchSq;
++        done += batch;
++    }
++    cudaFree(d);
++
++    const double N = double(count);
++    const double m = sum / N;
++    const double df = exp(-r * T);
++    // Undefined for one path. Rounding can push a true zero variance slightly below zero.
++    double se = nan;
++    if (count > 1) {
++        const double v = (sq / N - m * m) * (N / (N - 1));
++        se = v > 0 ? df * sqrt(v / N) : 0;
++    }
++    return {df * m, se, count};
+ }
+ 
+ McResult gpu_asian_call(double S, double K, double r, double sigma, double T, int n,
+                         unsigned long long nPaths, unsigned int seed, int device) {
+-    cudaSetDevice(0);
+-    const int threads = 256;
+-    const int blocks = 2048;
+-    unsigned int pathsPerThread = nPaths / (blocks * threads);
+-    Tally* d;
+-    cudaMalloc(&d, sizeof(Tally) * 64 * 1024 * 1024 / sizeof(Tally));
+-    Tally zero = {0, 0, 0};
+-    cudaMemcpy(d, &zero, sizeof(Tally), cudaMemcpyHostToDevice);
+-
+-    float dt = T / (n - 1);
+-    float drift = (r - 0.5 * sigma * sigma) * dt, vol = sigma * sqrt(dt);
+-    asian_kernel<<<blocks, threads>>>(S, K, drift, vol, n, pathsPerThread, seed, d);
+-
+-    Tally h;
+-    cudaMemcpy(&h, d, sizeof(Tally), cudaMemcpyDeviceToHost);
+-    double m = double(h.sum) / h.count;
+-    double v = double(h.sq) / h.count - m * m;
+-    double df = exp(-r * T);
+-    return {df * m, df * sqrt(v / h.count), h.count};
++    const double nan = std::numeric_limits<double>::quiet_NaN();
++    if (nPaths == 0) return {nan, nan, 0};
++    if (n < 1 || !(T >= 0)) {
++        fprintf(stderr, "gpu_asian_call: invalid arguments: n = %d, T = %g\n", n, T);
++        return {nan, nan, 0};
++    }
++
++    int previous = -1;
++    cudaGetLastError();
++    const bool restore = cudaGetDevice(&previous) == cudaSuccess && previous != device;
++    const cudaError_t e = cudaSetDevice(device);
++    if (e != cudaSuccess) {
++        report("cudaSetDevice", e);
++        return {nan, nan, 0};
++    }
++    const McResult result = simulate(S, K, r, sigma, T, n, nPaths, seed);
++    if (restore) cudaSetDevice(previous);
++    return result;
+ }

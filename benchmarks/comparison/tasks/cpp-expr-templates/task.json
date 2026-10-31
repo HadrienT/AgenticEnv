@@ -1,0 +1,1 @@
+{"category":"cpp","checks":["basic_values","no_temporaries","auto_keeps_temporaries","aliasing_elementwise","aliasing_shifted_view","size_mismatch","concept_accepts","concept_rejects","reductions","asan_clean"]}

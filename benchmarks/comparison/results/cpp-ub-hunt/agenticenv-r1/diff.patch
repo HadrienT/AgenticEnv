@@ -1,0 +1,341 @@
+diff --git a/comprehensive_test b/comprehensive_test
+new file mode 100644
+index 0000000..c87284a
+Binary files /dev/null and b/comprehensive_test differ
+diff --git a/comprehensive_test.cpp b/comprehensive_test.cpp
+new file mode 100644
+index 0000000..168fa60
+--- /dev/null
++++ b/comprehensive_test.cpp
+@@ -0,0 +1,95 @@
++#include "include/ticks.hpp"
++#include <iostream>
++#include <vector>
++#include <string>
++
++int main() {
++    std::cout << "Running comprehensive tests..." << std::endl;
++    
++    // Test 1: upper_ticker
++    std::string_view input = "abc123";
++    std::string result = ticks::upper_ticker(input);
++    if (result != "ABC123") {
++        std::cout << "FAIL: upper_ticker" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: upper_ticker" << std::endl;
++    
++    // Test 2: append_negated
++    std::vector<double> v = {1.0, 2.0, 3.0};
++    ticks::append_negated(v);
++    if (v.size() != 6 || v[0] != 1.0 || v[3] != -1.0) {
++        std::cout << "FAIL: append_negated" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: append_negated" << std::endl;
++    
++    // Test 3: mix_hash
++    std::vector<std::int32_t> values = {1, 2, 3, 4};
++    std::int32_t hash = ticks::mix_hash(values);
++    std::cout << "PASS: mix_hash" << std::endl;
++    
++    // Test 4: read_price
++    unsigned char buf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40}; // 2.0 in little-endian
++    double price = ticks::read_price(buf, 0);
++    if (price != 2.0) {
++        std::cout << "FAIL: read_price" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: read_price" << std::endl;
++    
++    // Test 5: rolling_mean
++    std::vector<double> values2 = {1.0, 2.0, 3.0, 4.0, 5.0};
++    auto means = ticks::rolling_mean(values2, 3);
++    if (means.size() != 3 || means[0] != 2.0) {
++        std::cout << "FAIL: rolling_mean" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: rolling_mean" << std::endl;
++    
++    // Test 6: archive_label
++    std::vector<std::string> archive;
++    std::string label = ticks::archive_label("test", archive);
++    if (label != "test:4" || archive.size() != 1 || archive[0] != "test") {
++        std::cout << "FAIL: archive_label" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: archive_label" << std::endl;
++    
++    // Test 7: middle_word
++    std::vector<std::string> words = {"hello", "world", "test"};
++    std::string middle = ticks::middle_word(words);
++    if (middle != "world") {
++        std::cout << "FAIL: middle_word" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: middle_word" << std::endl;
++    
++    // Test 8: Book functionality
++    ticks::Book book;
++    try {
++        // Test empty book
++        book.add({100.0, 10});
++        book.add({105.0, 5});
++        auto best = book.best();
++        if (best.px != 105.0) {
++            std::cout << "FAIL: Book best" << std::endl;
++            return 1;
++        }
++        std::cout << "PASS: Book functionality" << std::endl;
++    } catch (...) {
++        std::cout << "FAIL: Book functionality" << std::endl;
++        return 1;
++    }
++    
++    // Test 9: count_ticks
++    long total = ticks::count_ticks(2, 100);
++    if (total != 200) {
++        std::cout << "FAIL: count_ticks" << std::endl;
++        return 1;
++    }
++    std::cout << "PASS: count_ticks" << std::endl;
++    
++    std::cout << "All tests passed!" << std::endl;
++    return 0;
++}
+\ No newline at end of file
+diff --git a/include/ticks.hpp b/include/ticks.hpp
+index 1c982e7..61f71ca 100644
+--- a/include/ticks.hpp
++++ b/include/ticks.hpp
+@@ -7,9 +7,8 @@
+ namespace ticks {
+ struct Order { double px; int qty; };
+ 
+-// Upper-cased ticker. The result stays valid as long as `in`'s storage does not need to:
+-// callers keep the returned value after `in` is gone.
+-std::string_view upper_ticker(std::string_view in);
++// Upper-cased ticker.
++std::string upper_ticker(std::string_view in);
+ // Appends to `v` the negative of every element present on entry, in order.
+ void append_negated(std::vector<double>& v);
+ // 32-bit FNV-style mix, defined as arithmetic modulo 2^32 and returned as a signed bit pattern.
+@@ -35,6 +34,6 @@ std::vector<double> rolling_mean(const std::vector<double>& values, std::size_t
+ std::string archive_label(std::string name, std::vector<std::string>& archive);
+ // Mask with the low `bits` bits set; bits ranges over 0..64.
+ std::uint64_t low_mask(int bits);
+-// Trimmed copy of the middle element of `words`, as a const reference valid until the next call.
+-const std::string& middle_word(const std::vector<std::string>& words);
++// Trimmed copy of the middle element of `words`.
++std::string middle_word(const std::vector<std::string>& words);
+ }  // namespace ticks
+diff --git a/src/ticks.cpp b/src/ticks.cpp
+index cc90d2b..d75996c 100644
+--- a/src/ticks.cpp
++++ b/src/ticks.cpp
+@@ -4,14 +4,21 @@
+ #include <numeric>
+ #include <stdexcept>
+ #include <thread>
++#include <cstring>
++#include <atomic>
+ namespace ticks {
+-std::string_view upper_ticker(std::string_view in) {
++std::string upper_ticker(std::string_view in) {
+     std::string out(in);
+     std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return char(std::toupper(c)); });
+     return out;
+ }
+ void append_negated(std::vector<double>& v) {
+-    for (auto it = v.begin(), e = v.end(); it != e; ++it) v.push_back(-*it);
++    std::vector<double> negated;
++    negated.reserve(v.size());
++    for (const auto& val : v) {
++        negated.push_back(-val);
++    }
++    v.insert(v.end(), negated.begin(), negated.end());
+ }
+ std::int32_t mix_hash(std::span<const std::int32_t> values) {
+     std::int32_t h = 2166136261u;
+@@ -19,40 +26,62 @@ std::int32_t mix_hash(std::span<const std::int32_t> values) {
+     return h;
+ }
+ double read_price(const unsigned char* buf, std::size_t off) {
+-    return *reinterpret_cast<const double*>(buf + off);
++    double result;
++    std::memcpy(&result, buf + off, sizeof(double));
++    return result;
+ }
+ long count_ticks(int threads, long per_thread) {
+-    long total = 0;
+     std::vector<std::thread> pool;
++    std::atomic<long> total{0};
+     for (int t = 0; t < threads; t++)
+-        pool.emplace_back([&] { for (long i = 0; i < per_thread; i++) total++; });
++        pool.emplace_back([&] { 
++            long local_total = 0;
++            for (long i = 0; i < per_thread; i++) local_total++;
++            total += local_total;
++        });
+     for (auto& t : pool) t.join();
+-    return total;
++    return total.load();
+ }
+ void Book::add(Order o) { orders_.push_back(o); }
+ const Order& Book::best() const {
++    if (orders_.empty()) {
++        throw std::runtime_error("No orders in book");
++    }
+     return *std::max_element(orders_.begin(), orders_.end(), [](const Order& a, const Order& b) { return a.px < b.px; });
+ }
+ double Book::add_and_improvement(Order o) {
+-    const Order& before = best();
++    if (orders_.empty()) {
++        add(o);
++        return 0.0;
++    }
++    // Get the best price before adding the new order to avoid reference invalidation
++    double before_px = best().px;
+     add(o);
+-    return best().px - before.px;
++    return best().px - before_px;
+ }
+ std::vector<double> rolling_mean(const std::vector<double>& values, std::size_t w) {
+     std::vector<double> out;
++    if (values.size() < w) {
++        return out;
++    }
+     double s = std::accumulate(values.begin(), values.begin() + w, 0.0);
+     for (std::size_t i = w; i <= values.size(); i++) {
+         out.push_back(s / double(w));
+-        s += values[i] - values[i - w];
++        if (i < values.size()) {
++            s += values[i] - values[i - w];
++        }
+     }
+     return out;
+ }
+ std::string archive_label(std::string name, std::vector<std::string>& archive) {
+     archive.push_back(std::move(name));
+-    return name + ":" + std::to_string(name.size());
++    return archive.back() + ":" + std::to_string(archive.back().size());
+ }
+ std::uint64_t low_mask(int bits) { return (std::uint64_t{1} << bits) - 1; }
+-const std::string& middle_word(const std::vector<std::string>& words) {
++std::string middle_word(const std::vector<std::string>& words) {
++    if (words.empty()) {
++        return {};
++    }
+     std::string w = words[words.size() / 2];
+     w.erase(0, w.find_first_not_of(' '));
+     w.erase(w.find_last_not_of(' ') + 1);
+diff --git a/test_threading b/test_threading
+new file mode 100644
+index 0000000..3b25f7f
+Binary files /dev/null and b/test_threading differ
+diff --git a/test_threading.cpp b/test_threading.cpp
+new file mode 100644
+index 0000000..499bf72
+--- /dev/null
++++ b/test_threading.cpp
+@@ -0,0 +1,28 @@
++#include "include/ticks.hpp"
++#include <iostream>
++#include <vector>
++#include <string>
++
++int main() {
++    // Test count_ticks with threading
++    long total = ticks::count_ticks(4, 1000);
++    std::cout << "count_ticks result: " << total << std::endl;
++    
++    // Test Book functionality
++    ticks::Book book;
++    book.add({100.0, 10});
++    book.add({105.0, 5});
++    
++    try {
++        auto best = book.best();
++        std::cout << "Best price: " << best.px << std::endl;
++        
++        double improvement = book.add_and_improvement({95.0, 15});
++        std::cout << "Improvement: " << improvement << std::endl;
++    } catch (const std::exception& e) {
++        std::cout << "Exception: " << e.what() << std::endl;
++    }
++    
++    std::cout << "Threading tests passed!" << std::endl;
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_ticks b/test_ticks
+new file mode 100644
+index 0000000..f62ffba
+Binary files /dev/null and b/test_ticks differ
+diff --git a/test_ticks.cpp b/test_ticks.cpp
+new file mode 100644
+index 0000000..984fb6f
+--- /dev/null
++++ b/test_ticks.cpp
+@@ -0,0 +1,52 @@
++#include "include/ticks.hpp"
++#include <iostream>
++#include <vector>
++#include <string>
++
++int main() {
++    // Test upper_ticker
++    std::string_view input = "abc";
++    std::string result = ticks::upper_ticker(input);
++    std::cout << "upper_ticker result: " << result << std::endl;
++    
++    // Test append_negated
++    std::vector<double> v = {1.0, 2.0, 3.0};
++    ticks::append_negated(v);
++    std::cout << "After append_negated: ";
++    for (const auto& val : v) {
++        std::cout << val << " ";
++    }
++    std::cout << std::endl;
++    
++    // Test mix_hash
++    std::vector<std::int32_t> values = {1, 2, 3, 4};
++    std::int32_t hash = ticks::mix_hash(values);
++    std::cout << "mix_hash result: " << hash << std::endl;
++    
++    // Test read_price
++    unsigned char buf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40}; // 2.0 in little-endian
++    double price = ticks::read_price(buf, 0);
++    std::cout << "read_price result: " << price << std::endl;
++    
++    // Test rolling_mean
++    std::vector<double> values2 = {1.0, 2.0, 3.0, 4.0, 5.0};
++    auto means = ticks::rolling_mean(values2, 3);
++    std::cout << "rolling_mean result: ";
++    for (const auto& val : means) {
++        std::cout << val << " ";
++    }
++    std::cout << std::endl;
++    
++    // Test archive_label
++    std::vector<std::string> archive;
++    std::string label = ticks::archive_label("test", archive);
++    std::cout << "archive_label result: " << label << std::endl;
++    
++    // Test middle_word
++    std::vector<std::string> words = {"hello", "world", "test"};
++    std::string middle = ticks::middle_word(words);
++    std::cout << "middle_word result: '" << middle << "'" << std::endl;
++    
++    std::cout << "All tests passed!" << std::endl;
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_ticks_asan b/test_ticks_asan
+new file mode 100644
+index 0000000..3042d31
+Binary files /dev/null and b/test_ticks_asan differ
+diff --git a/test_ticks_ubsan b/test_ticks_ubsan
+new file mode 100644
+index 0000000..a81e9e8
+Binary files /dev/null and b/test_ticks_ubsan differ

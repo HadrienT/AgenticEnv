@@ -1,0 +1,56 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.5,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 12,
+  "checks": {
+   "standard_case": false,
+   "deep_itm_short": false,
+   "far_otm_tiny_value": false,
+   "andersen_atm": false,
+   "andersen_wings": false,
+   "low_mean_reversion_long": false,
+   "thirty_years": false,
+   "one_day": false,
+   "high_vol_of_vol_positive_rho": false,
+   "put_call_parity": false,
+   "black_scholes_limit": false,
+   "speed": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 1.9,
+  "output": "FAIL standard_case\nFAIL deep_itm_short\nFAIL far_otm_tiny_value\nFAIL andersen_atm\nFAIL andersen_wings\nFAIL low_mean_reversion_long\nFAIL thirty_years\nFAIL one_day\nFAIL high_vol_of_vol_positive_rho\nFAIL put_call_parity\nFAIL black_scholes_limit\nFAIL speed\n[standard_case] exception: not implemented\n[deep_itm_short] exception: not implemented\n[far_otm_tiny_value] exception: not implemented\n[andersen_atm] exception: not implemented\n[andersen_wings] exception: not implemented\n[low_mean_reversion_long] exception: not implemented\n[thirty_years] exception: not implemented\n[one_day] exception: not implemented\n"
+ }
+}

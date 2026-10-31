@@ -1,0 +1,54 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.1,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 10,
+  "checks": {
+   "zcb_time_zero_fits_curve": false,
+   "zcb_conditional": false,
+   "bond_call": false,
+   "bond_put": false,
+   "parity": false,
+   "jamshidian_annual": false,
+   "jamshidian_semiannual": false,
+   "receiver_payer_parity": false,
+   "atm_forward_rate": false,
+   "short_rate_mc_consistency": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 1.4,
+  "output": "/home/hadriensuper/testLLM/tasks/model-hw-jamshidian/hidden/check.sh: line 2: 3909436 Aborted                 timeout 500 \"$B/t\" 2> \"$B/err\"\n"
+ }
+}

@@ -1,0 +1,218 @@
+diff --git a/include/aad.hpp b/include/aad.hpp
+index 7d7154d..4997877 100644
+--- a/include/aad.hpp
++++ b/include/aad.hpp
+@@ -1,7 +1,9 @@
+ #pragma once
+ #include <cstddef>
++#include <vector>
+ namespace aad {
+ class Var;
++class Recorder;  // internal: defined in aad.cpp, builds the operation nodes
+ // One tape per thread: Tape::active() returns this thread's tape.
+ class Tape {
+ public:
+@@ -14,7 +16,29 @@ public:
+     void clear();                      // empties the tape
+     void reset_adjoints();             // sets every adjoint to 0
+     void propagate(const Var& output); // resets adjoints, seeds output with 1, sweeps back
++private:
++    friend class Var;
++    friend class Recorder;
++    // An operation with its local partials, captured when it is recorded so
++    // the sweep never recomputes them. Unused parents are slot 0 with weight 0.
++    struct Node {
++        std::size_t parent[2] = {0, 0};
++        double weight[2] = {0.0, 0.0};
++        double adjoint = 0.0;
++    };
++    std::size_t record(std::size_t p0, double w0, std::size_t p1, double w1);
++    void check(std::size_t slot) const;
++    // Slot 0 is a hidden sink, not a recorded node: it absorbs the writes of
++    // unused parents so the sweep need not branch on a node's arity. Node i of
++    // the public numbering (a Mark, size()) lives in slot i + 1.
++    std::vector<Node> nodes_ = std::vector<Node>(1);
+ };
++// A Var refers to a node of the tape of the thread that created it, so it must
++// be used on that thread only. A Var whose node was dropped by rewind or clear
++// keeps its value(), but any other use of it is an error: it throws
++// std::out_of_range as long as its slot is unoccupied. Once newer nodes reuse
++// the slot this can no longer be detected, so keep nothing recorded after a
++// mark across a rewind to it.
+ class Var {
+ public:
+     Var(double value = 0.0);           // records a new input node
+@@ -24,7 +48,12 @@ public:
+     Var& operator-=(const Var&);
+     Var& operator*=(const Var&);
+     Var& operator/=(const Var&);
+-    // private representation is up to you
++private:
++    friend class Tape;
++    friend class Recorder;
++    Var(double value, std::size_t slot) : value_(value), slot_(slot) {}
++    double value_;
++    std::size_t slot_;
+ };
+ Var operator+(const Var&, const Var&);
+ Var operator-(const Var&, const Var&);
+diff --git a/src/aad.cpp b/src/aad.cpp
+index cf3ed9d..c151874 100644
+--- a/src/aad.cpp
++++ b/src/aad.cpp
+@@ -1,31 +1,128 @@
+ #include "aad.hpp"
++#include <cmath>
++#include <numbers>
+ #include <stdexcept>
+ namespace aad {
+-static void todo() { throw std::logic_error("not implemented"); }
+-Tape& Tape::active() { todo(); static Tape t; return t; }
+-std::size_t Tape::size() const { todo(); return 0; }
+-void Tape::reserve(std::size_t) { todo(); }
+-Tape::Mark Tape::mark() const { todo(); return {0}; }
+-void Tape::rewind(Mark) { todo(); }
+-void Tape::clear() { todo(); }
+-void Tape::reset_adjoints() { todo(); }
+-void Tape::propagate(const Var&) { todo(); }
+-Var::Var(double) { todo(); }
+-double Var::value() const { todo(); return 0; }
+-double Var::adjoint() const { todo(); return 0; }
+-Var& Var::operator+=(const Var&) { todo(); return *this; }
+-Var& Var::operator-=(const Var&) { todo(); return *this; }
+-Var& Var::operator*=(const Var&) { todo(); return *this; }
+-Var& Var::operator/=(const Var&) { todo(); return *this; }
+-Var operator+(const Var&, const Var&) { todo(); return {}; }
+-Var operator-(const Var&, const Var&) { todo(); return {}; }
+-Var operator*(const Var&, const Var&) { todo(); return {}; }
+-Var operator/(const Var&, const Var&) { todo(); return {}; }
+-Var operator-(const Var&) { todo(); return {}; }
+-Var exp(const Var&) { todo(); return {}; }
+-Var log(const Var&) { todo(); return {}; }
+-Var sqrt(const Var&) { todo(); return {}; }
+-Var pow(const Var&, double) { todo(); return {}; }
+-Var normal_cdf(const Var&) { todo(); return {}; }
+-Var max(const Var&, const Var&) { todo(); return {}; }
++
++Tape& Tape::active() {
++    thread_local Tape tape;
++    return tape;
+ }
++
++std::size_t Tape::size() const { return nodes_.size() - 1; }
++
++// Counted from the current size: a tape holding inputs still gets n more nodes.
++void Tape::reserve(std::size_t nodes) { nodes_.reserve(nodes_.size() + nodes); }
++
++Tape::Mark Tape::mark() const { return {size()}; }
++
++// Capacity is kept in rewind and clear: the path loop reuses it without allocating.
++void Tape::rewind(Mark m) {
++    if (m.pos < size()) nodes_.resize(m.pos + 1);
++}
++
++void Tape::clear() { nodes_.resize(1); }
++
++void Tape::reset_adjoints() {
++    for (Node& n : nodes_) n.adjoint = 0.0;
++}
++
++void Tape::propagate(const Var& output) {
++    check(output.slot_);
++    reset_adjoints();
++    Node* const nodes = nodes_.data();
++    nodes[output.slot_].adjoint = 1.0;
++    for (std::size_t i = output.slot_; i > 0; --i) {
++        const Node& n = nodes[i];
++        const double a = n.adjoint;
++        // Not only a shortcut: 0 * inf must not turn an infinite local partial
++        // (sqrt at 0, say) on a branch that does not matter into a NaN.
++        if (a == 0.0) continue;
++        nodes[n.parent[0]].adjoint += a * n.weight[0];
++        nodes[n.parent[1]].adjoint += a * n.weight[1];
++    }
++}
++
++std::size_t Tape::record(std::size_t p0, double w0, std::size_t p1, double w1) {
++    // Parents are always below the new node, which keeps the sweep in bounds.
++    check(p0);
++    check(p1);
++    nodes_.push_back(Node{{p0, p1}, {w0, w1}, 0.0});
++    return nodes_.size() - 1;
++}
++
++void Tape::check(std::size_t slot) const {
++    if (slot >= nodes_.size()) throw std::out_of_range("aad: Var refers to a node not on this tape");
++}
++
++class Recorder {
++public:
++    static Var binary(double value, const Var& a, double wa, const Var& b, double wb) {
++        return Var(value, Tape::active().record(a.slot_, wa, b.slot_, wb));
++    }
++    static Var unary(double value, const Var& a, double wa) {
++        return Var(value, Tape::active().record(a.slot_, wa, 0, 0.0));
++    }
++    static std::size_t input() { return Tape::active().record(0, 0.0, 0, 0.0); }
++    static double adjoint(std::size_t slot) {
++        const Tape& tape = Tape::active();
++        tape.check(slot);
++        return tape.nodes_[slot].adjoint;
++    }
++};
++
++Var::Var(double value) : value_(value), slot_(Recorder::input()) {}
++
++double Var::value() const { return value_; }
++double Var::adjoint() const { return Recorder::adjoint(slot_); }
++
++Var& Var::operator+=(const Var& rhs) { return *this = *this + rhs; }
++Var& Var::operator-=(const Var& rhs) { return *this = *this - rhs; }
++Var& Var::operator*=(const Var& rhs) { return *this = *this * rhs; }
++Var& Var::operator/=(const Var& rhs) { return *this = *this / rhs; }
++
++Var operator+(const Var& a, const Var& b) {
++    return Recorder::binary(a.value() + b.value(), a, 1.0, b, 1.0);
++}
++Var operator-(const Var& a, const Var& b) {
++    return Recorder::binary(a.value() - b.value(), a, 1.0, b, -1.0);
++}
++Var operator*(const Var& a, const Var& b) {
++    return Recorder::binary(a.value() * b.value(), a, b.value(), b, a.value());
++}
++Var operator/(const Var& a, const Var& b) {
++    // -q / b rather than -a / (b * b), which overflows or underflows sooner.
++    const double inverse = 1.0 / b.value();
++    const double q = a.value() / b.value();
++    return Recorder::binary(q, a, inverse, b, -q / b.value());
++}
++Var operator-(const Var& a) { return Recorder::unary(-a.value(), a, -1.0); }
++
++Var exp(const Var& a) {
++    const double v = std::exp(a.value());
++    return Recorder::unary(v, a, v);
++}
++Var log(const Var& a) { return Recorder::unary(std::log(a.value()), a, 1.0 / a.value()); }
++Var sqrt(const Var& a) {
++    const double v = std::sqrt(a.value());
++    return Recorder::unary(v, a, 0.5 / v);
++}
++Var pow(const Var& a, double p) {
++    // p x^(p-1), not p * value / x, which is 0/0 at x = 0. p = 0 is apart
++    // because 0 * 0^-1 would be NaN at x = 0 where the derivative is 0.
++    const double weight = p == 0.0 ? 0.0 : p * std::pow(a.value(), p - 1.0);
++    return Recorder::unary(std::pow(a.value(), p), a, weight);
++}
++Var normal_cdf(const Var& a) {
++    // erfc, not 1 + erf, to keep relative precision in the lower tail.
++    const double x = a.value();
++    const double value = 0.5 * std::erfc(-x * std::numbers::sqrt2 / 2.0);
++    const double density = std::exp(-0.5 * x * x) * std::numbers::inv_sqrtpi / std::numbers::sqrt2;
++    return Recorder::unary(value, a, density);
++}
++Var max(const Var& a, const Var& b) {
++    return a.value() >= b.value() ? Recorder::unary(a.value(), a, 1.0)
++                                  : Recorder::unary(b.value(), b, 1.0);
++}
++
++}  // namespace aad

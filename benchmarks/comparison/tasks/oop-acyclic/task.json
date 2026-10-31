@@ -1,0 +1,1 @@
+{"category":"oop","checks":["existing_work","unsupported_throws_with_name","new_trade_new_visitor","extend_visitor_by_inheritance","try_accept","header_has_no_concrete_trades","library_not_rebuilt","exactly_one_dispatch","no_coupling"]}

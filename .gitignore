@@ -36,3 +36,6 @@ INSTALLATION-REPORT.md
 .idea/
 *.swp
 .DS_Store
+
+# Comparison bench: working trees and builds, 3.7 GB, rebuilt from quant-modeling
+benchmarks/comparison/.work/

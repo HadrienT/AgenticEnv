@@ -1,0 +1,1 @@
+{"category":"cuda","resource":"gpu","checks":["compiles_with_nvcc","paths_accounted","remainder_paths","blocks_independent","no_nan_in_tails","double_precision_accuracy","average_dates","vram_no_leak","device_argument"]}

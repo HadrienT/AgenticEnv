@@ -1,0 +1,88 @@
+diff --git a/debug_heston_cos.cpp b/debug_heston_cos.cpp
+new file mode 100644
+index 0000000..e5e93da
+--- /dev/null
++++ b/debug_heston_cos.cpp
+@@ -0,0 +1,46 @@
++#include <iostream>
++#include <iomanip>
++#include "quantModeling/engines/analytic/heston_cos.hpp"
++#include "quantModeling/models/equity/heston.hpp"
++
++int main() {
++    std::cout << std::fixed << std::setprecision(6);
++    
++    // Test case from the problem statement:
++    // v0 = theta = 0.04, kappa = 0.5, xi = 1, rho = -0.9, T = 10, forward 100, strike 100, zero rates
++    quantModeling::HestonParams params{0.04, 0.5, 0.04, 1.0, -0.9};
++    
++    quantModeling::Real forward = 100.0;
++    quantModeling::Real strike = 100.0;
++    quantModeling::Real ttm = 10.0;
++    quantModeling::Real discount_factor = 1.0; // zero rates case
++    
++    std::cout << "Testing Andersen's test case:" << std::endl;
++    std::cout << "Parameters: v0=" << params.v0 << ", kappa=" << params.kappa 
++              << ", theta=" << params.theta << ", xi=" << params.xi 
++              << ", rho=" << params.rho << std::endl;
++    std::cout << "Forward=" << forward << ", Strike=" << strike 
++              << ", TTM=" << ttm << ", Discount=" << discount_factor << std::endl;
++    
++    // Test call price
++    quantModeling::Real call_price = quantModeling::heston_cos_price(forward, strike, ttm, discount_factor, params, true);
++    std::cout << "Call price: " << call_price << std::endl;
++    
++    // Test put price
++    quantModeling::Real put_price = quantModeling::heston_cos_price(forward, strike, ttm, discount_factor, params, false);
++    std::cout << "Put price: " << put_price << std::endl;
++    
++    // Test with different parameters from existing tests to see if they work
++    std::cout << "\nTesting with existing test parameters:" << std::endl;
++    quantModeling::HestonParams test_params{0.04, 1.5, 0.045, 0.4, -0.6};
++    quantModeling::Real test_call = quantModeling::heston_cos_price(100.0, 100.0, 0.75, 0.96, test_params, true);
++    std::cout << "Test call price: " << test_call << std::endl;
++    
++    // Test with a simpler case
++    std::cout << "\nTesting with simpler parameters:" << std::endl;
++    quantModeling::HestonParams simple_params{0.04, 1.0, 0.04, 0.3, -0.5};
++    quantModeling::Real simple_call = quantModeling::heston_cos_price(100.0, 100.0, 1.0, 1.0, simple_params, true);
++    std::cout << "Simple call price: " << simple_call << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_andersen_case.cpp b/test_andersen_case.cpp
+new file mode 100644
+index 0000000..4da035a
+--- /dev/null
++++ b/test_andersen_case.cpp
+@@ -0,0 +1,28 @@
++#include <iostream>
++#include "quantModeling/engines/analytic/heston_cos.hpp"
++#include "quantModeling/models/equity/heston.hpp"
++
++int main() {
++    // Andersen's test case parameters from the problem statement:
++    // v0 = theta = 0.04, kappa = 0.5, xi = 1, rho = -0.9, T = 10, forward 100, strike 100, zero rates
++    quantModeling::HestonParams params{0.04, 0.5, 0.04, 1.0, -0.9};
++    
++    // Using the parameters from the problem statement
++    quantModeling::Real forward = 100.0;
++    quantModeling::Real strike = 100.0;
++    quantModeling::Real ttm = 10.0;
++    quantModeling::Real discount_factor = 1.0; // zero rates case
++    
++    // Test call price
++    quantModeling::Real call_price = quantModeling::heston_cos_price(forward, strike, ttm, discount_factor, params, true);
++    std::cout << "Call price: " << call_price << std::endl;
++    
++    // Test put price
++    quantModeling::Real put_price = quantModeling::heston_cos_price(forward, strike, ttm, discount_factor, params, false);
++    std::cout << "Put price: " << put_price << std::endl;
++    
++    // Expected value from literature: 13.0847
++    std::cout << "Expected literature value: 13.0847" << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

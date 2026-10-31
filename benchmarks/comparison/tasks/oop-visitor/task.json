@@ -1,0 +1,1 @@
+{"category":"oop","checks":["pricing_european","pricing_digital","pricing_barrier","pricing_zcb","delta","portfolio_nested","json_exact","user_visitor","adding_overload_is_compile_error","visitor_reusable","clone_is_deep","no_type_switch"]}

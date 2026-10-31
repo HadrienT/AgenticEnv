@@ -1,0 +1,1 @@
+Implement the Hull-White model of include/hw.hpp in src/hw.cpp, in C++20 with the standard library only: bond reconstruction, zero-coupon bond options and swaptions by Jamshidian's decomposition. You may add private members. The discount function is arbitrary, not only a flat curve, and a is strictly positive.
