@@ -1,11 +1,13 @@
 # Comparison results
 
-Tasks run by both agents: 9 of 26.
+Tasks in every run: 9 of 26.
 
-- On those tasks, AgenticEnv 38/93, Claude Code 92/93.
-- AgenticEnv over all 26 tasks: 79/250.
+- agenticenv-r1: 38/93 on those tasks.
+- claude-r1: 92/93 on those tasks.
+- agenticenv-r1: 79/250 over its 26 tasks.
+- claude-r1: 92/93 over its 9 tasks.
 
-| Task | AgenticEnv | Claude Code |
+| Task | agenticenv-r1 | claude-r1 |
 |---|---|---|
 | cpp-aad | 9/12 (455s, finished) | 12/12 (273s, finished) |
 | cpp-expr-templates | 0/10 (492s, timeout_or_error) | 10/10 (362s, finished) |

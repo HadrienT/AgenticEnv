@@ -34,7 +34,7 @@ python3 harness/run.py baseline           # every check on the untouched fixture
 python3 harness/run.py refcheck           # every check on the reference solution
 python3 harness/run.py run --agent agenticenv --only mc-lsm
 python3 harness/run.py run --agent claude --only mc-lsm
-python3 harness/report.py
+python3 harness/report.py agenticenv-r1 agenticenv-r2 claude-r1
 ```
 
 `run.py` overwrites `results/<task>/<agent>-r<rep>/`. Use `--rep 2` to keep a previous run.
@@ -47,6 +47,9 @@ every sandbox.
 - 16 Claude runs hit the subscription limit, and `mc-heston-qe` was interrupted before
   `resume_claude.py` saved anything. They are shown as `not run`. Their stored grades are what
   the untouched fixture scores, so `qm-fix-barrier` at 2/4 means nothing.
+- The first AgenticEnv run had the sandbox on `docker0`; `drive_agenticenv.py` now uses the host
+  network, so a run of dozens of containers creates no veth (#8). Scores are not affected.
+- `agenticenv-r1` predates #55: 50 iterations, `rm -rf build` blocked, no `nvcc` in the sandbox.
 - AgenticEnv ran with Qwen3-Coder 30B, the served model at the time. Claude Code used its
   default model on the subscription, listed in each `summary.json`.
 - `results/FROZEN.sha256` was recorded before the first run. Its input is not recorded, so it
