@@ -39,3 +39,4 @@ INSTALLATION-REPORT.md
 
 # Comparison bench: working trees and builds, 3.7 GB, rebuilt from quant-modeling
 benchmarks/comparison/.work/
+benchmarks/comparison/results/*/*/driver.log
