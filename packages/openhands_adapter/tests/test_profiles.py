@@ -20,10 +20,10 @@ def test_coding_has_the_terminal_and_only_its_allowlisted_tools() -> None:
     allowed = re.compile(profile.tools_regex)
 
     assert "terminal" in profile.builtin_tools
-    assert allowed.fullmatch("kb.search")
+    assert allowed.fullmatch("kbase_kb.search")  # as the SDK really names it
     assert allowed.fullmatch("finish")
-    assert not allowed.fullmatch("kb_search")
-    assert not allowed.fullmatch("cpp.bench")
+    assert not allowed.fullmatch("kbase_kb_search")
+    assert not allowed.fullmatch("cppdev_cpp.bench")
 
 
 def test_research_cannot_run_commands() -> None:

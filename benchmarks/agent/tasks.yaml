@@ -1,5 +1,6 @@
 # Agent benchmark (WP17 §1). `check` runs in the project after the agent; the unit
-# tests assert that every check fails on the untouched fixture.
+# tests assert that every check fails on the untouched fixture. `python3` is the
+# benchmark's own interpreter, which has pytest.
 tasks:
   - id: fix-bs-d2
     category: fix

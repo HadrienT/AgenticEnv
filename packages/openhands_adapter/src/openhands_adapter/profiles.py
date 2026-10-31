@@ -70,8 +70,11 @@ class AgentProfile(BaseModel):
 
     @property
     def tools_regex(self) -> str:
-        names = [*_ALWAYS_ALLOWED, *self.builtin_tools, *self.mcp_tools]
-        return "^(" + "|".join(re.escape(name) for name in dict.fromkeys(names)) + ")$"
+        """The SDK names an MCP tool `<server>_<tool>`, e.g. `kbase_kb.search`."""
+        builtin = [*_ALWAYS_ALLOWED, *self.builtin_tools]
+        names = "|".join(re.escape(name) for name in dict.fromkeys(builtin))
+        mcp = "|".join(re.escape(name) for name in self.mcp_tools)
+        return f"^(?:{names}|[a-z]+_(?:{mcp}))$"
 
     def prompt(self) -> str:
         """`system_prompt` lists files joined by ` + `, relative to the repo root."""

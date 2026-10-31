@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from collections.abc import Callable
@@ -77,8 +79,14 @@ def _prepare(fixture: Path, workdir: Path) -> Path:
 
 def _check(command: str, project: Path) -> bool:
     try:
+        # This interpreter, which has pytest: checks must not depend on the system Python.
+        path = f"{Path(sys.executable).parent}:{os.environ['PATH']}"
         result = subprocess.run(
-            ["bash", "-c", command], cwd=project, capture_output=True, timeout=_CHECK_TIMEOUT_S
+            ["bash", "-c", command],
+            cwd=project,
+            capture_output=True,
+            timeout=_CHECK_TIMEOUT_S,
+            env={**os.environ, "PATH": path},
         )
     except subprocess.TimeoutExpired:
         return False
