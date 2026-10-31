@@ -101,9 +101,13 @@ class AgentResult:
 def _check_image_present(image: str) -> None:
     proc = execute_command(["docker", "image", "inspect", image])
     if proc.returncode != 0:
+        local = image.startswith("agenticenv/")
         raise DependencyError(
             f"agent-server image not present locally: {image}",
-            details={"image": image, "fix": f"docker pull {image}"},
+            details={
+                "image": image,
+                "fix": "just build-agent-image" if local else f"docker pull {image}",
+            },
         )
 
 
