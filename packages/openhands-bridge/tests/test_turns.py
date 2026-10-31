@@ -17,7 +17,12 @@ from openhands_bridge import server as srv
 from websockets.asyncio.client import ClientConnection, connect
 from websockets.asyncio.server import serve
 
-from openhands_adapter import STARTUP_STEPS, ConversationStateUpdateEvent, MessageEvent
+from openhands_adapter import (
+    STARTUP_STEPS,
+    ConversationStateUpdateEvent,
+    MessageEvent,
+    StreamingDeltaEvent,
+)
 
 
 class _Fake:
@@ -310,3 +315,40 @@ async def test_a_plain_message_has_no_user_display(url: str, fake: _Fake) -> Non
         await _start(ws)
         await _begin_turn(ws)
         assert (await _until(ws, "event"))["user_display"] is None
+
+
+def _relay() -> tuple[srv._EventRelay, list[Any]]:
+    sent: list[Any] = []
+    conn = SimpleNamespace(
+        turn_id="t1", send_threadsafe=sent.append, note_status_threadsafe=lambda _value: None
+    )
+    relay = srv._EventRelay(conn)  # type: ignore[arg-type]
+    relay._buffering = False
+    return relay, sent
+
+
+def _agent_message(text: str) -> MessageEvent:
+    return MessageEvent(
+        source="agent", llm_message=Message(role="assistant", content=[TextContent(text=text)])
+    )
+
+
+def test_a_message_names_the_deltas_it_ends_and_the_next_one_starts_afresh() -> None:
+    relay, sent = _relay()
+
+    relay.on_event(StreamingDeltaEvent(content="he"))
+    relay.on_event(StreamingDeltaEvent(content="llo"))
+    relay.on_event(_agent_message("hello"))
+    relay.on_event(StreamingDeltaEvent(content="next"))
+
+    first, second, final, third = sent
+    assert first.event_id == second.event_id == final.stream_id
+    assert third.event_id != first.event_id
+
+
+def test_a_message_that_was_not_streamed_has_no_stream_id() -> None:
+    relay, sent = _relay()
+
+    relay.on_event(_agent_message("hello"))
+
+    assert sent[0].stream_id is None

@@ -12,7 +12,7 @@ from __future__ import annotations
 # depend on the SDK directly (import-linter contract D14 in the root
 # pyproject.toml). Keep this list to what callers genuinely need.
 from openhands.sdk import Event
-from openhands.sdk.event import MessageEvent, StreamingDeltaEvent
+from openhands.sdk.event import ActionEvent, MessageEvent, StreamingDeltaEvent
 from openhands.sdk.event.conversation_state import ConversationStateUpdateEvent
 from openhands.sdk.git.models import GitChange, GitChangeStatus
 from openhands.sdk.security.confirmation_policy import (
@@ -37,6 +37,7 @@ from openhands_adapter.working_copy import Checkpoint, WorkingCopy
 
 __all__ = [
     "DEFAULT_PROFILE",
+    "ActionEvent",
     "AgentResult",
     "AgentSession",
     "STARTUP_STEPS",

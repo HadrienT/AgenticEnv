@@ -44,7 +44,7 @@ class SandboxLLMConfig(BaseModel):
     # the agent-server container (via host.docker.internal + the llama-bridge
     # proxy) -- distinct from AGX_LLM_BASE_URL, which is host-side (127.0.0.1).
     sandbox_base_url: str
-    # Token streaming to the client. Off until verified on a real sandbox (WP17 §3).
+    # Token streaming to the client.
     stream: bool = False
 
 

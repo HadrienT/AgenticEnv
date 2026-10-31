@@ -262,6 +262,8 @@ class EventMessage(_Out):
     event: dict[str, Any]
     # Set on the echo of a user message whose prompt carries more than its text.
     user_display: UserDisplay | None = None
+    # The `event_delta.event_id` whose text this event finishes.
+    stream_id: str | None = None
 
 
 class TurnStarted(_Out):

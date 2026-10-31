@@ -55,6 +55,7 @@ from openhands_adapter import (
     STARTUP_STEPS,
     STEP_BASELINE,
     STEP_CHECKS,
+    ActionEvent,
     AgentSession,
     ConversationStateUpdateEvent,
     Event,
@@ -200,6 +201,9 @@ class _EventRelay:
         self._buffering = True
         # Replaces the next user echo, whose text is the whole composed prompt.
         self.user_display: UserDisplay | None = None
+        # Deltas carry no event id of their own: this ties them to the event that
+        # ends them, the agent's message or the action they narrate.
+        self._stream_id: str | None = None
         self._buffer: list[Event] = []
         self.session: AgentSession | None = None
 
@@ -223,12 +227,20 @@ class _EventRelay:
             display, self.user_display = self.user_display, None
         if isinstance(event, StreamingDeltaEvent):
             if event.content and turn_id:
+                self._stream_id = self._stream_id or uuid.uuid4().hex
                 self._conn.send_threadsafe(
-                    EventDelta(turn_id=turn_id, event_id=turn_id, text=event.content)
+                    EventDelta(turn_id=turn_id, event_id=self._stream_id, text=event.content)
                 )
             return
+        stream_id = None
+        if isinstance(event, ActionEvent) or (
+            isinstance(event, MessageEvent) and event.source == "agent"
+        ):
+            stream_id, self._stream_id = self._stream_id, None
         self._conn.send_threadsafe(
-            EventMessage(event=event.model_dump(mode="json"), user_display=display)
+            EventMessage(
+                event=event.model_dump(mode="json"), user_display=display, stream_id=stream_id
+            )
         )
         todo = _todo_items(event)
         if todo is not None:

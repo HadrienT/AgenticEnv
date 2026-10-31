@@ -55,8 +55,8 @@ llm:
   # to llama-server, itself bound to 127.0.0.1:8000 only. Port must match
   # AGX_LLAMA_BRIDGE_PORT used by infra/scripts/render-llama-bridge.sh.
   sandbox_base_url: http://host.docker.internal:8001/v1
-  # Token streaming to the client (WP17 §3). Leave off until verified on a real sandbox.
-  stream: false
+  # Token streaming to the client (WP17 §3).
+  stream: true
 
 run:
   max_iterations: 100
