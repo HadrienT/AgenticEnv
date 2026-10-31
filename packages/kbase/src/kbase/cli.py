@@ -9,21 +9,31 @@ from corelib.config import get_settings, repo_root
 from corelib.db import session_scope
 from corelib.errors import AppError
 
-from kbase.config import load_kbase_config
+from kbase.config import IngestionConfig, load_kbase_config
 from kbase.evaluation import evaluate, load_queries
 from kbase.ingestion import ops
 from kbase.ingestion import reindex as reindex_mod
 from kbase.ingestion.chunking import StructuralChunker
 from kbase.ingestion.parsers.base import Parser
 from kbase.ingestion.parsers.markdown import MarkdownParser
+from kbase.ingestion.parsers.pdf import PdfParser
 from kbase.ingestion.pipeline import ingest as run_ingest
 from kbase.retrieval.factory import build_embedder, build_retriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
 from kbase.schemas import ChunkPolicy, IngestionRequest
 
 
-def _build_parsers() -> list[Parser]:
-    return [MarkdownParser()]
+def _build_parsers(config: IngestionConfig) -> list[Parser]:
+    root = repo_root()
+    return [
+        MarkdownParser(),
+        PdfParser(
+            mineru=root / config.mineru_binary,
+            adapter=root / config.mineru_adapter,
+            cache_dir=root / config.mineru_cache_dir,
+            timeout_s=config.pdf_timeout_s,
+        ),
+    ]
 
 
 def _cmd_ingest(args: argparse.Namespace) -> int:
@@ -47,12 +57,14 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
         report = run_ingest(
             request,
             documents_dir=settings.paths.documents_dir,
-            parsers=_build_parsers(),
+            parsers=_build_parsers(config.ingestion),
             chunker=StructuralChunker(),
             embedder=embedder,
             policy=policy,
             max_file_size_bytes=config.ingestion.max_file_size_mb * 1024 * 1024,
             parse_timeout_s=config.ingestion.parse_timeout_s,
+            pdf_max_file_size_bytes=config.ingestion.pdf_max_file_size_mb * 1024 * 1024,
+            pdf_timeout_s=config.ingestion.pdf_timeout_s,
             require_page=config.provenance.require_page,
             require_section=config.provenance.require_section,
         )

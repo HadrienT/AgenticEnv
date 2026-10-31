@@ -4,7 +4,8 @@ set -uo pipefail
 
 SRC_DIR=/srv/knowledge/documents/sources/all
 RAW_DIR=/srv/knowledge/documents/raw
-MINERU_PY=/home/hadriensuper/AgenticEnv/.mineru-venv/bin/python
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MINERU_PY="$REPO/.mineru-venv/bin/python"
 
 echo "=== Conversion PDF -> Markdown ==="
 "$MINERU_PY" -c "
@@ -43,5 +44,5 @@ ps aux | grep "bin/mineru -p" | grep -v grep | sed -E 's/.*sources\/all\/([^ ]+)
 
 echo ""
 echo "=== Ingestion Postgres (kbase) ==="
-cd /home/hadriensuper/AgenticEnv
+cd "$REPO"
 .venv/bin/kbase stats 2>&1 || echo "  (kbase stats indisponible)"

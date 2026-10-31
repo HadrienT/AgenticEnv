@@ -59,6 +59,12 @@ class ProvenanceConfig(BaseModel):
 class IngestionConfig(BaseModel):
     max_file_size_mb: int
     parse_timeout_s: int
+    # A book takes MinerU a long time, and is far bigger than a Markdown source.
+    pdf_max_file_size_mb: int = 500
+    pdf_timeout_s: int = 7200
+    mineru_binary: str = ".mineru-venv/bin/mineru"
+    mineru_adapter: str = "documents/mineru_adapter.py"
+    mineru_cache_dir: str = "documents/parsed"
 
 
 class KbaseConfig(BaseModel):

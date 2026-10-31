@@ -93,6 +93,8 @@ def ingest(
     policy: ChunkPolicy,
     max_file_size_bytes: int,
     parse_timeout_s: int,
+    pdf_max_file_size_bytes: int | None = None,
+    pdf_timeout_s: int | None = None,
     require_page: bool,
     require_section: bool,
 ) -> IngestionReport:
@@ -132,10 +134,12 @@ def ingest(
         try:
             if not path.is_file():
                 raise NotFoundError(f"source file not found: {path}", details={"path": str(path)})
+            is_pdf = path.suffix.lower() == ".pdf"
+            size_limit = (pdf_max_file_size_bytes if is_pdf else None) or max_file_size_bytes
             file_size = path.stat().st_size
-            if file_size > max_file_size_bytes:
+            if file_size > size_limit:
                 raise LimitExceededError(
-                    f"file exceeds max_file_size_bytes ({max_file_size_bytes})",
+                    f"file exceeds the size limit ({size_limit})",
                     details={"path": str(path), "size": file_size},
                 )
 
@@ -147,7 +151,7 @@ def ingest(
                 continue
 
             parser = _select_parser(parsers, path)
-            with _parse_timeout(parse_timeout_s):
+            with _parse_timeout((pdf_timeout_s if is_pdf else None) or parse_timeout_s):
                 parsed = parser.parse(path, item.meta)
 
             chunks = chunker.chunk(parsed, policy)

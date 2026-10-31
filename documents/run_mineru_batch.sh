@@ -22,7 +22,7 @@ OUT_DIR="$2"
 RAW_DIR="$3"
 CUDA_DEVICE="${4:-}"
 
-REPO=/home/hadriensuper/AgenticEnv
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MINERU="$REPO/.mineru-venv/bin/mineru"
 PY="$REPO/.venv/bin/python"
 ADAPTER="$REPO/documents/mineru_adapter.py"
