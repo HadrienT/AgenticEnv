@@ -21,7 +21,7 @@ Sans mesure, on ne saura pas si une modification aide.
 
 | Livrable |
 |---|
-| `benchmarks/agent/` : 30 tâches réelles sur quant-modeling et ce repo (corriger un bug, ajouter un test, ajouter un pricer, refactor), chacune avec un critère de réussite exécutable. |
+| `benchmarks/agent/` : 12 tâches sur 3 petits projets (corriger un bug, ajouter une fonction, écrire des tests, refactor), chacune avec un critère de réussite exécutable. À porter à 30 avec des tâches sur quant-modeling une fois les premiers résultats lus. |
 | Lanceur headless via `run_task`, répétitions, résultats en base `eval`. |
 | Métriques : taux de réussite, tours, tokens, durée, boucles, erreurs d'appels d'outils. |
 | Baseline avant WP12, puis mesure après chaque WP. |

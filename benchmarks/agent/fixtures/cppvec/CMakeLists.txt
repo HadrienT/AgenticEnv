@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(cppvec CXX)
+set(CMAKE_CXX_STANDARD 17)
+enable_testing()
+add_executable(test_stats test_stats.cpp stats.cpp)
+add_test(NAME stats COMMAND test_stats)

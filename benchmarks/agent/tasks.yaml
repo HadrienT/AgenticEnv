@@ -1,0 +1,63 @@
+# Agent benchmark (WP17 §1). `check` runs in the project after the agent; the unit
+# tests assert that every check fails on the untouched fixture.
+tasks:
+  - id: fix-bs-d2
+    category: fix
+    fixture: pricing
+    prompt: "tests/test_black_scholes.py fails. Find the bug in the pricing code and fix it."
+    check: "python3 -m pytest -q tests/test_black_scholes.py"
+  - id: fix-cpp-out-of-bounds
+    category: fix
+    fixture: cppvec
+    prompt: "The stats test crashes or gives wrong results. Find the bug in stats.cpp and fix it."
+    check: "cmake -S . -B /tmp/bench-$$ -DCMAKE_CXX_FLAGS=-fsanitize=address >/dev/null && cmake --build /tmp/bench-$$ >/dev/null && ctest --test-dir /tmp/bench-$$ --output-on-failure"
+  - id: fix-sample-variance
+    category: fix
+    fixture: cppvec
+    prompt: "variance() must be the unbiased sample variance (n-1). The test already expects it. Make it pass, and fix anything else that stops it passing."
+    check: "grep -q 'size() - 1' stats.cpp"
+  - id: fix-word-count
+    category: fix
+    fixture: textkit
+    prompt: "word_count('a  b') returns 3 and word_count('') returns 1. It must count words: 2 and 0. Fix it."
+    check: "python3 -c \"import textkit as t; assert t.word_count('a  b')==2 and t.word_count('')==0\""
+  - id: fix-retry-swallows
+    category: fix
+    fixture: textkit
+    prompt: "retry() hides the last failure and returns None. After the final attempt it must raise the last exception."
+    check: "python3 -c \"import textkit as t\ndef f(): raise KeyError('x')\ntry:\n    t.retry(f, 2)\nexcept KeyError:\n    raise SystemExit(0)\nraise SystemExit(1)\""
+  - id: feature-digital-call
+    category: feature
+    fixture: pricing
+    prompt: "Add digital_call_price(spot, strike, rate, vol, maturity) to pricing/black_scholes.py: a cash-or-nothing call paying 1. Fix any bug you find on the way."
+    check: "python3 -c \"import math; from pricing.black_scholes import digital_call_price as d; assert abs(d(100,100,0.0,0.2,1.0)-0.4602)<1e-3\""
+  - id: feature-antithetic
+    category: feature
+    fixture: pricing
+    prompt: "Add an antithetic: bool = False parameter to monte_carlo.price_call. When true, use antithetic variates; n_paths stays the total number of simulated paths."
+    check: "python3 -c \"import inspect; from pricing.monte_carlo import price_call as p; assert 'antithetic' in inspect.signature(p).parameters; a=[p(100,100,0.0,0.2,1.0,2000,seed=s,antithetic=True) for s in range(30)]; b=[p(100,100,0.0,0.2,1.0,2000,seed=s) for s in range(30)]; v=lambda x:sum((i-sum(x)/30)**2 for i in x); assert v(a)<v(b)\""
+  - id: feature-median
+    category: feature
+    fixture: cppvec
+    prompt: "Add double median(std::vector<double> values) to stats.hpp and stats.cpp, and test it in test_stats.cpp. Everything must build and pass."
+    check: "grep -q 'median' stats.hpp && grep -q 'median' test_stats.cpp && cmake -S . -B /tmp/bench-$$ >/dev/null && cmake --build /tmp/bench-$$ >/dev/null && ctest --test-dir /tmp/bench-$$"
+  - id: feature-csv-quotes
+    category: feature
+    fixture: textkit
+    prompt: "parse_csv_line must honour double quotes: 'a,\"b,c\",d' gives three fields, without the quotes."
+    check: "python3 -c \"import textkit as t; assert t.parse_csv_line('a,\\\"b,c\\\",d')==['a','b,c','d']\""
+  - id: feature-slug-accents
+    category: feature
+    fixture: textkit
+    prompt: "slugify must strip accents and punctuation and collapse separators: 'Été  à Paris!' gives 'ete-a-paris'."
+    check: "python3 -c \"import textkit as t; assert t.slugify('Été  à Paris!')=='ete-a-paris'\""
+  - id: test-write-put-tests
+    category: test
+    fixture: pricing
+    prompt: "Add tests/test_parity.py checking put-call parity on at least 3 parameter sets. If it exposes a bug, fix the code. Everything must pass."
+    check: "test -f tests/test_parity.py && python3 -m pytest -q tests"
+  - id: refactor-keep-behaviour
+    category: refactor
+    fixture: pricing
+    prompt: "Extract the d1 and d2 computation of black_scholes.py into one helper used by the pricing functions, and fix the d2 bug. Do not change the public functions."
+    check: "grep -q 'def ' pricing/black_scholes.py && test $(grep -c 'math.log(spot' pricing/black_scholes.py) -eq 1 && grep -qE '^def _?(d1_d2|d1d2|_d|compute_d|d_terms|d1)' pricing/black_scholes.py && python3 -m pytest -q tests"

@@ -100,6 +100,15 @@ test-e2e:
 run-bridge:
     uv run openhands-bridge
 
+# Sandbox image with the C++ tools and the code MCP servers (WP17 §6). Host network:
+# a build on the default bridge would add and tear down a veth on docker0 (issue #8).
+build-agent-image:
+    docker build --network host -f infra/docker/agent/Dockerfile -t agenticenv/agent:latest .
+
+# Measure the agent on real tasks (WP17 §1). Docker + llama-server, minutes per task.
+bench-agent label *args:
+    uv run bench-agent --label {{label}} {{args}}
+
 # Stop every leftover agent-server-* sandbox container (one at a time). The bridge
 # also does this on startup / around each session; this is the manual escape hatch.
 reap-sandboxes:

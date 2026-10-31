@@ -1,0 +1,9 @@
+*
+!pyproject.toml
+!uv.lock
+!.python-version
+!packages
+!configs
+!benchmarks/golden
+**/__pycache__
+**/tests
