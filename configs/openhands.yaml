@@ -17,6 +17,8 @@ sandbox:
   platform: linux/amd64
   enable_gpu: false
   working_dir: /workspace
+  # WP08e: reattach to conversations, see docs/runbook.md before turning it on.
+  persistent_conversations: false
   # Host has 47 GiB and 56 threads, and llama-server must stay alive.
   memory: 24g
   cpus: 32

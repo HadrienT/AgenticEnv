@@ -191,5 +191,18 @@ ENV
 systemctl --user restart agenticenv-mcp@kbase agenticenv-mcp@agentmem agenticenv-bridge
 ```
 
+Reattaching to conversations (WP08e, #10) is off. The code is tested against a fake sandbox
+only, and it changes how long containers live on `docker0`, so check it on a real one first,
+with no other session open:
+
+1. Set `sandbox.persistent_conversations: true` in `configs/openhands.yaml`, restart the bridge.
+2. Start a conversation, edit a file, start a second one, then `resume` the first: the agent
+   must remember the first exchange.
+3. Reload VS Code: the session must come back on the same container (`docker ps`).
+4. Restart the bridge, then `resume`: the agent-server must rehydrate the conversation from
+   `~/.local/share/agenticenv/sandbox/conversations`. If it does not, WP08e §3 plans a replay of
+   the client's transcript instead.
+5. Leave it idle for 15 minutes: the container must be gone.
+
 Measure a change to search with `uv run kbase eval --label <name>`, on a copy of the
 database (`AGX_DB_NAME=agenticenv_eval`), and the agent with `just bench-agent <label>`.

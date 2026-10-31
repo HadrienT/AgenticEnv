@@ -28,6 +28,9 @@ class SandboxConfig(BaseModel):
     mask: list[str] = Field(default_factory=list)
     code_tools: bool = False
     host_network: bool = False
+    # One long-lived sandbox per project, holding several conversations that survive a
+    # reconnect or a bridge restart (WP08e). Off until checked on a real container.
+    persistent_conversations: bool = False
 
 
 class SandboxMcpConfig(BaseModel):

@@ -24,6 +24,7 @@ import tempfile
 import threading
 import urllib.error
 import urllib.request
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -61,6 +62,9 @@ _WORKING_COPY = "/workspace/project"
 # untouched and every session gets it (WP12 §4).
 _HOOK_SOURCE = "agents/openhands-template/.openhands/hooks/block_dangerous.sh"
 _HOOK_TARGET = "/opt/agenticenv/hooks/block_dangerous.sh"
+# What the agent-server rehydrates a conversation from (WP08e §3). The working copies stay
+# out on purpose: edits reach the host at the end of each turn.
+_PERSISTED_DIRS = ("conversations", "bash_events")
 
 # Idempotent: `register_default_tools` just re-imports/re-registers on repeat calls.
 _tools_registered = False
@@ -76,6 +80,21 @@ STARTUP_STEPS = (
     "Recording the state of your repo",
 )
 STEP_CHECKS, STEP_CONTAINER, STEP_AGENT, STEP_COPY, STEP_BASELINE = range(len(STARTUP_STEPS))
+
+
+def persistence_dir() -> Path:
+    return Path.home() / ".local/share/agenticenv/sandbox"
+
+
+def _persisted_volumes() -> list[str]:
+    volumes = []
+    for name in _PERSISTED_DIRS:
+        path = persistence_dir() / name
+        path.mkdir(parents=True, exist_ok=True)
+        # The agent-server runs as uid 10001, the parents stay private to the user.
+        path.chmod(0o777)
+        volumes.append(f"{path}:/workspace/{name}")
+    return volumes
 
 
 def _ensure_tools_registered() -> None:
@@ -247,6 +266,8 @@ class AgentSession:
         read_only: bool = False,
         profile: str = DEFAULT_PROFILE,
         on_step: Callable[[int], None] | None = None,
+        persistent: bool = False,
+        conversation_id: str | None = None,
     ) -> None:
         self._cfg = oh_config or load_openhands_config()
         self._on_step = on_step or (lambda _: None)
@@ -261,6 +282,12 @@ class AgentSession:
         self._working_copy: WorkingCopy | None = None
         self._workspace: AgenticEnvDockerWorkspace | None = None
         self._conversation: RemoteConversation | None = None
+        self._persistent = persistent
+        self._first_conversation_id = conversation_id
+        self._agent: Agent | None = None
+        self._model = ""
+        # Suspended conversations stay open, with their copy (WP08e §4.3).
+        self._open_conversations: dict[str, tuple[RemoteConversation, WorkingCopy | None]] = {}
         self._llm_source = "create_payload"
         self._masked_placeholder: Path | None = None
 
@@ -346,7 +373,9 @@ class AgentSession:
         _check_served_model(settings.llm.base_url, settings.llm.served_model)
         _ensure_tools_registered()
 
-        agent, model = _build_agent(self._cfg, self._mcp_config, self._profile, self._project_path)
+        self._agent, self._model = _build_agent(
+            self._cfg, self._mcp_config, self._profile, self._project_path
+        )
 
         if self._project_path is not None:
             if not self._project_path.is_dir():
@@ -363,6 +392,8 @@ class AgentSession:
             volumes = []
             tmpfs_dirs = []
         volumes.append(f"{repo_root() / _HOOK_SOURCE}:{_HOOK_TARGET}:ro")
+        if self._persistent:
+            volumes += _persisted_volumes()
 
         self._on_step(STEP_CONTAINER)
         workspace = AgenticEnvDockerWorkspace(
@@ -382,26 +413,48 @@ class AgentSession:
         self._workspace = workspace
 
         self._on_step(STEP_AGENT)
+        self.open_conversation(self._first_conversation_id)
+        return self
+
+    def open_conversation(self, conversation_id: str | None = None) -> str:
+        """Makes a conversation the active one, and returns its id: the same one if it is
+        open already, the one stored on disk if the sandbox was recreated, else a new one.
+        Only for a `persistent` session past its first conversation."""
+        known = self._open_conversations.get(conversation_id or "")
+        if known is not None:
+            self._conversation, self._working_copy = known
+            return str(self._conversation.id)
+
+        agent, workspace = self._agent, self._workspace
+        assert agent is not None and workspace is not None
+        conversation_id = conversation_id or (str(uuid.uuid4()) if self._persistent else None)
+        root = f"{_WORKING_COPY}/{conversation_id}" if self._persistent else _WORKING_COPY
+        if self._persistent and self._project_path is not None:
+            workspace.working_dir = root
         conversation = Conversation(
             agent,
             workspace=workspace,
+            conversation_id=uuid.UUID(conversation_id) if conversation_id else None,
             visualizer=None,
             callbacks=self._callbacks,
             max_iteration_per_run=(
                 self._profile.limits.max_iterations or self._cfg.run.max_iterations
             ),
             hook_config=_policy_hooks(),
-            delete_on_close=True,
+            delete_on_close=not self._persistent,
         )
         assert isinstance(conversation, RemoteConversation)
         self._conversation = conversation
+        self._working_copy = None
 
-        self._llm_source = _ensure_llm(conversation, agent, model, self._cfg.llm.sandbox_base_url)
+        self._llm_source = _ensure_llm(
+            conversation, agent, self._model, self._cfg.llm.sandbox_base_url
+        )
         conversation.set_confirmation_policy(self._confirmation_policy)
 
         if self._project_path is not None:
             self._on_step(STEP_COPY)
-            working_copy = WorkingCopy(workspace, _WORKING_COPY)
+            working_copy = WorkingCopy(workspace, root)
             working_copy.initialize()
             self._working_copy = working_copy
 
@@ -416,7 +469,8 @@ class AgentSession:
                 "read_only": self._read_only,
             },
         )
-        return self
+        self._open_conversations[str(conversation.id)] = (conversation, self._working_copy)
+        return str(conversation.id)
 
     def send(self, message: str, *, blocking: bool = True) -> AgentResult | None:
         """Sends `message` and triggers a run.
@@ -506,11 +560,14 @@ class AgentSession:
             self._masked_placeholder.unlink(missing_ok=True)
 
     def _close_conversation_quietly(self) -> None:
-        try:
-            if self._conversation is not None:
-                self._conversation.close()
-        except Exception:  # noqa: BLE001 - cleanup must not mask the real error
-            logger.warning("failed to close conversation cleanly", exc_info=True)
+        conversations = [c for c, _ in self._open_conversations.values()]
+        if self._conversation is not None and self._conversation not in conversations:
+            conversations.append(self._conversation)
+        for conversation in conversations:
+            try:
+                conversation.close()
+            except Exception:  # noqa: BLE001 - cleanup must not mask the real error
+                logger.warning("failed to close conversation cleanly", exc_info=True)
 
 
 def run_task(

@@ -15,6 +15,7 @@ from openhands_bridge.protocol import (
     McpServers,
     RequestBundleDiff,
     RestoreCheckpoint,
+    Resume,
     StartSession,
     TurnFinished,
     UserMessage,
@@ -197,3 +198,9 @@ def test_truncate_clips_oversized_payloads() -> None:
 
     assert was_truncated is True
     assert len(text.encode("utf-8")) <= 256 * 1024
+
+
+def test_parse_inbound_resume() -> None:
+    message = parse_inbound('{"type": "resume", "conversation_id": "c", "last_seq": 7}')
+    assert isinstance(message, Resume)
+    assert (message.conversation_id, message.last_seq) == ("c", 7)

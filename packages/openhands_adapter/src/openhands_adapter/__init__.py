@@ -31,6 +31,7 @@ from openhands_adapter.session import (
     STEP_CHECKS,
     AgentResult,
     AgentSession,
+    persistence_dir,
     run_task,
 )
 from openhands_adapter.working_copy import Checkpoint, WorkingCopy
@@ -40,6 +41,7 @@ __all__ = [
     "ActionEvent",
     "AgentResult",
     "AgentSession",
+    "persistence_dir",
     "STARTUP_STEPS",
     "STEP_BASELINE",
     "STEP_CHECKS",

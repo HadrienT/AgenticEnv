@@ -142,7 +142,10 @@ async def _serve(
     monkeypatch.setattr(
         srv,
         "load_openhands_config",
-        lambda: SimpleNamespace(llm=SimpleNamespace(stream=False)),
+        lambda: SimpleNamespace(
+            llm=SimpleNamespace(stream=False),
+            sandbox=SimpleNamespace(persistent_conversations=False),
+        ),
     )
     monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
     monkeypatch.setattr(srv.memory, "recall_context", lambda _text: None)
