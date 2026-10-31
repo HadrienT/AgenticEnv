@@ -178,7 +178,8 @@ bash infra/scripts/purge-test-residue.sh           # shows what would go
 bash infra/scripts/purge-test-residue.sh --apply
 ```
 
-Real search (about 3 hours on CPU, resumable, the old vectors stay until the end):
+Real search (about 2 hours on CPU, resumable, the old vectors stay until the end;
+recall@5 goes from 0.75 to 0.93, see WP13):
 
 ```bash
 AGX_KBASE_CONFIG=kbase-bge.yaml uv run kbase reindex --model bge-m3 --replace

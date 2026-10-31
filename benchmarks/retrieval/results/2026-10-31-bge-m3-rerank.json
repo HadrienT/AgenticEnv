@@ -1,0 +1,50 @@
+{
+  "label": "bge-m3-reranker",
+  "overall": {
+    "queries": 60,
+    "recall_at_5": 0.9,
+    "recall_at_10": 0.9166666666666666,
+    "mrr": 0.8444444444444444,
+    "ndcg_at_10": 0.742902782689739,
+    "latency_p50_ms": 2770.0,
+    "latency_p95_ms": 5745.0
+  },
+  "by_category": {
+    "equation": {
+      "queries": 8,
+      "recall_at_5": 0.75,
+      "recall_at_10": 0.75,
+      "mrr": 0.75,
+      "ndcg_at_10": 0.46385029018366286,
+      "latency_p50_ms": 2674.0,
+      "latency_p95_ms": 2983.0
+    },
+    "exact": {
+      "queries": 20,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.9,
+      "ndcg_at_10": 0.842936768675429,
+      "latency_p50_ms": 2925.0,
+      "latency_p95_ms": 6838.0
+    },
+    "french": {
+      "queries": 12,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.9166666666666666,
+      "ndcg_at_10": 0.8161388155838698,
+      "latency_p50_ms": 2591.0,
+      "latency_p95_ms": 2832.0
+    },
+    "paraphrase": {
+      "queries": 20,
+      "recall_at_5": 0.8,
+      "recall_at_10": 0.85,
+      "mrr": 0.7833333333333333,
+      "ndcg_at_10": 0.7105481739700006,
+      "latency_p50_ms": 2792.0,
+      "latency_p95_ms": 5854.0
+    }
+  }
+}

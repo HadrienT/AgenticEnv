@@ -23,8 +23,10 @@ retrieval:
   candidates_lexical: 50
   fusion: rrf
   rrf_k: 60
+  # Off: on CPU it adds 5.7 s at p95 for a small ranking gain (MRR 0.78 -> 0.84) and a
+  # recall loss. Set to `http` with agenticenv-embed@rerank if it moves to a GPU.
   rerank:
-    provider: http
+    provider: none
     base_url: http://127.0.0.1:8311/v1
     model_name: bge-reranker-v2-m3
     top_k: 8

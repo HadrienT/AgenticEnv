@@ -13,6 +13,14 @@
 
 **Règle d'exécution** : écrire l'évaluation (§1) **avant** de changer de modèle.
 
+**Mesures du 2026-10-31, 60 requêtes, corpus complet** (`benchmarks/retrieval/results/`) :
+
+| | recall@5 | français | MRR | p95 |
+|---|---|---|---|---|
+| Baseline (hashing + Jaccard) | 0,75 | 0,50 | 0,60 | 43 ms |
+| `bge-m3` seul (**retenu**) | 0,93 | 1,00 | 0,78 | 408 ms |
+| `bge-m3` + reranker sur CPU | 0,90 | 1,00 | 0,84 | 5,7 s |
+
 ---
 
 ## 1. Jeu d'évaluation — #31
