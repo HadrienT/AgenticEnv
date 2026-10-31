@@ -161,7 +161,7 @@ bridge and the extension must move together, since the bridge now requires a tok
 # 1. Merge feat/roadmap-impl on both repos, then in AgenticEnv:
 git switch main && git pull && just setup
 just backup                         # safety first
-just migrate                        # 0006: mem.episodes moves to vector(1024)
+just migrate                        # 0006: vector(1024); 0007: each episode names its model
 just install-stack                  # sudo once: MCP, models, backups, C++ tools
 systemctl --user restart agenticenv-bridge
 
@@ -182,6 +182,7 @@ recall@5 goes from 0.75 to 0.93, see WP13):
 
 ```bash
 AGX_KBASE_CONFIG=kbase-bge.yaml uv run kbase reindex --model bge-m3 --replace
+AGX_AGENTMEM_CONFIG=agentmem-bge.yaml uv run agentmem reembed   # vectors of the old model
 mkdir -p ~/.config/agenticenv
 cat > ~/.config/agenticenv/models.env <<ENV
 AGX_KBASE_CONFIG=kbase-bge.yaml

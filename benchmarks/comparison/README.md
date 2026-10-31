@@ -37,7 +37,7 @@ python3 harness/report.py
 ```
 
 `run.py` overwrites `results/<task>/<agent>-r<rep>/`. Use `--rep 2` to keep a previous run.
-Run it from a branch whose bridge is stopped or idle: opening or closing a chat session stops
+Run it while no chat session opens or closes: either one stops
 every sandbox.
 
 ## Reading the results

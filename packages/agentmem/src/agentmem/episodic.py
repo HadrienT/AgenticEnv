@@ -67,7 +67,19 @@ def _validate(episode: Episode) -> None:
         )
 
 
-def _insert_episode(session: Session, episode: Episode, embedding: list[float] | None) -> None:
+def embedding_model_id(embedder: Embedder) -> str:
+    """What `mem.episodes.embedding_model` records: vectors of two models can share a
+    dimension, so the dimension guard cannot tell them apart."""
+    return f"{embedder.model_name}:{embedder.model_version}"
+
+
+def _embedded_text(goal: str, summary: str, lessons: list[str]) -> str:
+    return "\n".join([goal, summary, *lessons])
+
+
+def _insert_episode(
+    session: Session, episode: Episode, embedding: list[float] | None, embedding_model: str
+) -> None:
     columns = (
         "episode_id, task_id, agent_profile, goal, started_at, ended_at, status, "
         "summary, outcome, lessons, tags, branch, last_commit"
@@ -92,9 +104,10 @@ def _insert_episode(session: Session, episode: Episode, embedding: list[float] |
         "last_commit": episode.last_commit,
     }
     if embedding is not None:
-        columns += ", embedding"
-        values += ", CAST(:embedding AS vector)"
+        columns += ", embedding, embedding_model"
+        values += ", CAST(:embedding AS vector), :embedding_model"
         params["embedding"] = format_vector(embedding)
+        params["embedding_model"] = embedding_model
     session.execute(text(f"INSERT INTO mem.episodes ({columns}) VALUES ({values})"), params)
 
 
@@ -129,11 +142,11 @@ def remember(episode: Episode, *, embedder: Embedder, embed_summary: bool = True
     embedding: list[float] | None = None
     if embed_summary:
         embedding = list(
-            embedder.embed("\n".join([episode.goal, episode.summary, *episode.lessons]))
+            embedder.embed(_embedded_text(episode.goal, episode.summary, episode.lessons))
         )
 
     with session_scope() as session:
-        _insert_episode(session, episode, embedding)
+        _insert_episode(session, episode, embedding, embedding_model_id(embedder))
         for action in episode.actions:
             _insert_action(session, episode.episode_id, action)
         for artifact in episode.artifacts:
@@ -164,10 +177,16 @@ def recall(
 ) -> list[EpisodeSummary]:
     """Vector recall over `goal + summary + lessons` embeddings, gated by
     `min_similarity` (rule: better to return nothing than an off-topic episode).
+    Only compares vectors of the current model: `reembed` brings the others back.
     Never returns the action trace (A6)."""
     vector = format_vector(list(embedder.embed(query)))
-    clauses = ["embedding IS NOT NULL"]
-    params: dict[str, object] = {"embedding": vector, "k": k, "min_similarity": min_similarity}
+    clauses = ["embedding IS NOT NULL", "embedding_model = :embedding_model"]
+    params: dict[str, object] = {
+        "embedding": vector,
+        "embedding_model": embedding_model_id(embedder),
+        "k": k,
+        "min_similarity": min_similarity,
+    }
     if tags:
         clauses.append("tags && CAST(:tags AS text[])")
         params["tags"] = tags
@@ -207,6 +226,35 @@ def recall(
         )
         for row in rows
     ]
+
+
+def reembed(*, embedder: Embedder) -> int:
+    """Rebuilds the vectors left by another model, after a change of embedder. Episodes
+    stored without a vector stay so: `embed_summary` decided that when they were written."""
+    model = embedding_model_id(embedder)
+    with session_scope() as session:
+        rows = session.execute(
+            text(
+                "SELECT episode_id, goal, summary, lessons FROM mem.episodes "
+                "WHERE embedding IS NOT NULL AND embedding_model IS DISTINCT FROM :model"
+            ),
+            {"model": model},
+        ).all()
+    # Model first, database after: a failing embedder leaves every episode as it was.
+    vectors = [
+        (row.episode_id, list(embedder.embed(_embedded_text(row.goal, row.summary, row.lessons))))
+        for row in rows
+    ]
+    with session_scope() as session:
+        for episode_id, vector in vectors:
+            session.execute(
+                text(
+                    "UPDATE mem.episodes SET embedding = CAST(:embedding AS vector), "
+                    "embedding_model = :model WHERE episode_id = :id"
+                ),
+                {"embedding": format_vector(vector), "model": model, "id": episode_id},
+            )
+    return len(vectors)
 
 
 def get_episode(episode_id: str) -> Episode:

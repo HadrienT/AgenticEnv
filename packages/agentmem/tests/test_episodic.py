@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from agentmem.embeddings import HashingEmbedder
-from agentmem.episodic import get_episode, recall, remember
+from agentmem.episodic import get_episode, recall, reembed, remember
 from agentmem.schemas import Episode, EpisodeAction
 from corelib.errors import NotFoundError, ValidationError
 from corelib.ids import new_id
@@ -162,3 +162,33 @@ def test_episode_is_immutable(clean_mem_tables: None) -> None:
             text("UPDATE mem.episodes SET summary = 'changed' WHERE episode_id = :id"),
             {"id": episode.episode_id},
         )
+
+
+class _OtherModel(HashingEmbedder):
+    """Same dimension as the default embedder, so only the recorded model tells them apart."""
+
+    model_name = "other-model"
+
+
+def test_recall_ignores_vectors_of_another_model(clean_mem_tables: None) -> None:
+    episode = _episode()
+    remember(episode, embedder=HashingEmbedder(dim=_DIM))
+
+    assert not recall(episode.goal, k=5, embedder=_OtherModel(dim=_DIM), min_similarity=-1.0)
+
+
+def test_reembed_brings_episodes_back_under_the_new_model(clean_mem_tables: None) -> None:
+    episode = _episode()
+    remember(episode, embedder=HashingEmbedder(dim=_DIM))
+    other = _OtherModel(dim=_DIM)
+
+    assert reembed(embedder=other) == 1
+    assert reembed(embedder=other) == 0
+    results = recall(episode.goal, k=5, embedder=other, min_similarity=0.0)
+    assert [r.episode_id for r in results] == [episode.episode_id]
+
+
+def test_reembed_keeps_episodes_stored_without_a_vector(clean_mem_tables: None) -> None:
+    remember(_episode(), embedder=HashingEmbedder(dim=_DIM), embed_summary=False)
+
+    assert reembed(embedder=_OtherModel(dim=_DIM)) == 0
