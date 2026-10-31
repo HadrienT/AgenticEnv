@@ -26,6 +26,8 @@ Sans mesure, on ne saura pas si une modification aide.
 | Métriques : taux de réussite, tours, tokens, durée, boucles, erreurs d'appels d'outils. |
 | Baseline avant WP12, puis mesure après chaque WP. |
 
+**Baseline du 2026-10-31** : 10 tâches sur 12 (Qwen3 30B Q4, sans MCP), environ 2 minutes par tâche.
+
 ## 2. Modèle et débit — #48
 
 | Livrable |

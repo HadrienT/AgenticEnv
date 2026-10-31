@@ -1,0 +1,103 @@
+{
+  "label": "baseline-qwen3-30b-q4-no-mcp",
+  "started_at": "2026-10-31T00:18:48.747755Z",
+  "success_rate": 0.8333333333333334,
+  "outcomes": [
+    {
+      "task_id": "fix-bs-d2",
+      "category": "fix",
+      "passed": true,
+      "duration_s": 131.9,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "fix-cpp-out-of-bounds",
+      "category": "fix",
+      "passed": true,
+      "duration_s": 155.3,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "fix-sample-variance",
+      "category": "fix",
+      "passed": true,
+      "duration_s": 117.2,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "fix-word-count",
+      "category": "fix",
+      "passed": true,
+      "duration_s": 101.1,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "fix-retry-swallows",
+      "category": "fix",
+      "passed": true,
+      "duration_s": 110.4,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "feature-digital-call",
+      "category": "feature",
+      "passed": true,
+      "duration_s": 144.0,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "feature-antithetic",
+      "category": "feature",
+      "passed": true,
+      "duration_s": 123.6,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "feature-median",
+      "category": "feature",
+      "passed": false,
+      "duration_s": 133.8,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "feature-csv-quotes",
+      "category": "feature",
+      "passed": true,
+      "duration_s": 103.2,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "feature-slug-accents",
+      "category": "feature",
+      "passed": true,
+      "duration_s": 112.1,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "test-write-put-tests",
+      "category": "test",
+      "passed": true,
+      "duration_s": 164.9,
+      "status": "finished",
+      "error": null
+    },
+    {
+      "task_id": "refactor-keep-behaviour",
+      "category": "refactor",
+      "passed": false,
+      "duration_s": 110.4,
+      "status": "finished",
+      "error": null
+    }
+  ]
+}
