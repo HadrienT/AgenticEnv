@@ -27,6 +27,7 @@ class SandboxConfig(BaseModel):
     # Basename globs hidden from the sandbox; `!` keeps a name a glob would catch.
     mask: list[str] = Field(default_factory=list)
     code_tools: bool = False
+    host_network: bool = False
 
 
 class SandboxMcpConfig(BaseModel):

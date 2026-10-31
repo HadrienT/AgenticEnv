@@ -23,6 +23,7 @@ ExecStart=%h/.local/bin/uv run --frozen openhands-bridge
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
 Environment=AGX_OPENHANDS_BRIDGE_HOST=127.0.0.1
 Environment=AGX_OPENHANDS_BRIDGE_PORT=8300
+EnvironmentFile=-%h/.config/agenticenv/models.env
 Restart=on-failure
 RestartSec=3
 # The bridge reaps orphaned agent-server-* containers on shutdown paths; give it

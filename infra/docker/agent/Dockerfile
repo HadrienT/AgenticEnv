@@ -15,6 +15,8 @@ COPY pyproject.toml uv.lock .python-version ./
 COPY packages ./packages
 COPY configs ./configs
 COPY benchmarks/golden ./benchmarks/golden
+# Not under /root: the sandbox user must be able to run this Python.
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv-python
 RUN uv sync --frozen --no-dev \
         --package cppdev-mcp --package codeintel-mcp --package qmharness-mcp
 

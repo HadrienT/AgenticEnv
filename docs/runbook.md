@@ -151,3 +151,44 @@ One table only: add `-t <table>` to `pg_restore`.
 
 `conftest.py` at the repo root points every test at `agenticenv_test`, dropped and
 rebuilt for each run. `AGX_TEST_DB_NAME` must end in `_test`.
+
+## Activation of the WP10-17 work
+
+Nothing below runs by itself. Both repos carry the work on `feat/roadmap-impl`; the
+bridge and the extension must move together, since the bridge now requires a token.
+
+```bash
+# 1. Merge feat/roadmap-impl on both repos, then in AgenticEnv:
+git switch main && git pull && just setup
+just backup                         # safety first
+just migrate                        # 0006: mem.episodes moves to vector(1024)
+just install-stack                  # sudo once: MCP, models, backups, C++ tools
+systemctl --user restart agenticenv-bridge
+
+# 2. The extension, in agenticenv-chat:
+npm run package && code --install-extension agenticenv-chat-*.vsix --force
+# then Developer: Reload Window
+
+# 3. Code tools in the sandbox (5.9 GB image):
+just build-agent-image
+# in configs/openhands.yaml: sandbox.image: agenticenv/agent:latest, code_tools: true
+
+# 4. Remove what the tests left in the real database:
+bash infra/scripts/purge-test-residue.sh           # shows what would go
+bash infra/scripts/purge-test-residue.sh --apply
+```
+
+Real search (about 3 hours on CPU, resumable, the old vectors stay until the end):
+
+```bash
+AGX_KBASE_CONFIG=kbase-bge.yaml uv run kbase reindex --model bge-m3 --replace
+mkdir -p ~/.config/agenticenv
+cat > ~/.config/agenticenv/models.env <<ENV
+AGX_KBASE_CONFIG=kbase-bge.yaml
+AGX_AGENTMEM_CONFIG=agentmem-bge.yaml
+ENV
+systemctl --user restart agenticenv-mcp@kbase agenticenv-mcp@agentmem agenticenv-bridge
+```
+
+Measure a change to search with `uv run kbase eval --label <name>`, on a copy of the
+database (`AGX_DB_NAME=agenticenv_eval`), and the agent with `just bench-agent <label>`.

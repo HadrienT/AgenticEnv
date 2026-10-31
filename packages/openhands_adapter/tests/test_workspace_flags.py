@@ -81,6 +81,22 @@ def test_every_published_port_is_loopback_and_the_server_requires_a_key(
     assert workspace.api_key == workspace.session_key
 
 
+def test_host_network_publishes_nothing_and_stays_on_loopback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _capture_docker_run(monkeypatch)
+
+    AgenticEnvDockerWorkspace(
+        server_image=_IMAGE, host_port=39006, detach_logs=False, host_network=True
+    )
+
+    run_cmd = calls[-1]
+    assert "-p" not in run_cmd
+    assert run_cmd[run_cmd.index("--network") + 1] == "host"
+    assert run_cmd[run_cmd.index("--port") + 1] == "39006"
+    assert run_cmd[run_cmd.index("--host") + 1] == "127.0.0.1"
+
+
 def test_start_container_applies_limits_and_tmpfs(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = _capture_docker_run(monkeypatch)
 

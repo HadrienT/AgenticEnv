@@ -358,6 +358,7 @@ class AgentSession:
             cpus=self._cfg.sandbox.cpus,
             pids_limit=self._cfg.sandbox.pids_limit,
             tmpfs_dirs=tmpfs_dirs,
+            host_network=self._cfg.sandbox.host_network,
         )
         self._workspace = workspace
 

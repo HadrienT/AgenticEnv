@@ -35,6 +35,9 @@ authentifié (compte `HadrienT`).
 |---|---|
 | `just lint` | ruff + `mypy --strict` par paquet + import-linter — **vert avant tout commit** |
 | `just test` | pytest (hors `integration` / `e2e`) |
+| `just test-integration` | avec Postgres, sur une base `agenticenv_test` reconstruite à chaque run (`conftest.py`) |
+| `just bench-agent <label>` | banc de l'agent (Docker + `llama-server`, plusieurs minutes par tâche) |
+| `uv run kbase eval --label <x>` | mesure de la recherche sur `benchmarks/retrieval/queries.yaml` |
 | `just test-e2e` | smoke OpenHands (Docker + `llama-server` requis, hors CI) |
 | `just run-bridge` | lance le bridge WebSocket sur `127.0.0.1:8300` |
 
@@ -46,6 +49,8 @@ authentifié (compte `HadrienT`).
   `docker0` par défaut a déjà figé l'hôte et coupé tout le LAN. Ne jamais faire
   de `docker rm -f` en masse ; agir un conteneur à la fois, en expliquant le
   rayon d'impact. Cf. issue #8.
+- **Le bridge en service tourne depuis ce checkout** (`agenticenv-bridge.service`) :
+  laisser `~/AgenticEnv` sur `main`, sinon un redémarrage charge du code non livré.
 - Commits : passer par une branche, pas directement sur `main`. Terminer les
   messages de commit par `Co-Authored-By: Claude <noreply@anthropic.com>`.
 

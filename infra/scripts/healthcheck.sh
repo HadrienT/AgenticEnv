@@ -93,18 +93,13 @@ fi
 # only probe HTTP /health when the matching systemd unit is installed.
 check_mcp() {
   local name="$1" port="$2"
-  local unit="${name/_/-}.service"
-  local code
-  if ! systemctl cat "$unit" >/dev/null 2>&1; then
-    add_check "$name" "skipped" "$unit not installed (stdio via OpenHands)"
-    return
-  fi
-  code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${port}/health" 2>/dev/null)"
-  code="${code:-000}"
-  if [[ "$code" == "200" ]]; then
-    add_check "$name" "ok" "GET /health 200 on :${port}"
+  local instance="${name#mcp_}"
+  if systemctl --user is-active --quiet "agenticenv-mcp@${instance}.service" 2>/dev/null; then
+    add_check "$name" "ok" "running on :${port}"
+  elif [[ "$instance" == "kbase" || "$instance" == "agentmem" ]]; then
+    add_check "$name" "warning" "agenticenv-mcp@${instance} not running: just install-stack"
   else
-    add_check "$name" "error" "GET /health -> $code on :${port}"
+    add_check "$name" "skipped" "runs inside the sandbox image"
   fi
 }
 check_tool() {

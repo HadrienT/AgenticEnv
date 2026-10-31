@@ -60,6 +60,9 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
     pids_limit: int | None = None
     tmpfs_dirs: list[str] = Field(default_factory=list)
     session_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32), repr=False)
+    # Shares the host's network: no veth on docker0 (issue #8), but the sandbox then
+    # reaches everything on loopback. For tests on this host, not for real sessions.
+    host_network: bool = False
 
     @property
     def container_name(self) -> str | None:
@@ -132,8 +135,12 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
         # llama-bridge port configured in configs/openhands.yaml. Loopback only: a
         # plain `-p` publishes on every interface and Docker bypasses the host firewall.
         ports = ["-p", f"127.0.0.1:{self.host_port}:8000"]
+        server_args = ["--host", "0.0.0.0", "--port", "8000"]
+        if self.host_network:
+            ports = ["--network", "host"]
+            server_args = ["--host", "127.0.0.1", "--port", str(self.host_port)]
 
-        if self.extra_ports:
+        if self.extra_ports and not self.host_network:
             ports += [
                 "-p",
                 f"127.0.0.1:{self.host_port + 1}:8001",
@@ -162,10 +169,7 @@ class AgenticEnvDockerWorkspace(DockerWorkspace):
             container_name,
             *flags,
             image,
-            "--host",
-            "0.0.0.0",
-            "--port",
-            "8000",
+            *server_args,
         ]
 
         proc = execute_command(run_cmd)

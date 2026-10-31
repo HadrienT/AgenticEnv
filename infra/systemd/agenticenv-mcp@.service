@@ -16,6 +16,8 @@ ExecStart=%h/.local/bin/uv run --frozen %i-mcp
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
 Environment=AGX_MCP_TRANSPORT=streamable-http
 Environment=AGX_MCP_HOST=172.17.0.1
+# Optional, e.g. AGX_KBASE_CONFIG=kbase-bge.yaml: see docs/runbook.md, Activation.
+EnvironmentFile=-%h/.config/agenticenv/models.env
 Restart=on-failure
 RestartSec=5
 
