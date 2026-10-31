@@ -168,6 +168,31 @@ class Interrupt(BaseModel):
     text: str
 
 
+class Resume(BaseModel):
+    """Back to a conversation: what the client missed, then `resumed` (WP08e §4.2)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["resume"] = "resume"
+    conversation_id: str
+    last_seq: int = 0
+
+
+class ListConversations(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["list_conversations"] = "list_conversations"
+
+
+class ArchiveConversation(BaseModel):
+    """Takes a conversation out of the list. Nothing is deleted."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["archive_conversation"] = "archive_conversation"
+    conversation_id: str
+
+
 class ListModels(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -197,7 +222,10 @@ InboundMessage = Annotated[
     | Compact
     | Interrupt
     | ListModels
-    | SetModel,
+    | SetModel
+    | Resume
+    | ListConversations
+    | ArchiveConversation,
     Field(discriminator="type"),
 ]
 _inbound_adapter: TypeAdapter[InboundMessage] = TypeAdapter(InboundMessage)
@@ -238,6 +266,23 @@ class SessionStarted(_Out):
     # Servers the agent should have had but can't reach.
     mcp_unavailable: list[str] = Field(default_factory=list)
     mode: Literal["agent", "read_only"] = "agent"
+
+
+class Resumed(_Out):
+    type: Literal["resumed"] = "resumed"
+
+
+class ConversationItem(BaseModel):
+    conversation_id: str
+    title: str | None = None
+    updated_at: str
+    turns: int = 0
+    active: bool = False
+
+
+class Conversations(_Out):
+    type: Literal["conversations"] = "conversations"
+    items: list[ConversationItem] = Field(default_factory=list)
 
 
 class SessionProgress(_Out):
@@ -448,6 +493,8 @@ OutboundMessage = (
     | HistoryCompacted
     | TodoMessage
     | Models
+    | Resumed
+    | Conversations
 )
 
 

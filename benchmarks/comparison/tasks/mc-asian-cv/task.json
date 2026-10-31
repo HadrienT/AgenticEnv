@@ -1,0 +1,1 @@
+{"category":"monte-carlo","checks":["geo_closed_form","geo_closed_form_2","plain_mc_unbiased","cv_mc_unbiased","cv_mc_unbiased_2","variance_reduction","se_is_honest_plain","se_is_honest_cv","seed_reproducible","seed_changes_result","speed"]}

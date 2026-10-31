@@ -1,0 +1,1 @@
+{"category":"cpp","checks":["dangling_view","iterator_invalidation","signed_overflow","misaligned_read","data_race","reference_invalidation","buffer_overread","use_after_move","shift_too_wide","returned_local_ref","behaviour_kept"]}

@@ -1,0 +1,269 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..7b1ce7c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,7 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Add test executable
++add_executable(test_thread_pool test_thread_pool.cpp)
++target_link_libraries(test_thread_pool lib)
+diff --git a/include/thread_pool.hpp b/include/thread_pool.hpp
+index cae73ec..29f8a16 100644
+--- a/include/thread_pool.hpp
++++ b/include/thread_pool.hpp
+@@ -3,8 +3,24 @@
+ #include <functional>
+ #include <future>
+ #include <type_traits>
++#include <thread>
++#include <mutex>
++#include <condition_variable>
++#include <queue>
++#include <atomic>
++#include <vector>
++#include <exception>
++#include <memory>
++
+ namespace qm {
+ class ThreadPool {
++private:
++    std::vector<std::thread> workers;
++    std::queue<std::function<void()>> tasks;
++    std::mutex queue_mutex;
++    std::condition_variable condition;
++    std::atomic<bool> stop{false};
++
+ public:
+     explicit ThreadPool(std::size_t threads);
+     ~ThreadPool();  // runs everything still queued, then joins
+@@ -13,13 +29,49 @@ public:
+ 
+     // Schedules f(args...). The callable and its arguments may be move-only.
+     template <class F, class... A>
+-    auto submit(F&& f, A&&... args) -> std::future<std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>;
++    auto submit(F&& f, A&&... args) -> std::future<std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>> {
++        using ReturnType = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>;
++        
++        auto task = std::make_shared<std::packaged_task<ReturnType()>>(
++            std::forward<F>(f), std::forward<A>(args)...
++        );
++        
++        std::future<ReturnType> result = task->get_future();
++        {
++            std::unique_lock<std::mutex> lock(queue_mutex);
++            if (stop) {
++                throw std::runtime_error("Submit to stopped ThreadPool");
++            }
++            tasks.emplace([task] { (*task)(); });
++        }
++        condition.notify_one();
++        return result;
++    }
+ 
+     // Blocks until the future is ready. May be called from inside a task: while it
+     // waits it runs queued tasks, so a task waiting on a child never deadlocks,
+     // even with a single worker.
+     template <class T>
+-    T wait(std::future<T>& fut);
++    T wait(std::future<T>& fut) {
++        // While waiting, we can execute other tasks to avoid deadlock
++        while (fut.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
++            std::function<void()> task;
++            {
++                std::unique_lock<std::mutex> lock(queue_mutex);
++                if (!tasks.empty()) {
++                    task = std::move(tasks.front());
++                    tasks.pop();
++                }
++            }
++            if (task) {
++                task();
++            } else {
++                // No tasks available, sleep a bit to avoid busy waiting
++                std::this_thread::sleep_for(std::chrono::microseconds(100));
++            }
++        }
++        return fut.get();
++    }
+ 
+     // Runs body(i) for i in [begin, end), blocks until done, and rethrows the first
+     // exception a body threw. Same no-deadlock guarantee from inside a task.
+diff --git a/src/thread_pool.cpp b/src/thread_pool.cpp
+index bbfd384..dff73d4 100644
+--- a/src/thread_pool.cpp
++++ b/src/thread_pool.cpp
+@@ -1 +1,100 @@
+ #include "thread_pool.hpp"
++#include <thread>
++#include <mutex>
++#include <condition_variable>
++#include <queue>
++#include <functional>
++#include <future>
++#include <atomic>
++#include <vector>
++#include <exception>
++#include <memory>
++
++namespace qm {
++
++ThreadPool::ThreadPool(std::size_t threads) {
++    // Create worker threads
++    for (std::size_t i = 0; i < threads; ++i) {
++        workers.emplace_back([this] {
++            for (;;) {
++                std::function<void()> task;
++                {
++                    std::unique_lock<std::mutex> lock(queue_mutex);
++                    condition.wait(lock, [this] { return stop || !tasks.empty(); });
++                    if (stop && tasks.empty()) {
++                        return;
++                    }
++                    task = std::move(tasks.front());
++                    tasks.pop();
++                }
++                task();
++            }
++        });
++    }
++}
++
++ThreadPool::~ThreadPool() {
++    {
++        std::unique_lock<std::mutex> lock(queue_mutex);
++        stop = true;
++    }
++    condition.notify_all();
++    for (std::thread& worker : workers) {
++        worker.join();
++    }
++}
++
++void ThreadPool::parallel_for(std::size_t begin, std::size_t end, const std::function<void(std::size_t)>& body) {
++    if (begin >= end) return;
++    
++    std::atomic<std::size_t> current(begin);
++    std::exception_ptr exception_ptr = nullptr;
++    std::mutex exception_mutex;
++    
++    // Create a barrier for all tasks to complete
++    std::vector<std::future<void>> futures;
++    
++    // Submit tasks for each element in the range
++    for (std::size_t i = begin; i < end; ++i) {
++        futures.emplace_back(submit([&body, i, &exception_ptr, &exception_mutex] {
++            try {
++                body(i);
++            } catch (...) {
++                std::lock_guard<std::mutex> lock(exception_mutex);
++                if (!exception_ptr) {
++                    exception_ptr = std::current_exception();
++                }
++            }
++        }));
++    }
++    
++    // Wait for all tasks to complete and rethrow any exceptions
++    for (auto& future : futures) {
++        if (future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
++            // While waiting, we can execute other tasks to avoid deadlock
++            while (future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
++                std::function<void()> task;
++                {
++                    std::unique_lock<std::mutex> lock(queue_mutex);
++                    if (!tasks.empty()) {
++                        task = std::move(tasks.front());
++                        tasks.pop();
++                    }
++                }
++                if (task) {
++                    task();
++                } else {
++                    // No tasks available, sleep a bit to avoid busy waiting
++                    std::this_thread::sleep_for(std::chrono::microseconds(100));
++                }
++            }
++        }
++        future.wait();  // This will rethrow any exception
++    }
++    
++    if (exception_ptr) {
++        std::rethrow_exception(exception_ptr);
++    }
++}
++
++}  // namespace qm
+diff --git a/test_thread_pool.cpp b/test_thread_pool.cpp
+new file mode 100644
+index 0000000..844777d
+--- /dev/null
++++ b/test_thread_pool.cpp
+@@ -0,0 +1,64 @@
++#include "thread_pool.hpp"
++#include <iostream>
++#include <chrono>
++#include <vector>
++#include <thread>
++
++int main() {
++    qm::ThreadPool pool(2);  // Use only 2 threads to make deadlock more likely
++    
++    // Test submit and wait
++    auto future1 = pool.submit([]() {
++        std::this_thread::sleep_for(std::chrono::milliseconds(100));
++        return 42;
++    });
++    
++    auto result1 = pool.wait(future1);
++    std::cout << "Result 1: " << result1 << std::endl;
++    
++    // Test parallel_for
++    std::vector<int> results(10);
++    pool.parallel_for(0, 10, [&](std::size_t i) {
++        results[i] = static_cast<int>(i) * 2;
++    });
++    
++    std::cout << "Parallel for results: ";
++    for (const auto& val : results) {
++        std::cout << val << " ";
++    }
++    std::cout << std::endl;
++    
++    // Test nested waiting (should not deadlock)
++    auto future2 = pool.submit([&pool]() {
++        auto future3 = pool.submit([]() {
++            std::this_thread::sleep_for(std::chrono::milliseconds(50));
++            return 100;
++        });
++        return pool.wait(future3);
++    });
++    
++    auto result2 = pool.wait(future2);
++    std::cout << "Nested result: " << result2 << std::endl;
++    
++    // Test deadlock prevention with many tasks
++    std::vector<std::future<int>> futures;
++    for (int i = 0; i < 10; ++i) {
++        futures.push_back(pool.submit([i, &pool]() {
++            // Each task waits on another task to make sure we test the deadlock prevention
++            auto future = pool.submit([i]() {
++                std::this_thread::sleep_for(std::chrono::milliseconds(10));
++                return i * 2;
++            });
++            return pool.wait(future);
++        }));
++    }
++    
++    // Collect results
++    int sum = 0;
++    for (auto& future : futures) {
++        sum += pool.wait(future);
++    }
++    std::cout << "Sum of nested results: " << sum << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

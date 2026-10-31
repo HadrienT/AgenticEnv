@@ -1,0 +1,127 @@
+diff --git a/src/engine.cpp b/src/engine.cpp
+index 904b94d..b8be584 100644
+--- a/src/engine.cpp
++++ b/src/engine.cpp
+@@ -23,7 +23,7 @@ double payoff(double s, double k, bool call) { return std::max(call ? s - k : k
+ McResult european(const Market& m, double K, double T, bool is_call, std::int64_t paths, std::uint64_t seed, bool antithetic) {
+     std::mt19937_64 g(seed);
+     std::normal_distribution<double> n;
+-    double drift = (m.r - m.q + 0.5 * m.sigma * m.sigma) * T, vol = m.sigma * std::sqrt(T);
++    double drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * T, vol = m.sigma * std::sqrt(T);
+     Acc a;
+     if (antithetic) {
+         for (std::int64_t i = 0; i < paths / 2; i++) {
+@@ -37,18 +37,18 @@ McResult european(const Market& m, double K, double T, bool is_call, std::int64_
+     return a.done(std::exp(-(m.r - m.q) * T));
+ }
+ 
+-McResult asian(const Market& m, double K, double T, int fix, std::int64_t paths, std::uint64_t seed) {
++McResult asian(const Market& m, double K, double T, int n, std::int64_t paths, std::uint64_t seed) {
+     std::mt19937_64 g(seed);
+-    std::normal_distribution<double> n;
+-    double dt = T / fix, drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * dt, vol = m.sigma * std::sqrt(dt);
++    std::normal_distribution<double> n_dist;
++    double dt = T / n, drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * dt, vol = m.sigma * std::sqrt(dt);
+     Acc a;
+     for (std::int64_t i = 0; i < paths; i++) {
+-        double x = 0, sum = m.S0;
+-        for (int k = 0; k < fix; k++) {
+-            x += drift + vol * n(g);
++        double x = 0, sum = 0;
++        for (int k = 0; k < n; k++) {
++            x += drift + vol * n_dist(g);
+             sum += m.S0 * std::exp(x);
+         }
+-        a.add(std::max(sum / fix - K, 0.0));
++        a.add(std::max(sum / n - K, 0.0));
+     }
+     return a.done(std::exp(-m.r * T));
+ }
+@@ -56,7 +56,6 @@ McResult asian(const Market& m, double K, double T, int fix, std::int64_t paths,
+ McResult down_out_call(const Market& m, double K, double B, double T, int steps, std::int64_t paths, std::uint64_t seed) {
+     std::mt19937_64 g(seed);
+     std::normal_distribution<double> n;
+-    std::uniform_real_distribution<double> u;
+     double dt = T / steps, drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * dt, vol = m.sigma * std::sqrt(dt);
+     double lb = std::log(B);
+     Acc a;
+@@ -65,8 +64,9 @@ McResult down_out_call(const Market& m, double K, double B, double T, int steps,
+         for (int k = 0; k < steps; k++) {
+             double y = x + drift + vol * n(g);
+             if (y <= lb) { weight = 0; break; }
+-            double p = std::exp(-(x - lb) * (y - lb) / (m.sigma * m.sigma * dt));
+-            weight *= 1 - p;
++            // Brownian bridge probability of not hitting barrier
++            double p = 1.0 - std::exp(-2.0 * (std::exp(x) - B) * (std::exp(y) - B) / (m.sigma * m.sigma * dt));
++            weight *= p;
+             x = y;
+         }
+         a.add(weight * std::max(std::exp(x) - K, 0.0));
+@@ -75,15 +75,19 @@ McResult down_out_call(const Market& m, double K, double B, double T, int steps,
+ }
+ 
+ McResult digital_mt(const Market& m, double K, double T, std::int64_t paths, std::uint64_t seed, int threads) {
+-    double drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * T, vol = m.sigma * std::sqrt(T);
+     std::vector<Acc> acc(threads);
+     std::vector<std::thread> pool;
+     for (int t = 0; t < threads; t++) {
+         pool.emplace_back([&, t] {
+-            std::mt19937_64 g(seed);
++            std::mt19937_64 g(seed + t);  // Use different seed for each thread
+             std::normal_distribution<double> n;
++            double drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * T, vol = m.sigma * std::sqrt(T);
+             std::int64_t count = paths / threads;
+-            for (std::int64_t i = 0; i < count; i++) acc[t].add(m.S0 * std::exp(drift + vol * n(g)) > K ? 1.0 : 0.0);
++            // Distribute remaining paths to first few threads
++            if (t < paths % threads) count++;
++            for (std::int64_t i = 0; i < count; i++) {
++                acc[t].add(m.S0 * std::exp(drift + vol * n(g)) > K ? 1.0 : 0.0);
++            }
+         });
+     }
+     for (auto& t : pool) t.join();
+diff --git a/test_engine.cpp b/test_engine.cpp
+new file mode 100644
+index 0000000..1d30e71
+--- /dev/null
++++ b/test_engine.cpp
+@@ -0,0 +1,38 @@
++#include "include/engine.hpp"
++#include <iostream>
++#include <iomanip>
++
++int main() {
++    using namespace mc;
++    
++    // Test parameters
++    Market m{100.0, 0.05, 0.02, 0.2};  // S0, r, q, sigma
++    double K = 100.0;
++    double T = 1.0;
++    int n = 100;
++    std::int64_t paths = 1000000;
++    std::uint64_t seed = 42;
++    
++    std::cout << std::fixed << std::setprecision(6);
++    
++    // Test European call
++    auto result_european = european(m, K, T, true, paths, seed, true);
++    std::cout << "European Call (Antithetic): " << result_european.price << " ± " << result_european.std_error << std::endl;
++    
++    // Test Asian call
++    auto result_asian = asian(m, K, T, n, paths, seed);
++    std::cout << "Asian Call: " << result_asian.price << " ± " << result_asian.std_error << std::endl;
++    
++    // Test Down-out call
++    double B = 80.0;  // Barrier
++    int steps = 100;
++    auto result_down_out = down_out_call(m, K, B, T, steps, paths, seed);
++    std::cout << "Down-out Call: " << result_down_out.price << " ± " << result_down_out.std_error << std::endl;
++    
++    // Test Digital MT
++    int threads = 4;
++    auto result_digital = digital_mt(m, K, T, paths, seed, threads);
++    std::cout << "Digital MT: " << result_digital.price << " ± " << result_digital.std_error << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

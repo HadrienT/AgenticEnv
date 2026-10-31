@@ -1,0 +1,3 @@
+This CUDA Asian pricer in src/gpu_asian.cu compiles and runs, but its results are wrong: the price is off, the standard error is not to be trusted, and it changes between runs of the same seed. Several independent bugs are hiding in it, some in the kernel and some in the host code. Find and fix all of them, using the comments in include/gpu_asian.h as the spec.
+
+Keep the header unchanged. Target: Tesla V100, CUDA 12.4, built with `nvcc -std=c++17 -ccbin g++-13 -O3` as in the Makefile, at most 256 MiB of device buffers. The GPU is shared with another process. It must handle 2 billion paths with n = 12 in a single call.

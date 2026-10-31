@@ -1,0 +1,733 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..d593044 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,8 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++enable_testing()
++add_executable(vec_test tests/vec_test.cpp)
++target_link_libraries(vec_test PRIVATE lib)
++add_test(NAME vec_test COMMAND vec_test)
+diff --git a/include/vec.hpp b/include/vec.hpp
+index 13f19ae..dec5280 100644
+--- a/include/vec.hpp
++++ b/include/vec.hpp
+@@ -1,14 +1,324 @@
+ #pragma once
++// Expression-template vector library (C++20, header-only).
++//
++// Operand ownership: every expression node is a small value that holds its
++// operands as follows.
++//   - lvalue Vec        -> non-owning reference (VecRef). The Vec must outlive
++//                          the expression, and later writes to it show through.
++//   - rvalue Vec        -> takes over the buffer (VecOwned); nothing is copied.
++//   - any expression    -> stored by value, lvalue or rvalue, so an expression
++//                          built from a local expression can be returned.
++// VecOwned shares its buffer by reference count, so copying an expression never
++// allocates, whatever it contains. To return an expression over a named local
++// Vec, std::move that Vec into it; a named Vec is an lvalue and is referenced.
++//
++// Sizes are checked when a node is built and again by size(), which walks the
++// tree: an operand Vec may have been reassigned to another size in between.
++// Evaluation checks once, then reads elements through the unchecked get().
++#include <concepts>
++#include <cmath>
+ #include <cstddef>
+-#include <vector>
++#include <functional>
++#include <memory>
++#include <stdexcept>
++#include <type_traits>
++#include <utility>
++
+ namespace qm {
+-class Vec {
++
++namespace detail {
++struct ExprTag {};
++
++[[noreturn]] inline void throw_size_mismatch() {
++    throw std::invalid_argument("qm: vector size mismatch");
++}
++}  // namespace detail
++
++template <class E>
++concept VecExpr = std::derived_from<std::remove_cvref_t<E>, detail::ExprTag>;
++
++class Vec : public detail::ExprTag {
++    template <class E>
++    static constexpr bool is_lazy = VecExpr<E> && !std::derived_from<E, Vec>;
++
+ public:
+-    explicit Vec(std::size_t n, double fill = 0.0) : data_(n, fill) {}
+-    std::size_t size() const noexcept { return data_.size(); }
++    explicit Vec(std::size_t n, double fill = 0.0)
++        : data_(n ? std::make_shared<double[]>(n, fill) : nullptr), size_(n) {}
++
++    Vec(const Vec& other) : Vec(uninitialized(other.size_)) {
++        for (std::size_t i = 0; i < size_; ++i) data_[i] = other.data_[i];
++    }
++
++    Vec(Vec&& other) noexcept
++        : data_(std::move(other.data_)), size_(std::exchange(other.size_, 0)) {}
++
++    template <class E>
++        requires is_lazy<E>
++    Vec(const E& e) : Vec(uninitialized(e.size())) {
++        store(e);
++    }
++
++    ~Vec() = default;
++
++    Vec& operator=(const Vec& other) {
++        if (this == &other) return *this;
++        if (size_ == other.size_) {
++            for (std::size_t i = 0; i < size_; ++i) data_[i] = other.data_[i];
++        } else {
++            *this = Vec(other);
++        }
++        return *this;
++    }
++
++    Vec& operator=(Vec&& other) noexcept {
++        data_ = std::move(other.data_);
++        size_ = std::exchange(other.size_, 0);
++        return *this;
++    }
++
++    // Unlike Vec-to-Vec assignment, assigning an expression never resizes: a
++    // destination of the wrong size is a size mismatch.
++    template <class E>
++        requires is_lazy<E>
++    Vec& operator=(const E& e) {
++        if (e.size() != size_) detail::throw_size_mismatch();
++        if (e.alias(this, false)) {
++            Vec evaluated(e);
++            data_.swap(evaluated.data_);
++        } else {
++            store(e);
++        }
++        return *this;
++    }
++
++    std::size_t size() const noexcept { return size_; }
+     double& operator[](std::size_t i) { return data_[i]; }
+     double operator[](std::size_t i) const { return data_[i]; }
++
+ private:
+-    std::vector<double> data_;
++    friend class VecOwned;
++
++    struct Uninitialized {
++        std::size_t n;
++    };
++    static Uninitialized uninitialized(std::size_t n) { return {n}; }
++
++    explicit Vec(Uninitialized u)
++        : data_(u.n ? std::make_shared_for_overwrite<double[]>(u.n) : nullptr), size_(u.n) {}
++
++    template <class E>
++    void store(const E& e) noexcept {
++        for (std::size_t i = 0; i < size_; ++i) data_[i] = e.get(i, size_);
++    }
++
++    std::shared_ptr<double[]> data_;  // one block: elements and control block
++    std::size_t size_;
+ };
++
++// Expression nodes implement, besides size():
++//   get(i, n)            element i, given the already validated size n; a
++//                        parent passes n down so that no node has to recompute it
++//   alias(target, moved) whether the node reads `target` at an index other than
++//                        the one being written; `moved` is set under a shift
++template <class Derived>
++class Expr : public detail::ExprTag {
++public:
++    double operator[](std::size_t i) const {
++        const auto& self = static_cast<const Derived&>(*this);
++        return self.get(i, self.size());
++    }
++};
++
++class VecRef : public Expr<VecRef> {
++public:
++    explicit VecRef(const Vec& v) noexcept : v_(&v) {}
++    std::size_t size() const noexcept { return v_->size(); }
++    double get(std::size_t i, std::size_t) const noexcept { return (*v_)[i]; }
++    bool alias(const Vec* target, bool moved) const noexcept { return moved && v_ == target; }
++
++private:
++    const Vec* v_;
++};
++
++class VecOwned : public Expr<VecOwned> {
++public:
++    explicit VecOwned(Vec v) noexcept : data_(std::move(v.data_)), size_(v.size_) {}
++    std::size_t size() const noexcept { return size_; }
++    double get(std::size_t i, std::size_t) const noexcept { return data_[i]; }
++    // The buffer left its Vec for good, so no assignment can target it.
++    bool alias(const Vec*, bool) const noexcept { return false; }
++
++private:
++    std::shared_ptr<const double[]> data_;
++    std::size_t size_;
++};
++
++namespace detail {
++template <class E>
++auto capture(E&& e) {
++    using T = std::remove_cvref_t<E>;
++    if constexpr (!std::derived_from<T, Vec>) {
++        return T(std::forward<E>(e));
++    } else if constexpr (std::is_lvalue_reference_v<E>) {
++        return VecRef(e);
++    } else {
++        return VecOwned(Vec(std::forward<E>(e)));  // copies only a const rvalue
++    }
++}
++
++template <class E>
++using capture_t = decltype(capture(std::declval<E>()));
++}  // namespace detail
++
++template <class L, class R, class Op>
++class BinaryExpr : public Expr<BinaryExpr<L, R, Op>> {
++public:
++    BinaryExpr(L l, R r) : l_(std::move(l)), r_(std::move(r)) { (void)size(); }
++
++    std::size_t size() const {
++        const std::size_t n = l_.size();
++        if (n != r_.size()) detail::throw_size_mismatch();
++        return n;
++    }
++    double get(std::size_t i, std::size_t n) const noexcept {
++        return Op{}(l_.get(i, n), r_.get(i, n));
++    }
++    bool alias(const Vec* target, bool moved) const noexcept {
++        return l_.alias(target, moved) || r_.alias(target, moved);
++    }
++
++private:
++    L l_;
++    R r_;
++};
++
++template <class E, class Op>
++class MapExpr : public Expr<MapExpr<E, Op>> {
++public:
++    MapExpr(E e, Op op) : e_(std::move(e)), op_(op) {}
++
++    std::size_t size() const { return e_.size(); }
++    double get(std::size_t i, std::size_t n) const noexcept { return op_(e_.get(i, n)); }
++    bool alias(const Vec* target, bool moved) const noexcept { return e_.alias(target, moved); }
++
++private:
++    E e_;
++    Op op_;
++};
++
++template <class E>
++class ShiftExpr : public Expr<ShiftExpr<E>> {
++public:
++    ShiftExpr(E e, std::ptrdiff_t k) : e_(std::move(e)), k_(normalize(k, e_.size())) {}
++
++    std::size_t size() const { return e_.size(); }
++    double get(std::size_t i, std::size_t n) const noexcept { return e_.get((i + k_) % n, n); }
++    bool alias(const Vec* target, bool moved) const noexcept {
++        return e_.alias(target, moved || k_ != 0);
++    }
++
++private:
++    static std::size_t normalize(std::ptrdiff_t k, std::size_t n) noexcept {
++        if (n == 0) return 0;
++        const auto m = static_cast<std::ptrdiff_t>(n);
++        return static_cast<std::size_t>(((k % m) + m) % m);
++    }
++
++    E e_;
++    std::size_t k_;  // in [0, n) for the size seen here, so i + k_ cannot wrap
++};
++
++namespace detail {
++struct Negate {
++    double operator()(double x) const noexcept { return -x; }
++};
++struct Multiply {
++    double factor;
++    double operator()(double x) const noexcept { return x * factor; }
++};
++struct Divide {
++    double divisor;
++    double operator()(double x) const noexcept { return x / divisor; }
++};
++
++template <class Op, class L, class R>
++auto binary(L&& l, R&& r) {
++    return BinaryExpr<capture_t<L>, capture_t<R>, Op>(capture(std::forward<L>(l)),
++                                                      capture(std::forward<R>(r)));
++}
++}  // namespace detail
++
++template <VecExpr L, VecExpr R>
++auto operator+(L&& l, R&& r) {
++    return detail::binary<std::plus<>>(std::forward<L>(l), std::forward<R>(r));
++}
++
++template <VecExpr L, VecExpr R>
++auto operator-(L&& l, R&& r) {
++    return detail::binary<std::minus<>>(std::forward<L>(l), std::forward<R>(r));
++}
++
++template <VecExpr E>
++auto operator-(E&& e) {
++    return MapExpr(detail::capture(std::forward<E>(e)), detail::Negate{});
++}
++
++template <VecExpr E>
++auto operator*(E&& e, double factor) {
++    return MapExpr(detail::capture(std::forward<E>(e)), detail::Multiply{factor});
++}
++
++template <VecExpr E>
++auto operator*(double factor, E&& e) {
++    return MapExpr(detail::capture(std::forward<E>(e)), detail::Multiply{factor});
++}
++
++template <VecExpr E>
++auto operator/(E&& e, double divisor) {
++    return MapExpr(detail::capture(std::forward<E>(e)), detail::Divide{divisor});
++}
++
++// Lazy view whose element i is e[(i + k) % n]. A negative k shifts the other
++// way. Assigning a shifted view of a Vec to that same Vec goes through one
++// temporary buffer, since the view reads elements the loop would overwrite.
++template <VecExpr E>
++auto shift(E&& e, std::ptrdiff_t k) {
++    return ShiftExpr<detail::capture_t<E>>(detail::capture(std::forward<E>(e)), k);
++}
++
++template <VecExpr E>
++double sum(const E& e) {
++    const auto x = detail::capture(e);
++    const std::size_t n = x.size();
++    double total = 0.0;
++    for (std::size_t i = 0; i < n; ++i) total += x.get(i, n);
++    return total;
++}
++
++template <VecExpr L, VecExpr R>
++double dot(const L& l, const R& r) {
++    const auto x = detail::capture(l);
++    const auto y = detail::capture(r);
++    const std::size_t n = x.size();
++    if (n != y.size()) detail::throw_size_mismatch();
++    double total = 0.0;
++    for (std::size_t i = 0; i < n; ++i) total += x.get(i, n) * y.get(i, n);
++    return total;
++}
++
++// Throws std::invalid_argument on an empty expression. NaN propagates, wherever
++// it appears.
++template <VecExpr E>
++double max(const E& e) {
++    const auto x = detail::capture(e);
++    const std::size_t n = x.size();
++    if (n == 0) throw std::invalid_argument("qm::max: empty expression");
++    double best = x.get(0, n);
++    for (std::size_t i = 1; i < n && !std::isnan(best); ++i) {
++        const double value = x.get(i, n);
++        if (std::isnan(value) || value > best) best = value;
++    }
++    return best;
++}
++
+ }  // namespace qm
+diff --git a/tests/vec_test.cpp b/tests/vec_test.cpp
+new file mode 100644
+index 0000000..38d4212
+--- /dev/null
++++ b/tests/vec_test.cpp
+@@ -0,0 +1,380 @@
++// Self-contained test for qm::Vec; prints each failed check and exits non-zero.
++#include "vec.hpp"
++
++#include <atomic>
++#include <cmath>
++#include <cstdio>
++#include <cstdlib>
++#include <limits>
++#include <new>
++#include <stdexcept>
++#include <string>
++#include <utility>
++#include <vector>
++
++// --- allocation counter -----------------------------------------------------
++static std::atomic<long> g_allocations{0};
++
++void* operator new(std::size_t n) {
++    ++g_allocations;
++    if (void* p = std::malloc(n ? n : 1)) return p;
++    throw std::bad_alloc{};
++}
++void* operator new[](std::size_t n) { return operator new(n); }
++void operator delete(void* p) noexcept { std::free(p); }
++void operator delete(void* p, std::size_t) noexcept { std::free(p); }
++void operator delete[](void* p) noexcept { std::free(p); }
++void operator delete[](void* p, std::size_t) noexcept { std::free(p); }
++
++template <class F>
++static long allocations_in(F&& f) {
++    const long before = g_allocations.load();
++    f();
++    return g_allocations.load() - before;
++}
++
++// --- minimal harness --------------------------------------------------------
++static int g_failures = 0;
++#define CHECK(cond)                                                     \
++    do {                                                                \
++        if (!(cond)) {                                                  \
++            std::printf("FAIL %s:%d: %s\n", __FILE__, __LINE__, #cond); \
++            ++g_failures;                                               \
++        }                                                               \
++    } while (0)
++#define CHECK_MISMATCH(...)                  \
++    do {                                     \
++        bool thrown = false;                 \
++        try {                                \
++            __VA_ARGS__;                     \
++        } catch (const std::invalid_argument&) { \
++            thrown = true;                   \
++        }                                    \
++        CHECK(thrown && #__VA_ARGS__);       \
++    } while (0)
++
++using qm::Vec;
++using qm::VecExpr;
++
++static Vec make(std::vector<double> values) {
++    Vec v(values.size());
++    for (std::size_t i = 0; i < values.size(); ++i) v[i] = values[i];
++    return v;
++}
++
++template <class E>
++static bool equals(const E& e, std::vector<double> expected) {
++    if (e.size() != expected.size()) return false;
++    for (std::size_t i = 0; i < expected.size(); ++i)
++        if (e[i] != expected[i]) return false;
++    return true;
++}
++
++// --- compile-time contract --------------------------------------------------
++template <class A, class B>
++concept Addable = requires(A a, B b) { a + b; };
++template <class A, class B>
++concept Subtractable = requires(A a, B b) { a - b; };
++template <class A, class B>
++concept Multipliable = requires(A a, B b) { a * b; };
++template <class A, class B>
++concept Divisible = requires(A a, B b) { a / b; };
++
++static_assert(VecExpr<Vec> && VecExpr<Vec&> && VecExpr<const Vec&> && VecExpr<Vec&&>);
++static_assert(!VecExpr<double> && !VecExpr<int> && !VecExpr<std::string>);
++static_assert(!VecExpr<std::vector<double>> && !VecExpr<void>);
++static_assert(VecExpr<decltype(std::declval<Vec&>() + std::declval<Vec&>())>);
++static_assert(VecExpr<decltype(std::declval<Vec&>() * 2.0)>);
++static_assert(VecExpr<decltype(-std::declval<Vec&>())>);
++static_assert(VecExpr<decltype(qm::shift(std::declval<Vec&>(), 1))>);
++
++static_assert(Addable<Vec&, Vec&> && Subtractable<Vec&, Vec>);
++static_assert(!Addable<Vec&, int> && !Addable<int, Vec&> && !Addable<Vec&, double>);
++static_assert(!Addable<Vec&, std::string> && !Addable<std::string, Vec&>);
++static_assert(!Addable<Vec&, std::vector<double>> && !Subtractable<Vec&, int>);
++static_assert(Multipliable<Vec&, double> && Multipliable<double, Vec&> && Divisible<Vec&, double>);
++static_assert(!Multipliable<Vec&, Vec&> && !Divisible<Vec&, Vec&> && !Divisible<double, Vec&>);
++static_assert(!Multipliable<Vec&, std::string> && !Divisible<Vec&, std::string>);
++
++// Expressions are cheap values that convert to Vec implicitly.
++static_assert(std::is_convertible_v<decltype(std::declval<Vec&>() + std::declval<Vec&>()), Vec>);
++static_assert(std::is_nothrow_move_constructible_v<Vec>);
++static_assert(!std::is_convertible_v<std::size_t, Vec>);
++
++// --- functions returning expressions built from their own locals ------------
++static auto from_temporaries(const Vec& b) { return (Vec(b.size(), 1.0) + b) * 2.0; }
++static auto from_local_expr(const Vec& b) {
++    auto local = Vec(b.size(), 1.0) + b;
++    return local * 2.0;
++}
++static auto from_local_exprs(const Vec& b) {
++    auto x = b + b;
++    auto y = -x;
++    auto z = y - x;
++    return qm::shift(z, 1) + x;
++}
++static auto from_moved_local(const Vec& b) {
++    Vec local(b.size(), 5.0);
++    return std::move(local) + b;
++}
++static auto from_shifted_temporary(const Vec& b) { return qm::shift(Vec(b.size(), 3.0) - b, 1); }
++static const Vec const_value() { return make({1, 2, 3}); }
++
++static void test_arithmetic() {
++    const Vec b = make({1, 2, 3}), c = make({10, 20, 30}), d = make({5, 5, 5});
++    CHECK(equals(b + c, {11, 22, 33}));
++    CHECK(equals(c - b, {9, 18, 27}));
++    CHECK(equals(-b, {-1, -2, -3}));
++    CHECK(equals(b * 2.0, {2, 4, 6}));
++    CHECK(equals(2.0 * b, {2, 4, 6}));
++    CHECK(equals(b / 2.0, {0.5, 1, 1.5}));
++    CHECK(equals(b + c * 2.0 - d, {16, 37, 58}));
++    CHECK(equals(-(b + c) / 2.0 * 2.0, {-11, -22, -33}));
++    Vec one = make({1});
++    CHECK(equals(one / 3.0, {1.0 / 3.0}));  // a real division, not * (1 / 3)
++    CHECK((b + c).size() == 3 && (-b).size() == 3 && qm::shift(b, 1).size() == 3);
++}
++
++static void test_laziness() {
++    Vec b = make({1, 2}), c = make({3, 4});
++    auto e = b + c;
++    b[0] = 100;
++    CHECK(equals(e, {103, 6}));
++}
++
++static void test_allocations() {
++    constexpr std::size_t n = 1000;
++    Vec a(n), b(n, 1.0), c(n, 2.0), d(n, 3.0);
++
++    CHECK(allocations_in([&] { a = b + c * 2.0 - d; }) == 0);
++    CHECK(a[n - 1] == 2.0);
++    CHECK(allocations_in([&] { a = a + b; }) == 0);
++    CHECK(allocations_in([&] { a = b - a; }) == 0);
++    CHECK(allocations_in([&] { a = -a * 2.0 / 4.0 + a; }) == 0);
++    CHECK(allocations_in([&] { a = b; }) == 0);
++    CHECK(allocations_in([&] { a = qm::shift(b, 1) + c; }) == 0);  // shifts another Vec
++    CHECK(allocations_in([&] { a = qm::shift(a, 0); }) == 0);      // a shift of 0 moves nothing
++    CHECK(allocations_in([&] { (void)qm::sum(b + c); }) == 0);
++    CHECK(allocations_in([&] { (void)qm::dot(b + c, d); }) == 0);
++    CHECK(allocations_in([&] { (void)qm::max(-b); }) == 0);
++
++    long constructed = allocations_in([&] { Vec x = b + c * 2.0 - d; CHECK(x[0] == 2.0); });
++    CHECK(constructed == 1);
++    CHECK(allocations_in([&] { Vec x(b); CHECK(x[0] == 1.0); }) == 1);
++    CHECK(allocations_in([&] { Vec x(n, 1.0); CHECK(x[0] == 1.0); }) == 1);
++    CHECK(allocations_in([&] { Vec x(qm::shift(b, 3)); CHECK(x[0] == 1.0); }) == 1);
++
++    // Temporary operands add no allocation of their own beyond their own Vec.
++    Vec spare(n, 4.0);
++    CHECK(allocations_in([&] { a = std::move(spare) + b; }) == 0);
++    CHECK(a[0] == 5.0);
++
++    // Copying and reusing an expression that owns a buffer does not allocate.
++    auto owning = Vec(n, 1.0) + b;
++    CHECK(allocations_in([&] {
++              a = owning + c;
++              auto copy = owning;
++              a = copy * 2.0;
++          }) == 0);
++    CHECK(a[0] == 4.0);
++}
++
++static void test_lifetime() {
++    const Vec b = make({1, 2, 3});
++    const Vec c = make({4, 5, 6});
++    {
++        auto e = (b + c) * 2.0;
++        CHECK(equals(e, {10, 14, 18}));
++    }
++    {
++        auto e = Vec(3, 1.0) + b;
++        CHECK(equals(e, {2, 3, 4}));
++    }
++    {
++        auto e = b + Vec(3, 1.0);
++        CHECK(equals(e, {2, 3, 4}));
++    }
++    {
++        auto e = (Vec(3, 1.0) + Vec(3, 2.0)) * 2.0 - (-Vec(3, 1.0));
++        CHECK(equals(e, {7, 7, 7}));
++    }
++    {
++        auto e = from_temporaries(b);
++        CHECK(equals(e, {4, 6, 8}));
++    }
++    {
++        auto e = from_local_expr(b);
++        CHECK(equals(e, {4, 6, 8}));
++    }
++    {
++        auto e = from_local_exprs(b);
++        // x = {2,4,6}, z = -2x = {-4,-8,-12}, shifted = {-8,-12,-4}
++        CHECK(equals(e, {-6, -8, 2}));
++    }
++    {
++        auto e = from_moved_local(b);
++        CHECK(equals(e, {6, 7, 8}));
++    }
++    {
++        auto e = from_shifted_temporary(b);
++        CHECK(equals(e, {1, 0, 2}));
++    }
++    {
++        auto e = const_value() + b;  // a const temporary cannot be moved from
++        CHECK(equals(e, {2, 4, 6}));
++    }
++    {
++        auto outer = [&] {
++            auto inner = Vec(3, 1.0) * 2.0;
++            auto copy = inner;  // the two copies share one buffer
++            return copy + inner;
++        }();
++        CHECK(equals(outer, {4, 4, 4}));
++        auto copy = outer;
++        Vec evaluated = copy;
++        CHECK(equals(evaluated, {4, 4, 4}));
++    }
++}
++
++static void test_aliasing() {
++    Vec b = make({1, 2, 3, 4});
++    {
++        Vec a = make({10, 20, 30, 40});
++        a = a + b;
++        CHECK(equals(a, {11, 22, 33, 44}));
++        a = b - a;
++        CHECK(equals(a, {-10, -20, -30, -40}));
++        a = a + a;
++        CHECK(equals(a, {-20, -40, -60, -80}));
++    }
++    {
++        Vec a = make({1, 2, 3, 4});
++        a = qm::shift(a, 1);
++        CHECK(equals(a, {2, 3, 4, 1}));
++        a = qm::shift(a, -1);  // needs the original order back
++        CHECK(equals(a, {1, 2, 3, 4}));
++        a = qm::shift(a, 7);  // 7 % 4 == 3
++        CHECK(equals(a, {4, 1, 2, 3}));
++        a = qm::shift(qm::shift(a, 1), 1);
++        CHECK(equals(a, {2, 3, 4, 1}));
++    }
++    {
++        Vec a = make({1, 2, 3, 4});
++        a = a + qm::shift(a, 1) * 2.0;
++        CHECK(equals(a, {5, 8, 11, 6}));
++    }
++    {
++        Vec a = make({1, 2, 3, 4});
++        a = -qm::shift(a * 2.0 + b, 3);  // the shift sits deep in the tree
++        CHECK(equals(a, {-12, -3, -6, -9}));
++    }
++    {
++        Vec a = make({1, 2, 3, 4});
++        auto view = qm::shift(a, 1);
++        a = view;  // alias through a stored expression
++        CHECK(equals(a, {2, 3, 4, 1}));
++        CHECK(equals(view, {3, 4, 1, 2}));  // still a view of a, not of its old buffer
++    }
++    {
++        // A named expression over a keeps working after the temporary-buffer path.
++        Vec a = make({1, 2, 3, 4});
++        auto twice = a * 2.0;
++        a = qm::shift(a, 2);
++        CHECK(equals(twice, {6, 8, 2, 4}));
++    }
++}
++
++static void test_sizes() {
++    Vec a(3), b(3, 1.0), c(4, 1.0), target(3);
++    CHECK_MISMATCH(Vec x = b + c; (void)x);
++    CHECK_MISMATCH(Vec x = b - c; (void)x);
++    CHECK_MISMATCH(a = (b + b) * 2.0 - c);
++    CHECK_MISMATCH(a = qm::shift(c, 1) + b);
++    CHECK_MISMATCH((void)qm::sum(b + c));
++    CHECK_MISMATCH((void)qm::max(b + c));
++    CHECK_MISMATCH((void)qm::dot(b, c));
++    CHECK_MISMATCH((void)qm::dot(b + b, c - c));
++    CHECK_MISMATCH(target = c + c);  // an expression of the wrong size for target
++    CHECK(equals(target, {0, 0, 0}));
++
++    // An operand can change size after a valid expression was built.
++    Vec grows(3, 1.0);
++    auto stale = grows + b;
++    grows = Vec(5, 1.0);
++    CHECK_MISMATCH((void)stale.size());
++    CHECK_MISMATCH((void)stale[0]);
++    CHECK_MISMATCH(Vec x = stale; (void)x);
++    CHECK_MISMATCH(a = stale);
++    CHECK_MISMATCH((void)qm::sum(stale));
++    CHECK(equals(a, {0, 0, 0}));  // a failed assignment leaves the target alone
++
++    Vec shrinks = make({1, 2, 3, 4, 5});
++    auto view = qm::shift(shrinks, 4);
++    shrinks = make({7, 8});
++    CHECK(view.size() == 2);
++    Vec copy = view;
++    CHECK(equals(copy, {7, 8}));  // k stays usable: (i + 4) % 2 == i
++
++    // Size zero is a valid size.
++    Vec empty(0), other_empty(0);
++    empty = empty + other_empty;
++    empty = qm::shift(empty, 3);
++    CHECK(qm::sum(empty) == 0.0);
++    CHECK(qm::dot(empty, other_empty) == 0.0);
++    CHECK_MISMATCH((void)qm::max(empty));
++    Vec from_empty = empty * 2.0;
++    CHECK(from_empty.size() == 0);
++}
++
++static void test_reductions() {
++    const Vec b = make({1, -2, 3}), c = make({4, 5, 6});
++    CHECK(qm::sum(b) == 2.0);
++    CHECK(qm::sum(b + c) == 17.0);
++    CHECK(qm::sum(Vec(3, 2.0) * 2.0) == 12.0);
++    CHECK(qm::dot(b, c) == 12.0);
++    CHECK(qm::dot(b * 2.0, c - b) == 2.0 * (3.0 - 14.0 + 9.0));
++    CHECK(qm::max(b) == 3.0);
++    CHECK(qm::max(-b) == 2.0);
++    CHECK(qm::max(qm::shift(b, 1)) == 3.0);
++    CHECK(sum(b + c) == 17.0);  // reachable through ADL too
++
++    const double nan = std::numeric_limits<double>::quiet_NaN();
++    CHECK(std::isnan(qm::max(make({1, nan, 2}))));
++    CHECK(std::isnan(qm::max(make({nan, 1, 2}))));
++    CHECK(std::isnan(qm::max(make({1, 2, nan}))));
++}
++
++static void test_value_semantics() {
++    Vec a = make({1, 2});
++    Vec copy = a;
++    copy[0] = 9;
++    CHECK(a[0] == 1);
++
++    Vec moved = std::move(a);
++    CHECK(moved[1] == 2);
++    CHECK(a.size() == 0);  // NOLINT: the moved-from state is part of the contract
++
++    Vec resized(5);
++    resized = moved;  // Vec-to-Vec assignment keeps ordinary resizing semantics
++    CHECK(equals(resized, {1, 2}));
++    resized = resized;
++    CHECK(equals(resized, {1, 2}));
++    resized = Vec(3, 7.0);
++    CHECK(equals(resized, {7, 7, 7}));
++
++    a = make({3, 4});  // a moved-from Vec is reusable
++    CHECK(equals(a, {3, 4}));
++}
++
++int main() {
++    test_arithmetic();
++    test_laziness();
++    test_allocations();
++    test_lifetime();
++    test_aliasing();
++    test_sizes();
++    test_reductions();
++    test_value_semantics();
++    if (g_failures == 0) std::puts("all tests passed");
++    return g_failures == 0 ? 0 : 1;
++}

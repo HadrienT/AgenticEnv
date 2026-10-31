@@ -1,0 +1,243 @@
+diff --git a/src/multi_gpu.cu b/src/multi_gpu.cu
+index 823c9a4..00ad8f6 100644
+--- a/src/multi_gpu.cu
++++ b/src/multi_gpu.cu
+@@ -1,2 +1,237 @@
+ #include "multi_gpu.h"
+-MultiResult gpu_asian_multi(double, double, double, double, double, int, unsigned long long, unsigned long long, const std::vector<int>&) { return {}; }
++#include <cuda_runtime.h>
++#include <vector>
++#include <thread>
++#include <exception>
++#include <algorithm>
++#include <numeric>
++#include <stdexcept>
++#include <iostream>
++#include <atomic>
++
++// Simple XORSHIFT random number generator
++struct SimpleRNG {
++    unsigned long long state;
++    
++    __host__ __device__ SimpleRNG(unsigned long long seed) : state(seed) {}
++    
++    __host__ __device__ unsigned long long next() {
++        state ^= state >> 12;
++        state ^= state << 25;
++        state ^= state >> 27;
++        return state * 2685821657736338717ULL;
++    }
++};
++
++// CUDA kernel for Asian option pricing
++__global__ void asian_option_kernel(
++    double S, double K, double r, double sigma, double T, int n,
++    unsigned long long nPaths, unsigned long long seed,
++    double* prices) {
++    
++    int idx = blockIdx.x * blockDim.x + threadIdx.x;
++    int stride = blockDim.x * gridDim.x;
++    
++    // Initialize random number generator
++    SimpleRNG rng(seed + idx);
++    
++    // Each thread processes multiple paths
++    for (unsigned long long i = idx; i < nPaths; i += stride) {
++        double sum = 0.0;
++        double current_price = S;
++        
++        // Generate path and accumulate sum
++        for (int j = 1; j <= n; j++) {
++            double dt = T / n;
++            double drift = (r - 0.5 * sigma * sigma) * dt;
++            double diffusion = sigma * sqrt(dt);
++            
++            // Generate random number
++            unsigned long long rand_val = rng.next();
++            double rand_norm = (rand_val & 0x7fffffffffffffffULL) / double(0x8000000000000000ULL);
++            
++            // Box-Muller transform to get normal distribution
++            double u1 = rand_norm;
++            double u2 = (rng.next() & 0x7fffffffffffffffULL) / double(0x8000000000000000ULL);
++            double z = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
++            
++            current_price *= exp(drift + diffusion * z);
++            sum += current_price;
++        }
++        
++        // Calculate option price for this path
++        double payoff = fmax(0.0, sum / n - K);
++        prices[i] = payoff * exp(-r * T);
++    }
++}
++
++// Device-specific worker function
++struct DeviceWorker {
++    int device_id;
++    double S, K, r, sigma, T;
++    int n;
++    unsigned long long nPaths;
++    unsigned long long seed;
++    std::vector<int> devices;
++    double* device_prices;
++    unsigned long long* paths_per_device;
++    std::exception_ptr exception_ptr;
++    std::atomic<bool>* has_exception;
++    
++    DeviceWorker(int dev_id, double s, double k, double r_val, double sigma_val, double t, int n_val,
++                unsigned long long npaths, unsigned long long seed_val, const std::vector<int>& devs,
++                double* prices, unsigned long long* paths, std::atomic<bool>* has_ex) 
++        : device_id(dev_id), S(s), K(k), r(r_val), sigma(sigma_val), T(t), n(n_val),
++          nPaths(npaths), seed(seed_val), devices(devs), device_prices(prices), 
++          paths_per_device(paths), has_exception(has_ex), exception_ptr(nullptr) {}
++    
++    void operator()() {
++        try {
++            // Set CUDA device
++            cudaError_t err = cudaSetDevice(device_id);
++            if (err != cudaSuccess) {
++                throw std::runtime_error("Failed to set CUDA device " + std::to_string(device_id) + 
++                                       ": " + std::string(cudaGetErrorString(err)));
++            }
++            
++            // Allocate device memory
++            double* d_prices;
++            
++            size_t price_size = nPaths * sizeof(double);
++            
++            err = cudaMalloc(&d_prices, price_size);
++            if (err != cudaSuccess) {
++                throw std::runtime_error("Failed to allocate device memory for prices on device " + 
++                                       std::to_string(device_id) + ": " + std::string(cudaGetErrorString(err)));
++            }
++            
++            // Launch kernel
++            int block_size = 256;
++            int grid_size = std::min(65535, (int)((nPaths + block_size - 1) / block_size));
++            
++            asian_option_kernel<<<grid_size, block_size>>>(
++                S, K, r, sigma, T, n, nPaths, seed, d_prices);
++            
++            // Check for kernel launch errors
++            err = cudaGetLastError();
++            if (err != cudaSuccess) {
++                cudaFree(d_prices);
++                throw std::runtime_error("Kernel launch failed on device " + std::to_string(device_id) + 
++                                       ": " + std::string(cudaGetErrorString(err)));
++            }
++            
++            // Wait for kernel completion
++            err = cudaDeviceSynchronize();
++            if (err != cudaSuccess) {
++                cudaFree(d_prices);
++                throw std::runtime_error("Kernel execution failed on device " + std::to_string(device_id) + 
++                                       ": " + std::string(cudaGetErrorString(err)));
++            }
++            
++            // Copy results back to host
++            err = cudaMemcpy(device_prices, d_prices, price_size, cudaMemcpyDeviceToHost);
++            if (err != cudaSuccess) {
++                cudaFree(d_prices);
++                throw std::runtime_error("Failed to copy prices from device " + std::to_string(device_id) + 
++                                       ": " + std::string(cudaGetErrorString(err)));
++            }
++            
++            // Store number of paths processed
++            paths_per_device[0] = nPaths;
++            
++            // Free device memory
++            cudaFree(d_prices);
++        } catch (...) {
++            exception_ptr = std::current_exception();
++            has_exception->store(true);
++        }
++    }
++};
++
++MultiResult gpu_asian_multi(double S, double K, double r, double sigma, double T, int n,
++                            unsigned long long nPaths, unsigned long long seed,
++                            const std::vector<int>& devices) {
++    // Validate input
++    if (devices.empty()) {
++        throw std::invalid_argument("Device list cannot be empty");
++    }
++    
++    // Check for duplicate device IDs
++    std::vector<int> sorted_devices = devices;
++    std::sort(sorted_devices.begin(), sorted_devices.end());
++    if (std::adjacent_find(sorted_devices.begin(), sorted_devices.end()) != sorted_devices.end()) {
++        throw std::invalid_argument("Device list contains duplicate indices");
++    }
++    
++    // Check for valid device indices
++    int device_count;
++    cudaError_t err = cudaGetDeviceCount(&device_count);
++    if (err != cudaSuccess) {
++        throw std::runtime_error("Failed to get device count: " + std::string(cudaGetErrorString(err)));
++    }
++    
++    for (int device_id : devices) {
++        if (device_id < 0 || device_id >= device_count) {
++            throw std::invalid_argument("Invalid device index: " + std::to_string(device_id));
++        }
++    }
++    
++    // Calculate paths per device
++    size_t num_devices = devices.size();
++    std::vector<unsigned long long> paths_per_device(num_devices);
++    unsigned long long total_paths = nPaths;
++    
++    // Distribute paths evenly among devices
++    for (size_t i = 0; i < num_devices; i++) {
++        paths_per_device[i] = total_paths / num_devices;
++        if (i < total_paths % num_devices) {
++            paths_per_device[i]++;
++        }
++    }
++    
++    // Create threads for each device
++    std::vector<std::thread> threads(num_devices);
++    std::vector<double> all_prices(total_paths);
++    std::atomic<bool> has_exception{false};
++    
++    // Launch threads
++    for (size_t i = 0; i < num_devices; i++) {
++        threads[i] = std::thread(DeviceWorker(
++            devices[i], S, K, r, sigma, T, n, paths_per_device[i], seed + i, devices,
++            &all_prices[0] + std::accumulate(paths_per_device.begin(), paths_per_device.begin() + i, 0ULL),
++            &paths_per_device[0] + i,
++            &has_exception
++        ));
++    }
++    
++    // Wait for all threads to complete
++    for (size_t i = 0; i < num_devices; i++) {
++        threads[i].join();
++    }
++    
++    // Check if any thread threw an exception
++    if (has_exception.load()) {
++        // Re-throw the first exception we caught (simplified approach)
++        throw std::runtime_error("Exception occurred in one of the worker threads");
++    }
++    
++    // Calculate final price and standard error
++    double sum_prices = 0.0;
++    double sum_prices_squared = 0.0;
++    
++    for (unsigned long long i = 0; i < total_paths; i++) {
++        sum_prices += all_prices[i];
++        sum_prices_squared += all_prices[i] * all_prices[i];
++    }
++    
++    double mean_price = sum_prices / total_paths;
++    double variance = (sum_prices_squared / total_paths) - (mean_price * mean_price);
++    double std_error = sqrt(variance / total_paths);
++    
++    MultiResult result;
++    result.price = mean_price;
++    result.std_error = std_error;
++    result.paths_per_device = paths_per_device;
++    
++    return result;
++}

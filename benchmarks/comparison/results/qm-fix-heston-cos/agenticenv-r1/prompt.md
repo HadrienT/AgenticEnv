@@ -1,0 +1,1 @@
+The Heston COS pricer disagrees with Monte Carlo and with the published values: for Andersen's test case (v0 = theta = 0.04, kappa = 0.5, xi = 1, rho = -0.9, T = 10, forward 100, strike 100, zero rates) the literature gives 13.0847, and our number is far off. Find the root cause in the library and fix it. Keep the fix minimal and do not change any public API.

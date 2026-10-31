@@ -1,0 +1,1 @@
+Implement include/asian.hpp in src/asian.cpp, in C++20 with the standard library only. The header comments are the spec. The results must be statistically sound, and the function must take well under a second per million paths with n = 12 on one thread.

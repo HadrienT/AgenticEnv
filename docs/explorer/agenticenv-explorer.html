@@ -1,0 +1,357 @@
+<title>AgenticEnv Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500&display=swap">
+<style>
+/* Layout: the video's three-column console. Stage rail, component list, animated diagram; the map spans the last two. */
+:root{color-scheme:dark;--bg:#060a0b;--panel:#080d0b;--card:#0a100d;--node:#0b120e;--ink:#eef2ee;--soft:#b9c1ba;--mute:#8d968f;--dim:#5b655e;--line:#1f2a24;--line2:#2c3a30;--lime:#c6f135;--olive:#1d2a12;--violet:#8c7dff;--warn:#f2b84b;
+--display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(1100px 700px at 62% 62%,#0d1610 0%,transparent 70%),radial-gradient(800px 500px at 10% 100%,#0b130e 0%,transparent 70%),var(--bg);background-attachment:fixed;color:var(--ink);font-family:var(--display);font-size:15px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.app{min-height:100%;display:flex;flex-direction:column;gap:22px;padding-block:22px 14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1720px;margin:0 auto}
+@media(min-width:900px){.app{padding-left:max(44px,env(safe-area-inset-left,0px));padding-right:max(44px,env(safe-area-inset-right,0px))}}
+.mono{font-family:var(--mono);text-transform:uppercase;letter-spacing:.2em;font-size:11px;color:var(--mute)}
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.brand{color:var(--ink);font-weight:500;font-size:13px}
+.head h1{margin:0;font-size:clamp(32px,4vw,52px);font-weight:500;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+.head h1 em{font-style:normal;color:var(--lime);margin-left:.35em;text-shadow:0 0 28px #c6f13555}
+.head p{margin:8px 0 0;font-size:clamp(15px,1.4vw,19px);color:var(--soft);min-height:1.4em}
+.cols{display:grid;grid-template-columns:230px minmax(0,1fr) minmax(0,1.08fr);gap:0 34px;flex:1;align-items:start}
+.side{padding-right:30px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px;align-self:stretch;min-width:0}
+.tabs{display:flex;flex-direction:column;gap:6px}
+.tab{display:flex;align-items:center;gap:14px;height:46px;padding:0 16px;border-radius:12px;border:1.5px solid transparent;color:var(--mute);font-size:16px;white-space:nowrap;transition:color .2s,background .2s,border-color .2s}
+.tab b{font:500 11px var(--mono);color:var(--lime);opacity:.85}
+.tab:hover{color:var(--ink);background:#0e1611}
+.tab[aria-selected=true]{color:var(--ink);border-color:var(--lime);background:linear-gradient(90deg,#26361499,#14200f66);box-shadow:0 0 22px #c6f13522}
+.gpu{margin-top:auto;text-align:center;padding-top:6px}
+.gpu canvas{width:100%;max-width:200px;height:auto;display:block;margin:0 auto}
+.gpu strong{display:block;color:var(--lime);font-weight:500;font-size:16px;margin-top:4px}
+.gpu span{color:var(--mute);font-size:13px}
+.mid,.right{min-width:0;display:flex;flex-direction:column;gap:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{position:relative;display:block;width:100%;border-radius:13px;border:1px solid var(--line2);background:var(--card);padding:11px 16px 11px 50px;transition:border-color .2s,background .2s,box-shadow .2s}
+.row:hover{border-color:#47604c}
+.row i{position:absolute;left:18px;top:15px;font:400 11px var(--mono);color:var(--mute)}
+.row h3{margin:0;font-size:17px;font-weight:500;padding-right:96px}
+.row p{margin:2px 0 0;font-size:14px;color:var(--mute)}
+.row u{position:absolute;right:14px;top:14px;font:400 10px var(--mono);color:var(--mute);text-decoration:none;letter-spacing:.06em;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row[aria-expanded=true]{border:1.5px solid var(--lime);background:linear-gradient(90deg,#2a3b1680,#17230f40);box-shadow:0 0 24px #c6f13520}
+.row[aria-expanded=true] p{color:var(--soft)}
+.more{display:grid;grid-template-columns:minmax(84px,auto) minmax(0,1fr);gap:4px 14px;margin-top:10px;font-size:13px}
+.more dt{font:400 10px/1.9 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--mute)}
+.more dd{margin:0;color:var(--soft);overflow-wrap:anywhere}
+.more code{font:400 12px var(--mono);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;grid-column:1/-1;margin-top:4px}
+.chips span{font:400 11px var(--mono);padding:2px 7px;border-radius:6px;background:#141c15;color:var(--soft)}
+.flag{grid-column:1/-1;margin-top:6px;display:flex;gap:8px;font-size:13px;color:var(--warn);line-height:1.4}
+.flag::before{content:"▲";font-size:9px;line-height:18px}
+.panel{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+.scroll{overflow-x:auto}
+#svg{display:block;width:100%;height:auto}
+.is-map .mid{display:none}.is-map .right{grid-column:2/4}
+.is-map #svg{min-width:760px;max-height:max(440px,calc(100vh - 310px))}
+.is-map .gpu canvas{max-width:190px}
+.cap{font-size:16px;color:var(--soft);min-height:2.7em;margin:0;line-height:1.35}
+.cap b{font:400 12px var(--mono);color:var(--lime);margin-right:8px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{min-width:30px;height:28px;padding:0 8px;border-radius:7px;border:1px solid var(--line2);font:400 11px var(--mono);color:var(--mute);text-align:center}
+.dot:hover{color:var(--ink);border-color:#47604c}
+.dot[aria-current=true]{background:var(--olive);border-color:var(--lime);color:var(--lime)}
+footer{display:flex;flex-direction:column;gap:10px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ctl{display:flex;gap:6px}
+.ctl button{height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line2);font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.ctl button:hover{color:var(--ink);border-color:#47604c}
+#play{border-color:var(--lime);color:var(--lime);background:var(--olive)}
+.track{height:3px;background:var(--line);position:relative}
+#prog{position:absolute;left:0;top:0;bottom:0;background:var(--lime);box-shadow:0 0 12px #c6f13588;width:0}
+svg text{font-family:var(--display);fill:var(--ink)}
+svg .m{font-family:var(--mono)}
+svg .go{cursor:pointer}
+svg .go:hover>rect:first-child{stroke:var(--lime)}
+svg .go:focus-visible{outline:none}svg .go:focus-visible>rect:first-child{stroke:var(--lime);stroke-width:2}
+@media(max-width:1180px){
+ .cols{grid-template-columns:minmax(0,1fr);gap:18px}
+ .side{border:0;padding:0}.tabs{flex-direction:row;overflow-x:auto;padding-bottom:4px}.tab{height:40px;flex:none}
+ .gpu{display:none}.is-map .right{grid-column:auto}
+ .right{order:2}.mid{order:3}
+}
+</style>
+
+<div class="app">
+ <div class="top"><span class="mono brand">&#9670;&nbsp; AgenticEnv</span><span class="mono">Explorer / snapshot 2026-10-31 / ce58d29</span></div>
+ <div class="head"><h1>AgenticEnv<em>under the hood</em></h1><p id="sub"></p></div>
+ <main class="cols" id="cols">
+  <nav class="side" aria-label="Stages">
+   <span class="mono">Views</span>
+   <div class="tabs" id="tabs" role="tablist"></div>
+   <div class="gpu"><canvas id="chip" width="400" height="270" aria-hidden="true"></canvas><strong>2 × TESLA V100</strong><span>32 GiB of VRAM, one model</span></div>
+  </nav>
+  <section class="mid"><span class="mono" id="sec" style="color:var(--lime)"></span><div class="list" id="list"></div></section>
+  <section class="right">
+   <span class="mono" id="plabel"></span>
+   <div class="panel scroll"><svg id="svg" role="img" aria-label="Animated diagram of the selected component"></svg></div>
+   <p class="cap" id="cap" aria-live="polite"></p>
+   <div class="dots" id="dots" aria-label="Steps"></div>
+  </section>
+ </main>
+ <footer>
+  <div class="bar"><span class="mono" style="font-size:10px">Local LLM / no prompt leaves the machine for inference</span>
+   <div class="ctl"><button id="prev" aria-label="Previous component">Prev</button><button id="play">Play tour</button><button id="next" aria-label="Next component">Next</button></div></div>
+  <div class="track"><div id="prog"></div></div>
+ </footer>
+</div>
+
+<script>
+const B=1.97,STEP=B*2,NS='http://www.w3.org/2000/svg',$=s=>document.querySelector(s),svg=$('#svg');
+const LIME='#c6f135',MUTE='#8d968f',LINE='#2c3a30',VIOLET='#8c7dff',WARN='#f2b84b',INK='#eef2ee',SOFT='#b9c1ba';
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ease=p=>1-Math.pow(1-clamp(p),3);
+let A=[],U=[];
+
+function el(n,a={},p=svg){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+function txt(g,x,y,s,o={}){const e=el('text',{x,y,'font-size':o.size??16,'text-anchor':o.anchor??'middle','font-weight':o.w??400,class:o.mono?'m':''},g);e.textContent=s;e.style.fill=o.fill??INK;if(o.ls)e.style.letterSpacing=o.ls;return e}
+const reveal=(e,at,o={})=>(A.push({e,tin:at*STEP,dy:o.dy??10,blur:o.blur??7}),e);
+
+/* Drawing kit for the 650×520 panel. `at` is expressed in steps, so diagrams line up with the captions. */
+const d={
+ g(at=0,o){return reveal(el('g'),at,o)},
+ box(x,y,w,h,title,sub,o={}){const g=d.g(o.at??0);
+  el('rect',{x,y,width:w,height:h,rx:11,fill:'#0b120e',stroke:LINE},g);
+  if(title)txt(g,x+w/2,y+(sub?h/2-3:h/2+6),title,{size:o.size??17,w:500,mono:o.mono});
+  if(sub)txt(g,x+w/2,y+h/2+17,sub,{size:o.subsize??13,fill:MUTE,mono:o.submono});
+  if(o.hl!=null)reveal(el('rect',{x,y,width:w,height:h,rx:11,fill:(o.c??LIME)+'14',stroke:o.c??LIME,'stroke-width':2,'pointer-events':'none'},g),o.hl,{dy:0,blur:0});
+  if(o.to)link(g,o.to,title);return g},
+ line(pts,o={}){const at=(o.at??0)*STEP,p=el('path',{d:'M'+pts.map(q=>q.join(' ')).join('L'),fill:'none',stroke:o.c??MUTE,'stroke-width':o.w??1.5,pathLength:1});
+  U.push(t=>{p.style.strokeDasharray=`${ease((t-at)/(o.dur??.5))} 1`;p.style.opacity=t<at?0:1});return p},
+ text(x,y,s,o={}){const g=d.g(o.at??0);return txt(g,x,y,s,o)},
+ pill(s,at,c=LIME){const g=d.g(0,{dy:0});el('rect',{x:24,y:456,width:602,height:46,rx:11,fill:c===LIME?'#1d2a12':'#2b2110'},g);const t=d.g(at);txt(t,325,485,s,{size:17,w:500,fill:c})},
+ grid(x,y,cols,rows,o={}){const u=o.u??30,v=o.v??26,gap=o.gap??8;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const X=x+c*(u+gap),Y=y+r*(v+gap),i=r*cols+c;
+  reveal(el('rect',{x:X,y:Y,width:u,height:v,rx:4,fill:'#2b3a30'}),(o.at??0)+(r+c)*.015,{dy:0,blur:3});
+  if(o.fill&&o.fill(i)){const f=el('rect',{x:X,y:Y,width:u,height:v,rx:4,fill:o.fill(i)===true?LIME:o.fill(i)}),tin=(o.fillAt??1)*STEP+i*.05;U.push(t=>f.style.opacity=ease((t-tin)/.2))}}},
+ count(x,y,n,at,o={}){const e=d.text(x,y,'0',{...o,at,mono:1}),tin=at*STEP;U.push(t=>{e.textContent=Math.round(n*ease((t-tin)/.8)).toLocaleString('en-US')+(o.unit??'')})}
+};
+function link(g,to,label){g.classList.add('go');g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label','Open '+label);g.addEventListener('click',()=>open(to));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(to)}})}
+
+/* Content. Everything below was read from the repository or the running host at commit ce58d29. */
+const VIEWS=[
+{id:'entry',name:'Entry',sub:'How a message reaches the agent, and what refuses it.',rows:[
+ {id:'client',name:'Chat client',desc:'VS Code extension, twin repository',tag:'agenticenv-chat',facts:[['Repo','HadrienT/agenticenv-chat'],['Contract','<code>src/protocol.ts</code>, mirrored by hand in <code>protocol.py</code>'],['Guard','Drift test on the client side']],
+  label:'Client / one contract, two repos',steps:['The extension opens a WebSocket to the bridge.','Both repos carry the protocol, and a test catches drift.'],draw(){
+  d.box(40,110,220,90,'VS Code','agenticenv-chat');d.box(390,110,220,90,'Bridge','127.0.0.1:8300',{hl:.8,to:'bridge'});d.line([[260,155],[390,155]],{at:.3,c:LIME});d.text(325,143,'WS',{size:12,mono:1,fill:MUTE,at:.3});
+  d.box(40,280,220,76,'protocol.ts','source of truth',{at:1,mono:1,size:15});d.box(390,280,220,76,'protocol.py','manual mirror',{at:1.1,mono:1,size:15});d.line([[260,318],[390,318]],{at:1.3,c:LIME});d.text(325,306,'drift test',{size:12,fill:MUTE,at:1.3});
+  d.pill('Two repos, one wire format',1.5)}},
+ {id:'auth',name:'Connection gate',desc:'A local port is not a boundary',tag:'auth.py',facts:[['Needs','A token only this user can read'],['Refuses','Any request with an <code>Origin</code> header'],['Why','A web page can reach <code>ws://127.0.0.1</code>, and the bridge writes to real repos']],
+  label:'Auth / browsers stay out',steps:['Any web page open on this machine can reach the local port.','Browsers always send an Origin, so they are refused. The extension sends none and shows its token.'],draw(){
+  d.box(40,90,200,76,'Web page','sends Origin');d.box(40,250,200,76,'Extension','no Origin + token',{hl:1.2});d.box(410,160,200,100,'Gate','auth.py',{at:.2});d.box(410,330,200,76,'Bridge',null,{at:1.4,to:'bridge'});
+  d.line([[240,128],[410,190]],{at:.4,c:WARN});d.text(345,132,'refused',{size:13,fill:WARN,at:.9});d.line([[240,288],[410,240]],{at:1.1,c:LIME});d.line([[510,260],[510,330]],{at:1.4,c:LIME});d.pill('Token checked, browser refused',1.6)}},
+ {id:'bridge',name:'Bridge',desc:'WebSocket server that drives a session',tag:'openhands-bridge',facts:[['Listens','<code>127.0.0.1:8300</code>'],['Service','<code>agenticenv-bridge.service</code>, running from this checkout'],['Size','2,115 lines'],['Rule','Keep <code>~/AgenticEnv</code> on <code>main</code>: a restart loads what is checked out']],
+  label:'Bridge / translator between two worlds',steps:['The bridge never imports OpenHands: it goes through the adapter.','It streams events back and owns the turn: snapshot, memory, apply.'],draw(){
+  d.box(24,120,160,90,'Client','protocol v2',{to:'client'});d.box(245,100,160,130,'Bridge','server.py',{hl:0});d.box(466,120,160,90,'Adapter','OpenHands SDK',{at:.3,to:'startup'});
+  d.line([[184,165],[245,165]],{at:.2,c:LIME});d.line([[405,165],[466,165]],{at:.4,c:LIME});d.text(435,152,'D15',{size:11,mono:1,fill:MUTE,at:.5});
+  [['Checkpoint','copy'],['Past lessons','memory'],['Auto-apply','repo']].forEach(([a,b],i)=>{const x=24+i*208;d.box(x,300,186,76,a,b,{at:1+i*.12,to:['copy','memory','apply'][i]});d.line([[325,230],[325,262],[x+93,262],[x+93,300]],{at:1+i*.1})});d.pill('One turn, always closed by turn_finished',1.5)}},
+ {id:'wire',name:'Wire protocol',desc:'Versioned, with capability negotiation',tag:'protocol.py',facts:[['Version','2, negotiated by <code>hello</code> / <code>welcome</code>'],['Ordering','Monotonic <code>seq</code> on every outbound message'],['Limit','Payloads above 256 KiB are truncated']],chips:['turns','cancel','diffs','checkpoints','apply','compact','interrupt','todo','models'],flag:'<code>resume</code> is not announced yet: sessions cannot be resumed.',
+  label:'Protocol / announce only what works',steps:['The client says hello, the bridge answers with what it can do.','A missing capability degrades the client without breaking it.'],draw(){
+  d.box(40,70,190,330,'Client',null);d.box(420,70,190,330,'Bridge',null);d.g(.2);
+  [['hello',0],['welcome',1],['user_message',0],['turn_started',1],['event_delta',1],['turn_finished',1]].forEach(([m,r],i)=>{const y=140+i*42,at=i<2?.2+i*.3:1+(i-2)*.14;d.line(r?[[420,y],[230,y]]:[[230,y],[420,y]],{at,c:r?LIME:MUTE});d.text(325,y-7,m,{size:13,mono:1,fill:SOFT,at})});d.pill('seq keeps every message in order',1.6)}}]},
+
+{id:'sandbox',name:'Sandbox',sub:'A throwaway container works on a copy. Your repo changes last.',rows:[
+ {id:'startup',name:'Session start',desc:'Five reported steps before the first turn',tag:'session.py',facts:[['Reported as','<code>session_progress</code> messages'],['Stops if','The image is missing or the served model does not match']],
+  label:'Start / five steps, in order',steps:['The client sees each step while the session starts.','The baseline freezes the state of your repo before any change.'],draw(){
+  ['Checking the model and the sandbox image','Starting the sandbox container','Connecting the agent and its tools','Copying your project','Recording the state of your repo'].forEach((s,i)=>{const y=70+i*74;const g=d.box(60,y,530,56,s,null,{at:i*.3,hl:i*.3+.25,size:16});txt(g,82,y+33,'0'+(i+1),{size:12,mono:1,fill:LIME,anchor:'start'});if(i)d.line([[325,y-18],[325,y]],{at:i*.3,c:LIME})})
+  d.pill('Sandbox ready',1.5)}},
+ {id:'container',name:'Docker container',desc:'New for each session, discarded after',tag:'docker',facts:[['Image','<code>agenticenv/agent:latest</code>, built from a pinned agent-server digest'],['Limits','24 GiB, 32 CPUs, 8,192 PIDs'],['GPU','None: <code>enable_gpu: false</code>'],['Adds','cmake, ninja, ripgrep, clangd, clang-tidy, gcovr, code MCP servers'],['Network','Outbound Internet is available in the sandbox']],
+  label:'Container / bounded and disposable',steps:['The image adds the C++ tools the agent would otherwise reinstall.','Limits protect llama-server on the same host.','It is deleted at the end of the session.'],draw(){
+  d.box(60,70,530,290,null,null);d.text(84,102,'AGENT-SERVER',{size:13,mono:1,fill:MUTE,anchor:'start',ls:'.14em'});
+  d.box(84,122,230,70,'OpenHands 1.21.0','pinned digest');d.box(336,122,230,70,'C++ toolchain','clangd, cmake, ninja',{at:.2});d.box(84,210,482,60,'cppdev · codeintel · qmharness','run next to the copy',{at:.4,size:15});
+  [['24','GiB'],['32','CPUs'],['8,192','PIDs']].forEach(([a,b],i)=>{const g=d.g(1+i*.1);txt(g,160+i*165,316,a,{size:26,w:500,fill:LIME});txt(g,160+i*165,338,b,{size:13,fill:MUTE})});
+  d.pill('delete_on_close=True',2.1)}},
+ {id:'copy',name:'Working copy',desc:'A full copy, with a checkpoint per turn',tag:'working_copy.py',facts:[['Your folder','Mounted read-only at <code>/workspace/source</code>'],['Copy','<code>cp -a</code> to <code>/workspace/project</code>'],['History','Stored on <code>refs/agenticenv/*</code>, never on a branch'],['Undo','<code>restore_checkpoint</code> rolls the copy back']],
+  label:'Copy / the agent never edits your folder',steps:['Your folder enters the sandbox read-only.','The agent edits a full copy of it.','Each turn starts with a checkpoint on technical git refs.'],draw(){
+  d.box(30,110,240,86,'/workspace/source','read-only',{mono:1,size:14});d.box(380,110,240,86,'/workspace/project','agent edits here',{mono:1,size:14,at:1,hl:1.1});d.line([[270,153],[380,153]],{at:.9,c:LIME});d.text(325,141,'cp -a',{size:12,mono:1,fill:MUTE,at:.9});
+  d.line([[500,196],[500,250]],{at:2});['baseline','turn 1','turn 2','turn 3'].forEach((s,i)=>{const x=110+i*135;const g=d.g(2+i*.1);el('circle',{cx:x,cy:290,r:8,fill:i?LIME:'#2b3a30',stroke:LIME},g);txt(g,x,322,s,{size:13,mono:1,fill:SOFT})});d.line([[118,290],[507,290]],{at:2,c:LIME});
+  d.pill('refs/agenticenv/checkpoints',2.5)}},
+ {id:'masking',name:'Secret masking',desc:'Hidden files, because read-only is not enough',tag:'secret_paths.py',facts:[['Why','The sandbox has <code>sudo</code>, so a read-only file is still readable'],['Exceptions','<code>.env.example</code> and <code>.env.sample</code> stay visible']],chips:['.env','.env.*','.netrc','.pgpass','*.pem','*.key','id_rsa*','id_ed25519*','credentials.json','secrets'],
+  label:'Mask / what the agent cannot see (example)',steps:['Secrets are matched by file name when the project is mounted.','They are replaced, so the agent reads nothing useful.'],draw(){
+  ['src/pricer.cpp','.env','tests/test_bs.cpp','id_ed25519','CMakeLists.txt','.env.example'].forEach((f,i)=>{const hid=i===1||i===3,y=66+i*62;d.box(60,y,250,50,f,null,{mono:1,size:14,at:i*.08});d.line([[310,y+25],[390,y+25]],{at:.7+i*.05,c:hid?WARN:LIME});d.box(390,y,200,50,hid?'masked':'visible',null,{at:1+i*.05,size:15,hl:hid?1+i*.05:null,c:WARN})});d.pill('Masked before the agent starts',1.5,WARN)}},
+ {id:'hook',name:'Policy hook',desc:'Blocks commands before they run',tag:'block_dangerous.sh',facts:[['Trigger','<code>pre_tool_use</code> on the terminal tool, 10 s timeout'],['Effect','Deny, whatever the confirmation mode'],['Example','Any <code>git push</code> is refused']],
+  label:'Hook / enforced outside the prompt',steps:['Every terminal command passes through the hook first.','A forbidden command is denied, and the agent is told why.'],draw(){
+  d.box(30,100,190,84,'Agent','terminal tool');d.box(280,100,120,84,'Hook','pre_tool_use',{at:.2,hl:.4});d.box(460,100,160,84,'Shell',null,{at:.4});d.line([[220,142],[280,142]],{at:.2,c:LIME});d.line([[400,142],[460,142]],{at:.5,c:LIME});d.text(430,130,'allow',{size:12,fill:LIME,at:.6});
+  d.box(120,280,410,70,'git push origin main','deny, exit 2',{at:1,mono:1,size:16,hl:1.2,c:WARN});d.line([[340,184],[340,280]],{at:1,c:WARN});d.pill('A human must run it outside',1.5,WARN)}},
+ {id:'apply',name:'Auto-apply',desc:'Writes finished work to the real repo',tag:'apply.py',facts:[['When','After each turn; <code>force</code> is only for a deliberate user action'],['Conflict','The host file hash must match the baseline or last apply'],['Skipped paths','<code>.git/</code>, CI workflows, <code>.env</code>, VS Code tasks, keys'],['Runs as','The user, so ownership stays right']],flag:'The README still says apply is an explicit request. The code applies after each turn.',
+  label:'Apply / never write blindly (example)',steps:['At the end of the turn, the bridge reads what changed in the copy.','Each file is compared with the hash it had before.','Clean files land in your repo. The others are reported.'],draw(){
+  d.box(30,180,180,90,'Copy','changed files',{to:'copy'});d.box(250,180,150,90,'Hash check','apply.py',{at:1,hl:1.2});d.line([[210,225],[250,225]],{at:.8,c:LIME});
+  [['main.cpp',1],['ci.yml',0],['test.cpp',1]].forEach(([f,ok],i)=>{const y=100+i*100,at=2+i*.12;d.line([[400,225],[432,225],[432,y+30],[452,y+30]],{at,c:ok?LIME:WARN});d.box(452,y,170,60,f,ok?'written':'protected',{at,mono:1,size:14,hl:at+.1,c:ok?LIME:WARN})});
+  d.pill('changes_applied',2.5)}}]},
+
+{id:'models',name:'Models',sub:'One model in VRAM at a time, reachable only from this machine.',rows:[
+ {id:'llama',name:'llama-server',desc:'OpenAI-compatible API, fully in VRAM',tag:'systemd',facts:[['Model','Qwen3-Coder 30B-A3B Q4_K_M, 17.5 GiB of weights'],['Context','65,536 tokens'],['Listens','<code>127.0.0.1:8000</code>'],['Guard','Refuses to start if it would need the CPU'],['Budget','20 GiB of model weights, out of 32 GiB']],
+  label:'Serving / split over two GPUs',steps:['The GGUF is split by layers across both V100s.','Weights take 17.5 GiB, and the rest holds the context.'],draw(){
+  d.box(190,62,270,66,'qwen3-coder Q4_K_M','17.5 GiB GGUF',{size:15});[0,1].forEach(i=>{const x=30+i*310;d.box(x,178,280,226,`GPU ${i}`,null,{at:.3+i*.1});d.line([[325,128],[325,152],[x+140,152],[x+140,178]],{at:.3,c:LIME});
+  d.grid(x+36,226,5,4,{u:32,v:26,gap:8,at:.5,fillAt:1,fill:n=>n<11?true:false})});d.pill('split_mode: layer',1.6)}},
+ {id:'profiles-llm',name:'Model profiles',desc:'Pick the model by activity',tag:'models.yaml',facts:[['code','Qwen3-Coder, for the agent'],['translate','PLaMo 2 Translate Q8_0, for live-subs'],['Switch','<code>just llm-use &lt;profile&gt;</code>'],['Contexts','8,192 to 65,536, only benchmarked sizes are accepted']],
+  label:'Profiles / one registry, one model',steps:['The registry declares what can be served.','Switching a profile restarts the server with the other model.'],draw(){
+  d.box(205,70,240,70,'models.yaml','single source of truth',{mono:1,size:15});d.box(40,220,240,90,'code','Qwen3-Coder · 65,536',{at:.4,hl:.5});d.box(370,220,240,90,'translate','PLaMo 2 · 8,192',{at:.5});d.line([[325,140],[325,180],[160,180],[160,220]],{at:.3,c:LIME});d.line([[325,180],[490,180],[490,220]],{at:.4});
+  d.box(170,360,310,60,'just llm-use code',null,{at:1,mono:1,size:15});d.line([[160,310],[160,390],[170,390]],{at:1.1,c:LIME});d.pill('Clients only see the served name',1.5)}},
+ {id:'proxy',name:'llama-bridge',desc:'The only way from the sandbox to the model',tag:':8001',facts:[['Listens','<code>172.17.0.1:8001</code>, the Docker gateway'],['Forwards to','<code>127.0.0.1:8000</code>'],['Unit','<code>llama-bridge.socket</code>, tied to Docker']],
+  label:'Proxy / keep the model on loopback',steps:['A container cannot reach 127.0.0.1 on the host.','A proxy on the Docker gateway forwards to the model.'],draw(){
+  d.box(30,180,170,90,'Sandbox','host.docker.internal');d.box(240,180,170,90,'llama-bridge','172.17.0.1:8001',{at:1,hl:1.1});d.box(450,180,170,90,'llama-server','127.0.0.1:8000',{to:'llama',at:.2});
+  d.line([[200,150],[260,110],[450,160]],{at:.3,c:WARN});d.text(325,100,'no direct route',{size:13,fill:WARN,at:.5});d.line([[200,225],[240,225]],{at:1.1,c:LIME});d.line([[410,225],[450,225]],{at:1.3,c:LIME});d.pill('Nothing listens beyond the host',1.5)}},
+ {id:'embed',name:'Embedding servers',desc:'bge-m3 and a reranker, on the CPU',tag:':8310 / :8311',status:'unused',facts:[['Embedder','bge-m3 Q8_0, 1,024 dimensions, <code>127.0.0.1:8310</code>'],['Reranker','bge-reranker-v2-m3, <code>127.0.0.1:8311</code>'],['Units','<code>agenticenv-embed@embed</code>, <code>@rerank</code>']],flag:'Both are running, but no <code>models.env</code> activates them. The live index still uses hashing-bow.',
+  label:'Embed / running, not connected',steps:['Both local servers are up.','The MCP services still load the default configuration.'],draw(){
+  d.box(40,90,250,84,'bge-m3',':8310',{submono:1,hl:.2});d.box(360,90,250,84,'reranker',':8311',{submono:1,at:.1,hl:.3});d.box(190,270,270,90,'kbase-mcp','hashing-bow',{at:1,to:'retrieval',submono:1,hl:1.2,c:WARN});d.line([[165,174],[165,230],[300,270]],{at:1,c:WARN});d.line([[485,174],[485,230],[350,270]],{at:1.1,c:WARN});d.text(325,226,'not wired',{size:13,fill:WARN,at:1.3});
+  d.pill('Activation needs models.env and a reindex',1.5,WARN)}}]},
+
+{id:'tools',name:'Tools',sub:'34 tools in five MCP servers, restricted per agent profile.',rows:[
+ {id:'reach',name:'Where tools run',desc:'Next to the copy, or on the host',tag:'configs/mcp',facts:[['Inside the sandbox','cppdev, codeintel, qmharness, over stdio'],['On the host','kbase <code>:8202</code>, agentmem <code>:8203</code>, HTTP with a token'],['Why','Code tools must see the copy the agent is editing']],flag:'The README says sandboxes have no MCP access. The current code provides it.',
+  label:'Reach / two ways to call a tool',steps:['Code tools live in the container, beside the copy.','Knowledge tools stay on the host, near the database.'],draw(){
+  d.box(24,70,400,360,null,null);d.text(46,102,'SANDBOX',{size:13,mono:1,fill:MUTE,anchor:'start',ls:'.14em'});d.box(48,120,160,70,'Agent',null,{to:'container'});
+  ['cppdev','codeintel','qmharness'].forEach((n,i)=>{const y=210+i*68;d.box(240,y,160,54,n,null,{at:.3+i*.1,to:n,size:15,mono:1});d.line([[128,190],[128,y+27],[240,y+27]],{at:.2+i*.1,c:LIME})});
+  [['kbase','retrieval'],['agentmem','memory']].forEach(([n,to],i)=>{const y=130+i*150;d.box(470,y,156,76,n,':820'+(2+i),{at:1+i*.1,to,mono:1,size:15,submono:1});d.line([[208,150],[440,150],[440,y+38],[470,y+38]],{at:1+i*.1})});
+  d.text(548,380,'HOST',{size:13,mono:1,fill:MUTE,ls:'.14em',at:1});d.pill('stdio inside, HTTP + token outside',1.5)}},
+ {id:'cppdev',name:'cppdev',desc:'Build and test C++ with short diagnostics',tag:'cpp.*',status:'issue #42',chips:['cpp.configure','cpp.build','cpp.test','cpp.targets','cpp.format_check','cpp.tidy','cpp.sanitize','cpp.coverage','cpp.bench'],facts:[['Tools','9'],['Why','Short diagnostics keep compiler output out of the context']],flag:'Issue #42 is open: verify every tool on quant-modeling.',
+  label:'cpp.* / long logs in, facts out (example)',steps:['A build produces far more text than a model should read.','The tool returns only what the agent needs.'],draw(){
+  d.box(30,80,260,340,null,null);for(let i=0;i<13;i++)reveal(el('rect',{x:52,y:102+i*23,width:216-(i*53%90),height:9,rx:3,fill:i===9?WARN:'#2b3a30'}),i*.05,{dy:0,blur:2});
+  d.line([[290,250],[360,250]],{at:1,c:LIME});d.box(360,160,260,180,'error: no match','pricer.cpp:42',{at:1.2,hl:1.3,mono:1,size:15,submono:1});d.pill('Condensed diagnostics',1.6)}},
+ {id:'codeintel',name:'codeintel',desc:'Code navigation backed by clangd',tag:'code.*',status:'issue #41',chips:['code.find_symbol','code.definition','code.references','code.implementations','code.outline','code.signature','code.callers','code.callees','code.includes','code.grep','code.registry_matrix','code.diff_context'],facts:[['Tools','12'],['Target','Large C++ repositories']],flag:'Issue #41 is open: install clangd, then test on real C++.',
+  label:'code.* / navigate by symbol (example)',steps:['The agent asks for a symbol, without opening files.','clangd answers with definitions, callers and callees.'],draw(){
+  d.box(205,74,240,60,'price_call()',null,{mono:1,size:16,hl:.4});[['definition',60],['callers',245],['callees',430]].forEach(([s,x],i)=>{d.box(x,220,160,64,s,'code.*',{at:1+i*.1,submono:1});d.line([[325,134],[325,176],[x+80,176],[x+80,220]],{at:1+i*.08,c:LIME})});
+  [0,1,2].forEach(i=>d.box(60+i*185,330,160,44,['pricer.hpp:118','pricer.cpp:215','engine.cpp:312'][i],null,{at:1.4+i*.07,mono:1,size:13}));d.pill('12 navigation tools',1.6)}},
+ {id:'qmharness',name:'qmharness',desc:'Checks results against golden cases',tag:'qm.*',status:'issue #39',chips:['qm.run','qm.compare','qm.list_cases','qm.explain_failure'],facts:[['Tools','4'],['Goes through','pybind11 bindings of <code>quant-modeling</code>'],['Stored in','<code>eval.qm_runs</code>, <code>eval.qm_case_results</code>']],flag:'Issues #39 and #40 are open: align with the real API and isolate runs in a subprocess.',
+  label:'qm.* / the LLM does not compute',steps:['A golden case runs in deterministic C++ code.','The result is compared with the reference.'],draw(){
+  d.box(30,110,170,90,'Golden case','6 YAML files',{to:'golden'});d.box(240,110,170,90,'pybind11','quant-modeling',{at:.3,hl:.4});d.line([[200,155],[240,155]],{at:.2,c:LIME});d.box(450,110,170,90,'Result',null,{at:.6});d.line([[410,155],[450,155]],{at:.6,c:LIME});
+  d.box(175,270,300,84,'qm.compare','reference vs result',{at:1,hl:1.2,mono:1,size:16});d.line([[535,200],[535,312],[475,312]],{at:1});d.line([[115,200],[115,312],[175,312]],{at:1.1});d.pill('Numbers come from C++, never from the model',1.5)}},
+ {id:'agent-profiles',name:'Agent profiles',desc:'Five roles with different rights',tag:'agents/profiles',facts:[['Enforced by','The harness, never the prompt'],['Procedures','<code>add-pricer</code>, <code>calibrate-sabr</code>, <code>investigate-regression</code>']],
+  label:'Profiles / what each role may do',steps:['Each profile has its own strict tool allowlist.','Rights are declared for files, terminal and git.'],draw(){
+  const cols=['write','terminal','commit','steps'],rows=[['coding',1,1,1,50],['plan',0,1,0,40],['quant',0,0,0,30],['research',0,0,0,30],['validation',0,.5,0,20]];
+  cols.forEach((c,i)=>d.text(300+i*92,80,c,{size:12,mono:1,fill:MUTE,at:.1}));
+  rows.forEach((r,y)=>{const Y=100+y*68,at=.2+y*.1;d.box(30,Y,190,52,r[0],null,{at,mono:1,size:15});cols.forEach((c,i)=>{const x=300+i*92,v=r[i+1],g=d.g(1+y*.06+i*.05);if(i===3)txt(g,x,Y+32,String(v),{size:16,mono:1,fill:INK});else{txt(g,x,Y+32,v===1?'yes':v?'pytest, ctest':'no',{size:v&&v<1?10:15,fill:v?LIME:'#5b655e',w:500})}})});d.pill('Rights sit outside the prompt',1.6)}}]},
+
+{id:'knowledge',name:'Knowledge',sub:'What the agent can look up, with sources, and what it remembers.',rows:[
+ {id:'ingest',name:'Ingestion',desc:'PDFs become searchable sections',tag:'kbase',facts:[['Parser','MinerU, from the pipeline'],['Chunks','800 tokens, 100 overlap, by structure'],['Keeps whole','Equations and tables'],['Corpus','39 documents, 47,918 chunks, 20,459 equations']],
+  label:'Ingest / keep the structure',steps:['MinerU turns each PDF into structured content.','Chunks follow sections and never cut an equation.','Each chunk keeps its source.'],draw(){
+  d.box(30,190,130,90,'PDF','39 documents');d.box(200,190,130,90,'MinerU',null,{at:1,hl:1.1});d.line([[160,235],[200,235]],{at:.9,c:LIME});d.line([[330,235],[372,235]],{at:1.2,c:LIME});d.grid(372,110,6,7,{u:32,v:28,gap:8,at:1.2,fillAt:2,fill:n=>n%5===2?VIOLET:n%3!==1});
+  d.count(170,380,47918,2,{size:28,fill:LIME,unit:' chunks',w:500});d.count(480,400,20459,2.2,{size:18,fill:SOFT,unit:' equations'});d.pill('Provenance stays with every chunk',2.5)}},
+ {id:'retrieval',name:'Hybrid search',desc:'Vector and full-text results, fused',tag:'kb.*',status:'hashing-bow',chips:['kb.search','kb.get_document','kb.get_equation','kb.list_topics','kb.stats'],facts:[['Candidates','50 vector + 50 lexical'],['Fusion','RRF with k = 60, then top 8'],['Full text','<code>simple</code> config: keeps SABR, SOFR, CVA'],['Service','<code>agenticenv-mcp@kbase</code>, <code>172.17.0.1:8202</code>']],flag:'All 47,918 chunks are indexed with the hashing-bow placeholder, so vector search is not semantic yet.',
+  label:'Search / two lists, one ranking',steps:['The query runs on two indexes.','Reciprocal rank fusion merges both lists.','The live vector side is still a placeholder.'],draw(){
+  d.box(205,64,240,56,'kb.search(query)',null,{mono:1,size:15});[['Vector','pgvector, HNSW',40,1],['Full text','tsvector, GIN',370,0]].forEach(([a,b,x,w])=>{d.box(x,170,240,76,a,b,{at:.2,hl:w?2:null,c:WARN});d.line([[325,120],[325,146],[x+120,146],[x+120,170]],{at:.2,c:LIME});d.line([[x+120,246],[x+120,282],[325,282],[325,300]],{at:1,c:LIME})});
+  d.box(205,300,240,76,'RRF, k = 60','top 8',{at:1.1,hl:1.2});d.pill('Index: hashing-bow, not bge-m3',2.2,WARN)}},
+ {id:'memory',name:'Agent memory',desc:'Lessons recalled across sessions',tag:'mem.*',chips:['mem.recall','mem.remember','mem.list_procedures','mem.get_procedure'],facts:[['Recall','On the first message of a session, within a time limit'],['Capture','An episode is summarized when the session ends'],['Stored','4 episodes, 3 procedures'],['Policy','Best effort: memory never costs a session']],
+  label:'Memory / a loop across sessions',steps:['When a session ends, the bridge records a summary.','The next session starts with relevant past lessons.'],draw(){
+  d.box(30,110,200,90,'Session A','ending');d.box(225,280,200,90,'mem.episodes','4 episodes',{at:.4,mono:1,size:15,hl:.6});d.line([[130,200],[130,325],[225,325]],{at:.2,c:LIME});d.text(150,264,'summary',{size:13,fill:MUTE,anchor:'start',at:.5});
+  d.box(420,110,200,90,'Session B','first message',{at:1,hl:1.2});d.line([[425,325],[520,325],[520,200]],{at:1.1,c:LIME});d.text(530,264,'recall',{size:13,fill:MUTE,anchor:'start',at:1.2});d.pill('past lessons',1.5)}},
+ {id:'postgres',name:'PostgreSQL',desc:'pgvector and full text, four schemas',tag:':5432',facts:[['Image','<code>agenticenv/postgres:16-pgvector</code>'],['Listens','<code>127.0.0.1:5432</code>'],['Migrations','6 SQL files'],['Extensions','vector, pg_trgm, unaccent']],
+  label:'Database / four schemas',steps:['One database, one schema per concern.','Tool activity is logged for later analysis.'],draw(){
+  [['kb','documents, chunks, equations','47,918 chunks'],['mem','episodes, procedures','4 episodes'],['eval','qm_runs, qm_case_results','1 run'],['obs','tool_invocations','38 calls']].forEach(([a,b,c],i)=>{const x=30+(i%2)*305,y=80+(i>>1)*170;const g=d.box(x,y,285,140,null,null,{at:i*.15,hl:i===3?1.1:null});txt(g,x+22,y+44,a,{size:26,mono:1,fill:LIME,anchor:'start'});txt(g,x+22,y+78,b,{size:14,fill:MUTE,anchor:'start'});txt(g,x+22,y+112,c,{size:17,w:500,anchor:'start'})});d.pill('Bound to loopback',1.5)}}]},
+
+{id:'verify',name:'Verification',sub:'How the workshop measures itself instead of trusting the model.',rows:[
+ {id:'golden',name:'Golden cases',desc:'Numerical non-regression',tag:'benchmarks/golden',chips:['black_scholes_call','convergence','cross_engine','greeks','invariants','statistics'],facts:[['Files','6'],['Principle','The LLM is not a source of numerical truth']],
+  label:'Golden / references that do not drift',steps:['Each family pins an expected behaviour.','A result that drifts fails the case.'],draw(){
+  ['black_scholes_call','convergence','cross_engine','greeks','invariants','statistics'].forEach((n,i)=>{const x=30+(i%2)*305,y=76+(i>>1)*118;d.box(x,y,285,92,n,null,{at:i*.12,mono:1,size:14,hl:1+i*.08})});d.pill('Run through qmharness',1.6)}},
+ {id:'bench',name:'Agent bench',desc:'10 of 12 tasks passed on the real model',tag:'tasks.yaml',facts:[['Baseline','<code>baseline-qwen3-30b-q4-no-mcp</code>, 83%'],['Failed','<code>feature-median</code>, <code>refactor-keep-behaviour</code>'],['Duration','101 to 165 s per task'],['Run','<code>just bench-agent &lt;label&gt;</code>']],flag:'This baseline ran without MCP tools, so it does not measure them.',
+  label:'Bench / real tasks on the real model',steps:['Twelve tasks cover fixes, features, tests and a refactor.','Ten pass. Two fail.'],draw(){
+  const T=['fix-bs-d2','fix-cpp-out-of-bounds','fix-sample-variance','fix-word-count','fix-retry-swallows','feature-digital-call','feature-antithetic','feature-median','feature-csv-quotes','feature-slug-accents','test-write-put-tests','refactor-keep-behaviour'],F=[131.9,155.3,117.2,101.1,110.4,144,123.6,133.8,103.2,112.1,164.9,110.4];
+  T.forEach((n,i)=>{const bad=i===7||i===11,x=24+(i%2)*306,y=62+(i>>1)*64;const g=d.box(x,y,296,52,null,null,{at:i*.05,hl:bad?1.05:1+i*.04,c:bad?WARN:LIME});txt(g,x+14,y+31,n,{size:12.5,mono:1,anchor:'start',fill:SOFT});const t=d.g(1+i*.04);txt(t,x+284,y+31,(bad?'fail ':'pass ')+Math.round(F[i])+' s',{size:12,mono:1,anchor:'end',fill:bad?WARN:MUTE})});d.pill('10 / 12 on the no-MCP baseline',1.6)}},
+ {id:'measures',name:'Search bench',desc:'60 queries, three configurations',tag:'kbase eval',facts:[['Decision','bge-m3 without the reranker'],['Reason','The reranker adds 5.3 s at p95 and loses recall'],['Queries','60, in 4 categories'],['Hardest','Equations: recall@5 of 0.75 on bge-m3']],flag:'The chosen configuration is measured but not activated yet.',
+  label:'Measures / why the reranker stays off',steps:['bge-m3 lifts recall@5 from 0.75 to 0.93.','The reranker improves MRR, at a very high latency.'],draw(){
+  const C=['hashing','bge-m3','bge+rerank'],M=[['Recall@5',[.75,.933,.9],1,v=>v.toFixed(2),0],['MRR',[.605,.781,.844],1,v=>v.toFixed(2),0],['p95 latency',[43,408,5745],5745,v=>v.toLocaleString('en-US')+' ms',1]];
+  M.forEach(([name,vals,max,fmt,step],m)=>{const y0=64+m*126,at=m<2?m*.15:1;d.text(24,y0+10,name.toUpperCase(),{size:12,mono:1,fill:MUTE,anchor:'start',ls:'.12em',at});
+   vals.forEach((v,i)=>{const y=y0+24+i*28,g=d.g(at+i*.05),on=i===1;txt(g,24,y+15,C[i],{size:13,mono:1,anchor:'start',fill:on?INK:MUTE});el('rect',{x:140,y:y+3,width:400,height:14,fill:'transparent'},g);const r=el('rect',{x:140,y:y+3,height:14,rx:3,fill:on?LIME:'#66756b'},g),tin=at*STEP+i*.1,W=Math.max(3,400*v/max);U.push(t=>r.setAttribute('width',W*ease((t-tin)/.7)));txt(g,626,y+15,fmt(v),{size:13,mono:1,anchor:'end'});const tt=el('title',{},g);tt.textContent=`${name}, ${C[i]}: ${fmt(v)}`})});d.pill('bge-m3, no reranker',1.6)}},
+ {id:'contracts',name:'Quality gates',desc:'Lint, types and dependency contracts',tag:'pyproject.toml',facts:[['Contracts','15 import-linter rules'],['Lint','<code>just lint</code>: ruff, <code>mypy --strict</code>, import-linter'],['Tests','<code>just test</code>, <code>test-integration</code>, <code>test-e2e</code>'],['CI','<code>ci.yml</code> exists, and issue #44 is still open']],
+  label:'Contracts / dependencies point down',steps:['Each package may only import the layer below it.','corelib depends on nothing else in the repo.'],draw(){
+  d.box(165,70,320,62,'openhands-bridge',null,{mono:1,size:15,to:'bridge'});[['openhands_adapter',30],['agentmem',245],['kbase, cppdev, ...',440]].forEach(([n,x],i)=>{const w=i===2?180:195;d.box(x,200,w,62,n,null,{at:.2+i*.1,mono:1,size:14});if(i<2)d.line([[325,132],[325,166],[x+w/2,166],[x+w/2,200]],{at:.2+i*.1,c:LIME});d.line([[x+w/2,262],[x+w/2,300],[325,300],[325,330]],{at:1+i*.08,c:LIME})});
+  d.box(190,330,270,70,'corelib','imports no repo package',{at:1.1,mono:1,size:16,hl:1.3});d.pill('15 contracts in pyproject.toml',1.5)}}]}
+];
+
+/* Map: real trust zones, with the listening addresses seen on the host. */
+const N={client:[40,110,140,64,'VS Code','agenticenv-chat','client'],repo:[40,340,140,64,'Your repo','real files','apply'],
+ bridge:[235,100,200,64,'Bridge',':8300','bridge'],llama:[235,220,200,64,'llama-server',':8000','llama'],embed:[235,340,200,64,'Embed servers',':8310 / :8311','embed'],postgres:[235,460,200,64,'PostgreSQL',':5432','postgres'],
+ proxy:[500,220,170,64,'llama-bridge',':8001','proxy'],kbase:[500,340,170,64,'kbase-mcp',':8202','retrieval'],mem:[500,460,170,64,'agentmem-mcp',':8203','memory'],
+ agent:[740,100,315,64,'Agent server','OpenHands','container'],copy:[740,210,315,64,'Working copy','/workspace/project','copy'],
+ cppdev:[740,340,100,64,'cppdev','','cppdev'],codeintel:[847,340,100,64,'codeintel','','codeintel'],qmharness:[955,340,100,64,'qmharness','','qmharness'],source:[740,460,315,64,'Your folder','/workspace/source, read-only','masking']};
+const E={ws:[[180,142],[235,132]],run:[[435,120],[740,120]],llm:[[740,134],[682,134],[682,252],[670,252]],llm2:[[500,252],[435,252]],kb:[[740,146],[692,146],[692,372],[670,372]],mm:[[740,158],[704,158],[704,492],[670,492]],
+ kbe:[[500,372],[435,372]],kbp:[[500,384],[468,384],[468,484],[435,484]],mp:[[500,500],[435,500]],app:[[235,150],[197,150],[197,372],[180,372]],rec:[[235,156],[222,156],[222,508],[235,508]],
+ ac:[[897,164],[897,210]],ct:[[897,274],[897,340]],ct1:[[790,274],[790,340]],ct2:[[1005,274],[1005,340]],sc:[[1055,492],[1070,492],[1070,242],[1055,242]]};
+const TRACE=[
+ ['Click any box to open it, or step through one turn.',[],[]],
+ ['You send a message. The WebSocket connection needs the token.',['client','bridge'],['ws']],
+ ['On a new session the bridge starts the container and copies your folder.',['bridge','agent','copy','source'],['run','sc']],
+ ['The first message picks up past lessons, and the copy gets a checkpoint.',['bridge','postgres','copy'],['rec']],
+ ['The agent asks the model through the proxy on the Docker gateway.',['agent','proxy','llama'],['llm','llm2']],
+ ['Code tools run in the sandbox, on the copy.',['agent','copy','cppdev','codeintel','qmharness'],['ac','ct','ct1','ct2']],
+ ['Knowledge tools go to the host, then to the embedder and the database.',['agent','kbase','embed','postgres'],['kb','kbe','kbp']],
+ ['Events and tokens stream back to the editor.',['agent','bridge','client'],['run','ws']],
+ ['The turn ends. Clean, unprotected files are written to your repo.',['bridge','repo'],['app']],
+ ['The session closes. A summary is stored and the container is deleted.',['bridge','postgres','agent'],['rec']]];
+
+const COMPS=VIEWS.flatMap(v=>v.rows.map(r=>({...r,view:v.id}))),ORDER=['map',...COMPS.map(c=>c.id)];
+const S={view:'map',id:'map',t:0,tour:false,last:0,steps:TRACE.map(s=>s[0]),paused:false};
+
+function drawMap(){
+ svg.setAttribute('viewBox','0 0 1100 600');
+ [[20,'YOUR EDITOR',20,190],[205,'HOST / LOOPBACK',205,250],[480,'DOCKER GATEWAY',480,210],[715,'DISPOSABLE SANDBOX',715,365]].forEach(([x,l,,w])=>{el('rect',{x,y:48,width:w-10,height:510,rx:14,fill:x===715?'#0c1511':'#090f0c',stroke:'#1f2a24','stroke-dasharray':x===715?'6 5':''});txt(svg,x+14,34,l,{size:13,mono:1,fill:MUTE,anchor:'start',ls:'.14em'})});
+ const paths={};for(const k in E)paths[k]=el('path',{d:'M'+E[k].map(q=>q.join(' ')).join('L'),fill:'none',stroke:'#34443a','stroke-width':1.5});
+ const hot={};for(const k in E)hot[k]=el('path',{d:paths[k].getAttribute('d'),fill:'none',stroke:LIME,'stroke-width':2.4});
+ const lit={};
+ for(const k in N){const[x,y,w,h,a,b,to]=N[k],g=el('g');el('rect',{x,y,width:w,height:h,rx:11,fill:'#0b120e',stroke:LINE},g);txt(g,x+w/2,y+(b?h/2-3:h/2+6),a,{size:w<110?14:17,w:500});if(b)txt(g,x+w/2,y+h/2+18,b,{size:13,fill:MUTE,mono:b[0]===':'||b[0]==='/'});
+  lit[k]=el('rect',{x,y,width:w,height:h,rx:11,fill:'#c6f13518',stroke:LIME,'stroke-width':2,'pointer-events':'none'},g);link(g,to,a)}
+ const dot=[0,1,2,3].map(()=>el('circle',{r:5,fill:LIME}));
+ U.push(t=>{const s=Math.floor(t/STEP),[,ns,es]=TRACE[Math.min(s,TRACE.length-1)],since=t-s*STEP,p=ease(since/.35);
+  for(const k in lit)lit[k].style.opacity=ns.includes(k)?p:0;
+  for(const k in hot){const on=es.includes(k);hot[k].style.opacity=on?1:0}
+  dot.forEach((c,i)=>{const k=es[i];if(!k){c.style.opacity=0;return}const q=paths[k],L=q.getTotalLength(),pt=q.getPointAtLength(L*((since/1.4)%1));c.setAttribute('cx',pt.x);c.setAttribute('cy',pt.y);c.style.opacity=1})})
+}
+
+const C=$('#chip').getContext('2d');
+function chip(t){C.clearRect(0,0,400,270);const a=.72+.3*Math.sin(t*.42),e=.62,sc=.94;
+ const rot=([x,y,z])=>{const X=x*Math.cos(a)-y*Math.sin(a),Y=x*Math.sin(a)+y*Math.cos(a);return[X,Y*Math.cos(e)-z*Math.sin(e),Y*Math.sin(e)+z*Math.cos(e)]};
+ const face=(pts,c)=>{C.beginPath();pts.map(rot).forEach((p,i)=>{const x=200+p[0]*sc,y=132+p[1]*sc;i?C.lineTo(x,y):C.moveTo(x,y)});C.closePath();C.fillStyle=`rgb(${c.join(',')})`;C.fill();C.strokeStyle='rgba(0,0,0,.45)';C.stroke()};
+ const shade=(c,s)=>c.map(v=>Math.round(v*s));
+ const cub=(x0,y0,z0,x1,y1,z1,c)=>{for(const[n,pts,s]of[[[1,0,0],[[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],.55],[[-1,0,0],[[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],.3],[[0,1,0],[[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],.4],[[0,-1,0],[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],.3]])if(rot(n)[2]>0)face(pts,shade(c,s));face([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c)};
+ cub(-105,-80,-34,105,80,-12,[122,126,118]);face([[-94,-68,-12],[94,-68,-12],[94,68,-12],[-94,68,-12]],[26,30,27]);
+ [...Array(8)].map((_,i)=>-92+i*25).sort((u,v)=>(u-v)*Math.sin(a)).forEach(x=>cub(x,-66,-12,x+16,66,18,[182,184,170]))}
+
+function seek(t){
+ for(const a of A){const p=ease((t-a.tin)/.42),s=a.e.style;s.opacity=t>=a.tin?p:0;s.transform=`translateY(${a.dy*(1-p)}px)`;const b=a.blur*(1-p);s.filter=b>.05&&t>=a.tin?`blur(${b}px)`:'none'}
+ U.forEach(f=>f(t));
+ const s=Math.min(Math.floor(t/STEP),S.steps.length-1);
+ if(s!==S.shown){S.shown=s;const m=S.id==='map';$('#cap').innerHTML=`<b>${m?s:s+1}/${m?S.steps.length-1:S.steps.length}</b>`+S.steps[s];[...$('#dots').children].forEach((b,i)=>i===s?b.setAttribute('aria-current','true'):b.removeAttribute('aria-current'))}
+ const i=ORDER.indexOf(S.id);$('#prog').style.width=100*(i+(s+1)/S.steps.length)/ORDER.length+'%'}
+
+function renderList(v){
+ $('#list').replaceChildren(...v.rows.map((r,i)=>{const b=document.createElement('button');b.className='row';b.dataset.id=r.id;const on=r.id===S.id;b.setAttribute('aria-expanded',on);
+  b.innerHTML=`<i>${String(i+1).padStart(2,'0')}</i><h3>${r.name}</h3><p>${r.desc}</p><u${r.status?' style="color:var(--warn)"':''}>${r.status??r.tag}</u>`+(on?`<dl class="more">${(r.facts||[]).map(([k,w])=>`<dt>${k}</dt><dd>${w}</dd>`).join('')}${r.chips?`<div class="chips">${r.chips.map(c=>`<span>${c}</span>`).join('')}</div>`:''}${r.flag?`<div class="flag"><span>${r.flag}</span></div>`:''}</dl>`:'');
+  b.onclick=()=>open(r.id);return b}))}
+
+function open(id,keepTour){
+ const c=COMPS.find(x=>x.id===id),view=c?VIEWS.find(v=>v.id===c.view):null;
+ if(!keepTour)S.tour=false;S.id=id;S.view=c?c.view:'map';S.t=0;S.shown=-1;S.paused=false;S.hold=0;A=[];U=[];svg.replaceChildren();
+ $('#cols').classList.toggle('is-map',!c);
+ [...$('#tabs').children].forEach(b=>{const on=b.dataset.view===S.view;b.setAttribute('aria-selected',on);if(on)$('#tabs').scrollLeft=b.offsetLeft-16});
+ if(c){svg.setAttribute('viewBox','0 0 650 520');S.steps=c.steps;$('#sec').textContent=`${String(VIEWS.indexOf(view)+1).padStart(2,'0')} / ${view.name}`;$('#sub').textContent=view.sub;$('#plabel').textContent=c.label;renderList(view);c.draw()}
+ else{S.steps=TRACE.map(s=>s[0]);$('#sub').textContent='One view of every moving part, and the path of a single turn.';$('#plabel').textContent='System map / follow one turn';drawMap()}
+ const dots=$('#dots');dots.replaceChildren(...S.steps.map((_,i)=>{const b=document.createElement('button');b.className='dot';b.textContent=c?i+1:i;b.setAttribute('aria-label','Go to step '+(c?i+1:i));b.onclick=()=>{S.tour=false;S.paused=true;S.t=c?(i+1)*STEP-.02:i*STEP+.001;seek(S.t);syncPlay()};return b}));
+ try{history.replaceState(null,'','#'+id)}catch{}
+ if(!c)S.paused=!S.tour;
+ if(still)S.t=c?S.steps.length*STEP-.01:0;
+ seek(S.t);syncPlay()}
+
+function syncPlay(){$('#play').textContent=S.tour?'Pause tour':'Play tour'}
+function step(d){const i=(ORDER.indexOf(S.id)+d+ORDER.length)%ORDER.length;open(ORDER[i])}
+function frame(now){const dt=Math.min(.1,(now-S.last)/1000||0);S.last=now;chip(now/1000);
+ if(!S.paused){const end=S.steps.length*STEP-.01;
+  if(S.t<end){S.t=Math.min(end,S.t+dt);seek(S.t)}
+  else if(S.tour&&(!still||(S.hold+=dt)>4)){const i=ORDER.indexOf(S.id);i<ORDER.length-1?open(ORDER[i+1],true):(S.tour=false,syncPlay())}}
+ else if(S.id==='map'&&S.shown>0&&!still){const b=S.shown*STEP;S.t=b+((S.t-b+dt)%(STEP-.01));seek(S.t)}
+ requestAnimationFrame(frame)}
+
+$('#tabs').replaceChildren(...[{id:'map',name:'System map'},...VIEWS].map((v,i)=>{const b=document.createElement('button');b.className='tab';b.dataset.view=v.id;b.setAttribute('role','tab');b.innerHTML=`<b>0${i}</b>${v.name}`;b.onclick=()=>open(v.id==='map'?'map':v.rows[0].id);return b}));
+$('#prev').onclick=()=>step(-1);$('#next').onclick=()=>step(1);
+$('#play').onclick=()=>{S.tour=!S.tour;if(S.tour)S.paused=false;else if(S.id==='map')S.paused=true;syncPlay()};
+addEventListener('keydown',e=>{if(e.target.closest('button,.go'))return;if(e.key==='ArrowRight')step(1);if(e.key==='ArrowLeft')step(-1)});
+addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(id!==S.id&&ORDER.includes(id))open(id)});
+const h=location.hash.slice(1);open(ORDER.includes(h)?h:'map');chip(0);requestAnimationFrame(frame);
+</script>

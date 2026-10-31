@@ -1,0 +1,1 @@
+{"category": "quant-modeling", "base": "qm", "resource": "qm", "checks": ["down_out_call_matches_closed_form", "up_out_put_matches_closed_form", "existing_barrier_suite", "library_builds"]}

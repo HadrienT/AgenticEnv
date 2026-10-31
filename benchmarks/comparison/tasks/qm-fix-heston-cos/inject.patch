@@ -1,0 +1,13 @@
+diff --git a/src/engines/analytic/heston_cos.cpp b/src/engines/analytic/heston_cos.cpp
+index 36dfda1..f336f4d 100644
+--- a/src/engines/analytic/heston_cos.cpp
++++ b/src/engines/analytic/heston_cos.cpp
+@@ -23,7 +23,7 @@ namespace quantModeling
+             const Real cos_c = std::cos(kpi_ba * (c - a));
+             const Real sin_d = std::sin(kpi_ba * (d - a));
+             const Real sin_c = std::sin(kpi_ba * (c - a));
+-            return (cos_d * std::exp(d) - cos_c * std::exp(c) + kpi_ba * sin_d * std::exp(d) -
++            return (cos_d * std::exp(d) - cos_c * std::exp(c) - kpi_ba * sin_d * std::exp(d) -
+                     kpi_ba * sin_c * std::exp(c)) /
+                    (1.0 + kpi_ba * kpi_ba);
+         }

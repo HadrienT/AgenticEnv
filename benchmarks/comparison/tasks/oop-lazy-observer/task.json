@@ -1,0 +1,1 @@
+{"category":"oop","checks":["lazy_recompute","same_value_no_invalidate","diamond_single_recalc","chain_propagates","observer_dies_first","observable_dies_first","unregister_during_notify","factory_builtin","factory_unknown_throws","third_party_registration","decorator_memoizes","decorator_invalidate"]}

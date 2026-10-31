@@ -1,0 +1,15 @@
+diff --git a/include/quantModeling/utils/brownian_bridge.hpp b/include/quantModeling/utils/brownian_bridge.hpp
+index 03eef5a..9323e2c 100644
+--- a/include/quantModeling/utils/brownian_bridge.hpp
++++ b/include/quantModeling/utils/brownian_bridge.hpp
+@@ -74,8 +74,8 @@ namespace quantModeling
+                 const Real tl = t_[static_cast<size_t>(l)];
+                 const Real tk = t_[static_cast<size_t>(k)];
+                 const Real tj = (j != 0) ? t_[static_cast<size_t>(j) - 1] : 0.0;
+-                left_weight_[static_cast<size_t>(i)] = (tk - tl) / (tk - tj);
+-                right_weight_[static_cast<size_t>(i)] = (tl - tj) / (tk - tj);
++                left_weight_[static_cast<size_t>(i)] = (tl - tj) / (tk - tj);
++                right_weight_[static_cast<size_t>(i)] = (tk - tl) / (tk - tj);
+                 std_dev_[static_cast<size_t>(i)] =
+                     std::sqrt((tl - tj) * (tk - tl) / (tk - tj));
+ 

@@ -1,0 +1,1 @@
+{"category":"monte-carlo","checks":["andersen_case1_atm","andersen_case1_itm","andersen_case1_otm","andersen_case2","andersen_case3","martingale","martingale_extreme","feller_ok_regime","reproducible"]}

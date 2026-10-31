@@ -1,0 +1,54 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.6,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 10,
+  "checks": {
+   "american_put_1": false,
+   "american_put_2_dividend": false,
+   "american_put_3_long": false,
+   "american_put_itm_exercise": false,
+   "european_call_second_order": false,
+   "digital_accuracy": false,
+   "digital_second_order": false,
+   "digital_gamma_smooth": false,
+   "put_call_grid_independent": false,
+   "spot_not_on_grid": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 1.1,
+  "output": "FAIL american_put_1\nFAIL american_put_2_dividend\nFAIL american_put_3_long\nFAIL american_put_itm_exercise\nFAIL european_call_second_order\nFAIL digital_accuracy\nFAIL digital_second_order\nFAIL digital_gamma_smooth\nFAIL put_call_grid_independent\nFAIL spot_not_on_grid\n[american_put_1] exception: not implemented\n[american_put_2_dividend] exception: not implemented\n[american_put_3_long] exception: not implemented\n[american_put_itm_exercise] exception: not implemented\n[european_call_second_order] exception: not implemented\n[digital_accuracy] exception: not implemented\n[digital_second_order] exception: not implemented\n[digital_gamma_smooth] exception: not implemented\n"
+ }
+}

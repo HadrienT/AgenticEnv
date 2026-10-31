@@ -1,0 +1,1 @@
+{"category": "quant-modeling", "base": "qm", "resource": "qm-nav", "checks": ["macro_file", "visit_count", "tape_sizes", "gpu_rng", "digital_adapter", "unsupported", "sobol_dims", "host_compiler", "sobol_direct", "pde_file"]}

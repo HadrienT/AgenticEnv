@@ -1,0 +1,1 @@
+{"category":"monte-carlo","checks":["first_points","stratified_1d","stratified_2d","all_dims_valid","bridge_endpoint","bridge_covariance","bridge_is_a_bijection","digital_shift_unbiased","qmc_beats_pseudo","bridge_beats_forward"]}

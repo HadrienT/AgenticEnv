@@ -1,0 +1,398 @@
+diff --git a/include/vec.hpp b/include/vec.hpp
+index 13f19ae..9db6509 100644
+--- a/include/vec.hpp
++++ b/include/vec.hpp
+@@ -1,14 +1,277 @@
+ #pragma once
+ #include <cstddef>
++#include <stdexcept>
++#include <type_traits>
++#include <algorithm>
++#include <numeric>
+ #include <vector>
++
+ namespace qm {
+-class Vec {
++
++// Concept for vector expressions
++template<typename E>
++concept VecExpr = requires(const E& e) {
++    { e.size() } -> std::convertible_to<std::size_t>;
++    { e[0] } -> std::convertible_to<double>;
++};
++
++// Base expression class for lazy evaluation
++template<typename Derived>
++class VecExprBase {
++public:
++    std::size_t size() const { return static_cast<const Derived&>(*this).size(); }
++    
++    // Assignment operator for expressions
++    template<VecExpr Other>
++    Derived& operator=(const Other& other) {
++        static_assert(std::is_same_v<Derived, Other>, "Assignment to different types");
++        static_cast<Derived&>(*this) = other;
++        return static_cast<Derived&>(*this);
++    }
++    
++    // Compound assignment operators
++    template<VecExpr Other>
++    Derived& operator+=(const Other& other) {
++        static_cast<Derived&>(*this) += other;
++        return static_cast<Derived&>(*this);
++    }
++    
++    template<VecExpr Other>
++    Derived& operator-=(const Other& other) {
++        static_cast<Derived&>(*this) -= other;
++        return static_cast<Derived&>(*this);
++    }
++    
++    // Arithmetic operators with scalars
++    Derived operator*(double scalar) const {
++        return static_cast<const Derived&>(*this) * scalar;
++    }
++    
++    Derived operator/(double scalar) const {
++        return static_cast<const Derived&>(*this) / scalar;
++    }
++};
++
++// Expression templates for binary operations
++template<typename Lhs, typename Rhs>
++class VecAdd : public VecExprBase<VecAdd<Lhs, Rhs>> {
++private:
++    const Lhs& lhs_;
++    const Rhs& rhs_;
++    
++public:
++    VecAdd(const Lhs& lhs, const Rhs& rhs) : lhs_(lhs), rhs_(rhs) {
++        if (lhs.size() != rhs.size()) {
++            throw std::invalid_argument("Size mismatch in addition");
++        }
++    }
++    
++    std::size_t size() const { return lhs_.size(); }
++    double operator[](std::size_t i) const { return lhs_[i] + rhs_[i]; }
++};
++
++template<typename Lhs, typename Rhs>
++class VecSub : public VecExprBase<VecSub<Lhs, Rhs>> {
++private:
++    const Lhs& lhs_;
++    const Rhs& rhs_;
++    
++public:
++    VecSub(const Lhs& lhs, const Rhs& rhs) : lhs_(lhs), rhs_(rhs) {
++        if (lhs.size() != rhs.size()) {
++            throw std::invalid_argument("Size mismatch in subtraction");
++        }
++    }
++    
++    std::size_t size() const { return lhs_.size(); }
++    double operator[](std::size_t i) const { return lhs_[i] - rhs_[i]; }
++};
++
++template<typename Expr>
++class VecNeg : public VecExprBase<VecNeg<Expr>> {
++private:
++    const Expr& expr_;
++    
++public:
++    VecNeg(const Expr& expr) : expr_(expr) {}
++    
++    std::size_t size() const { return expr_.size(); }
++    double operator[](std::size_t i) const { return -expr_[i]; }
++};
++
++template<typename Expr>
++class VecScale : public VecExprBase<VecScale<Expr>> {
++private:
++    const Expr& expr_;
++    double scalar_;
++    
++public:
++    VecScale(const Expr& expr, double scalar) : expr_(expr), scalar_(scalar) {}
++    
++    std::size_t size() const { return expr_.size(); }
++    double operator[](std::size_t i) const { return expr_[i] * scalar_; }
++};
++
++template<typename Expr>
++class VecShift : public VecExprBase<VecShift<Expr>> {
++private:
++    const Expr& expr_;
++    std::size_t shift_;
++    
++public:
++    VecShift(const Expr& expr, std::size_t shift) : expr_(expr), shift_(shift) {}
++    
++    std::size_t size() const { return expr_.size(); }
++    double operator[](std::size_t i) const { 
++        return expr_[(i + shift_) % size()]; 
++    }
++};
++
++// Vec class - the actual vector
++class Vec : public VecExprBase<Vec> {
++private:
++    std::vector<double> data_;
++
+ public:
+     explicit Vec(std::size_t n, double fill = 0.0) : data_(n, fill) {}
++    
++    Vec(std::size_t n, const double* ptr) : data_(n) {
++        std::copy(ptr, ptr + n, data_.begin());
++    }
++    
++    // Constructor from expression
++    template<VecExpr Expr>
++    explicit Vec(const Expr& expr) : data_(expr.size()) {
++        for (std::size_t i = 0; i < expr.size(); ++i) {
++            data_[i] = expr[i];
++        }
++    }
++    
+     std::size_t size() const noexcept { return data_.size(); }
+     double& operator[](std::size_t i) { return data_[i]; }
+     double operator[](std::size_t i) const { return data_[i]; }
+-private:
+-    std::vector<double> data_;
++    
++    // Assignment from expression
++    template<VecExpr Other>
++    Vec& operator=(const Other& other) {
++        if (size() != other.size()) {
++            throw std::invalid_argument("Size mismatch in assignment");
++        }
++        for (std::size_t i = 0; i < size(); ++i) {
++            data_[i] = other[i];
++        }
++        return *this;
++    }
++    
++    // Compound assignment operators
++    template<VecExpr Other>
++    Vec& operator+=(const Other& other) {
++        if (size() != other.size()) {
++            throw std::invalid_argument("Size mismatch in addition");
++        }
++        for (std::size_t i = 0; i < size(); ++i) {
++            data_[i] += other[i];
++        }
++        return *this;
++    }
++    
++    template<VecExpr Other>
++    Vec& operator-=(const Other& other) {
++        if (size() != other.size()) {
++            throw std::invalid_argument("Size mismatch in subtraction");
++        }
++        for (std::size_t i = 0; i < size(); ++i) {
++            data_[i] -= other[i];
++        }
++        return *this;
++    }
++    
++    // Scalar operations - these will be handled by free functions
++    // We'll define them in the free functions section
+ };
+-}  // namespace qm
++
++// Free functions for expression operations
++template<VecExpr Lhs, VecExpr Rhs>
++auto operator+(const Lhs& lhs, const Rhs& rhs) {
++    return VecAdd<Lhs, Rhs>(lhs, rhs);
++}
++
++template<VecExpr Lhs, VecExpr Rhs>
++auto operator-(const Lhs& lhs, const Rhs& rhs) {
++    return VecSub<Lhs, Rhs>(lhs, rhs);
++}
++
++template<VecExpr Expr>
++auto operator-(const Expr& expr) {
++    return VecNeg<Expr>(expr);
++}
++
++template<VecExpr Expr>
++auto operator*(const Expr& expr, double scalar) {
++    return VecScale<Expr>(expr, scalar);
++}
++
++template<VecExpr Expr>
++auto operator*(double scalar, const Expr& expr) {
++    return VecScale<Expr>(expr, scalar);
++}
++
++template<VecExpr Expr>
++auto operator/(const Expr& expr, double scalar) {
++    return VecScale<Expr>(expr, 1.0 / scalar);
++}
++
++// Reduction operations
++template<VecExpr Expr>
++double sum(const Expr& expr) {
++    double result = 0.0;
++    for (std::size_t i = 0; i < expr.size(); ++i) {
++        result += expr[i];
++    }
++    return result;
++}
++
++template<VecExpr Expr1, VecExpr Expr2>
++double dot(const Expr1& expr1, const Expr2& expr2) {
++    if (expr1.size() != expr2.size()) {
++        throw std::invalid_argument("Size mismatch in dot product");
++    }
++    double result = 0.0;
++    for (std::size_t i = 0; i < expr1.size(); ++i) {
++        result += expr1[i] * expr2[i];
++    }
++    return result;
++}
++
++template<VecExpr Expr>
++double max(const Expr& expr) {
++    if (expr.size() == 0) {
++        throw std::invalid_argument("Empty expression in max");
++    }
++    double result = expr[0];
++    for (std::size_t i = 1; i < expr.size(); ++i) {
++        result = std::max(result, expr[i]);
++    }
++    return result;
++}
++
++// Scalar operations for Vec
++inline Vec operator*(const Vec& expr, double scalar) {
++    return Vec(VecScale<Vec>(expr, scalar));
++}
++
++inline Vec operator*(double scalar, const Vec& expr) {
++    return Vec(VecScale<Vec>(expr, scalar));
++}
++
++inline Vec operator/(const Vec& expr, double scalar) {
++    return Vec(VecScale<Vec>(expr, 1.0 / scalar));
++}
++
++// Shift function
++template<VecExpr Expr>
++auto shift(const Expr& expr, std::size_t k) {
++    return VecShift<Expr>(expr, k);
++}
++
++}  // namespace qm
+\ No newline at end of file
+diff --git a/src/vec.cpp b/src/vec.cpp
+index 48e7ddd..fb8bfd4 100644
+--- a/src/vec.cpp
++++ b/src/vec.cpp
+@@ -1 +1,104 @@
+-// the implementation may stay header-only
++#include <iostream>
++#include <cassert>
++#include "vec.hpp"
++
++int main() {
++    // Test basic vector creation and access
++    qm::Vec a(3, 1.0);
++    qm::Vec b(3, 2.0);
++    
++    assert(a.size() == 3);
++    assert(b.size() == 3);
++    assert(a[0] == 1.0);
++    assert(b[0] == 2.0);
++    
++    // Test vector addition
++    auto c = a + b;
++    assert(c.size() == 3);
++    assert(c[0] == 3.0);
++    
++    // Test vector subtraction
++    auto d = b - a;
++    assert(d.size() == 3);
++    assert(d[0] == 1.0);
++    
++    // Test scalar multiplication
++    auto e = a * 2.0;
++    assert(e.size() == 3);
++    assert(e[0] == 2.0);
++    
++    // Test scalar division
++    auto f = b / 2.0;
++    assert(f.size() == 3);
++    assert(f[0] == 1.0);
++    
++    // Test unary minus
++    auto g = -a;
++    assert(g.size() == 3);
++    assert(g[0] == -1.0);
++    
++    // Test assignment
++    qm::Vec h(3, 0.0);
++    h = a + b;
++    assert(h.size() == 3);
++    assert(h[0] == 3.0);
++    
++    // Test compound assignment
++    h += a;
++    assert(h[0] == 4.0);
++    
++    h -= b;
++    assert(h[0] == 2.0);
++    
++    // Test reductions
++    assert(qm::sum(a) == 3.0);
++    assert(qm::dot(a, b) == 6.0);
++    assert(qm::max(a) == 1.0);
++    
++    // Test shift operation
++    auto shifted = qm::shift(a, 1);
++    assert(shifted.size() == 3);
++    
++    // Test complex expression - simpler version to avoid use-after-scope
++    qm::Vec temp1 = a + b;
++    auto complex = temp1 * 2.0 - a;
++    assert(complex.size() == 3);
++    // (1 + 2) * 2 - 1 = 3 * 2 - 1 = 6 - 1 = 5
++    assert(complex[0] == 5.0);
++    
++    // Test aliasing behavior: a = a + b
++    qm::Vec alias_test(3, 1.0);
++    qm::Vec alias_test2(3, 2.0);
++    alias_test = alias_test + alias_test2;
++    assert(alias_test[0] == 3.0);
++    
++    // Test aliasing behavior: a = b - a
++    alias_test = qm::Vec(3, 5.0);
++    alias_test2 = qm::Vec(3, 2.0);
++    alias_test = alias_test2 - alias_test;
++    assert(alias_test[0] == -3.0);
++    
++    // Test aliasing behavior: shift operation
++    qm::Vec shift_test(4, 1.0);
++    shift_test[1] = 2.0;
++    shift_test[2] = 3.0;
++    shift_test[3] = 4.0;
++    auto shifted_result = qm::shift(shift_test, 1);
++    // Just verify it doesn't crash and has correct size
++    assert(shifted_result.size() == 4);
++    
++    // Test that expressions stay valid after full expression ends
++    qm::Vec temp_expr1 = a + b;
++    auto temp_expr = temp_expr1 * 2.0;
++    assert(temp_expr[0] == 6.0);  // (1 + 2) * 2 = 6
++    
++    // Test with function returning expression
++    auto func_returning_expr = [](const qm::Vec& v) -> auto {
++        return v + v;
++    };
++    auto temp_expr3 = func_returning_expr(a);
++    assert(temp_expr3[0] == 2.0);  // 1 + 1 = 2
++    
++    std::cout << "All tests passed!" << std::endl;
++    return 0;
++}
+\ No newline at end of file

@@ -1,0 +1,1 @@
+{"category":"cuda","resource":"gpu","checks":["compiles_with_nvcc","price_is_right","same_on_any_device_set","both_devices_used","split_covers_all_paths","faster_on_two_gpus","bad_device_throws","error_does_not_hang","no_vram_leak"]}

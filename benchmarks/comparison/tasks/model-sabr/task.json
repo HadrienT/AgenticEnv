@@ -1,0 +1,1 @@
+{"category":"models","checks":["hagan_lognormal_beta_half","hagan_beta_one","hagan_beta_zero","atm_exact","atm_continuity","no_vol_of_vol_limit","calibrate_exact_recovery","calibrate_negative_skew","calibrate_noisy_stays_in_bounds","calibrate_rejects_bad_input","smile_shape"]}

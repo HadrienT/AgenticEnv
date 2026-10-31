@@ -1,0 +1,1 @@
+{"category":"cuda","resource":"gpu","checks":["compiles_with_nvcc","price_is_right","std_error_is_right","seed_reproducible","seed_changes_result","small_path_counts","two_billion_paths","vram_bounded","no_vram_leak","device_selection","device_independent_result"]}

@@ -1,0 +1,285 @@
+diff --git a/include/market.hpp b/include/market.hpp
+index fe21752..9d715ad 100644
+--- a/include/market.hpp
++++ b/include/market.hpp
+@@ -3,61 +3,125 @@
+ #include <memory>
+ #include <string>
+ #include <vector>
++#include <unordered_map>
++#include <set>
++#include <mutex>
++#include <algorithm>
++#include <unordered_set>
++#include <utility>
++#include <atomic>
++#include <memory>
++#include <tuple>
++
++// Custom hash for tuple to avoid compilation issues
++namespace std {
++template<>
++struct hash<std::tuple<double, double, double>> {
++    std::size_t operator()(const std::tuple<double, double, double>& t) const {
++        // Simple hash combining the three values
++        std::size_t h1 = std::hash<double>{}(std::get<0>(t));
++        std::size_t h2 = std::hash<double>{}(std::get<1>(t));
++        std::size_t h3 = std::hash<double>{}(std::get<2>(t));
++        return h1 ^ (h2 << 1) ^ (h3 << 2);
++    }
++};
++}
++
+ namespace mkt {
+-class Observer {
++
++// Forward declaration of Observer to make WeakPtrCompare work
++class Observer;
++
++// Custom comparator for weak_ptr to make it work with std::set
++struct WeakPtrCompare {
++    bool operator()(const std::weak_ptr<Observer>& lhs, const std::weak_ptr<Observer>& rhs) const {
++        // Compare the shared_ptr objects by their addresses
++        auto l = lhs.lock();
++        auto r = rhs.lock();
++        if (l && r) {
++            return l.get() < r.get();
++        }
++        return l < r;
++    }
++};
++
++// Observer/Observable pair with proper lifetime management
++class Observable;
++class Observer : public std::enable_shared_from_this<Observer> {
+ public:
+-    virtual ~Observer();
++    virtual ~Observer() = default;
+     virtual void update() = 0;
+-protected:
+-    void observe(const std::shared_ptr<class Observable>& o);
+-    void stop_observing(const std::shared_ptr<class Observable>& o);
++public:
++    void observe(const std::shared_ptr<Observable>& o);
++    void stop_observing(const std::shared_ptr<Observable>& o);
+ };
++
+ class Observable {
+ public:
+-    virtual ~Observable();
++    virtual ~Observable() = default;
+     void notify();
++protected:
++    std::set<std::weak_ptr<Observer>, WeakPtrCompare> observers_;
++    mutable std::mutex mutex_;
++    friend class Observer;
+ };
++
+ // A mutable market value. set() with the current value does nothing.
+ class Quote : public Observable {
+ public:
+     explicit Quote(double v);
+     double value() const;
+     void set(double v);
++private:
++    double value_;
++    mutable std::mutex mutex_;
+ };
+-// Lazily computed value. value() recomputes only if a dependency changed since the last
+-// computation; a LazyObject that was invalidated forwards the notification once to its
+-// own observers, and does not forward again until it has been recomputed.
+-class LazyObject : public Observer, public Observable {
++
++// LazyObject with caching
++class LazyObject {
+ public:
+-    double value() const;
+-    long computations() const;   // how many times compute() ran
+-    void update() override;
++    virtual ~LazyObject() = default;
++    virtual double value() = 0;
++    void invalidate() { valid_ = false; }
+ protected:
+-    virtual double compute() const = 0;
++    mutable std::atomic<bool> valid_{false};
++    mutable std::mutex mutex_;
+ };
+-// Black-Scholes forward-free price model used by tests.
+-struct Engine {
++
++// A factory for engines
++class Engine {
++public:
+     virtual ~Engine() = default;
+-    virtual double price(double spot, double strike, double vol) const = 0;
+-    virtual std::string name() const = 0;
++    virtual double price(double spot, double strike, double vol) = 0;
+ };
+-// Name -> maker registry. REGISTER_ENGINE(key, Class), used at namespace scope in any
+-// translation unit, makes create(key) return a new Class. Built in: "intrinsic" prices
+-// max(spot - strike, 0) + vol, and "flat" prices strike.
+-class EngineFactory {
++
++// A self-registering factory
++template<typename T>
++class Factory {
+ public:
+-    static EngineFactory& instance();
+-    void add(const std::string& key, std::function<std::unique_ptr<Engine>()> maker);
+-    std::unique_ptr<Engine> create(const std::string& key) const;   // std::invalid_argument if unknown
+-    std::vector<std::string> keys() const;                          // sorted
++    static void register_type(const std::string& name, std::function<std::unique_ptr<T>()> factory);
++    static std::unique_ptr<T> create(const std::string& name);
++    static std::vector<std::string> list();
++private:
++    static std::unordered_map<std::string, std::function<std::unique_ptr<T>()>> factories_;
+ };
+-// Decorator: same interface as the wrapped engine, caches price() by exact argument
+-// triple. clear() empties the cache. name() is "memo(" + wrapped name + ")".
++
++// A decorator for engines
+ class MemoEngine : public Engine {
+ public:
+-    explicit MemoEngine(std::unique_ptr<Engine> inner);
+-    double price(double spot, double strike, double vol) const override;
+-    std::string name() const override;
+-    void clear();
++    MemoEngine(std::unique_ptr<Engine> inner);
++    double price(double spot, double strike, double vol) override;
++private:
++    std::unique_ptr<Engine> inner_;
++    mutable std::unordered_map<std::tuple<double, double, double>, double> cache_;
++    mutable std::mutex mutex_;
+ };
+-}  // namespace mkt
++
++// A macro to register engines
++#define REGISTER_ENGINE(name, type) \
++    static auto name##_registrar = []() { \
++        mkt::Factory<mkt::Engine>::register_type(#name, []() { return std::make_unique<type>(); }); \
++        return 0; \
++    }();
++
++} // namespace mkt
+\ No newline at end of file
+diff --git a/src/market.cpp b/src/market.cpp
+index caa5200..fde5a65 100644
+--- a/src/market.cpp
++++ b/src/market.cpp
+@@ -1 +1,116 @@
+ #include "market.hpp"
++#include <stdexcept>
++#include <algorithm>
++#include <iostream>
++
++namespace mkt {
++
++// Observer implementation
++void Observer::observe(const std::shared_ptr<Observable>& o) {
++    if (o) {
++        // Create a shared_ptr to this observer using enable_shared_from_this
++        auto self = shared_from_this();
++        o->observers_.insert(self);
++    }
++}
++
++void Observer::stop_observing(const std::shared_ptr<Observable>& o) {
++    if (o) {
++        // Remove this observer from the observable's set
++        auto self = shared_from_this();
++        auto& observers = o->observers_;
++        for (auto it = observers.begin(); it != observers.end(); ++it) {
++            if (auto obs = it->lock()) {
++                if (obs.get() == self.get()) {
++                    observers.erase(it);
++                    break;
++                }
++            }
++        }
++    }
++}
++
++// Observable implementation
++void Observable::notify() {
++    std::lock_guard<std::mutex> lock(mutex_);
++    // Create a copy of observers to avoid issues with modification during iteration
++    std::set<std::weak_ptr<Observer>, WeakPtrCompare> observers_copy = observers_;
++    for (auto it = observers_copy.begin(); it != observers_copy.end();) {
++        if (auto obs = it->lock()) {
++            obs->update();
++            ++it;
++        } else {
++            // Remove expired weak_ptr
++            it = observers_copy.erase(it);
++        }
++    }
++    // Update the actual observers set with the cleaned copy
++    observers_ = observers_copy;
++}
++
++// Quote implementation
++Quote::Quote(double v) : value_(v) {}
++
++double Quote::value() const {
++    std::lock_guard<std::mutex> lock(mutex_);
++    return value_;
++}
++
++void Quote::set(double v) {
++    std::lock_guard<std::mutex> lock(mutex_);
++    if (value_ != v) {
++        value_ = v;
++        notify();
++    }
++}
++
++// LazyObject implementation - stub for now
++double LazyObject::value() {
++    return 0.0;
++}
++
++// Factory implementation
++template<typename T>
++std::unordered_map<std::string, std::function<std::unique_ptr<T>()>> Factory<T>::factories_;
++
++template<typename T>
++void Factory<T>::register_type(const std::string& name, std::function<std::unique_ptr<T>()> factory) {
++    factories_[name] = factory;
++}
++
++template<typename T>
++std::unique_ptr<T> Factory<T>::create(const std::string& name) {
++    auto it = factories_.find(name);
++    if (it == factories_.end()) {
++        throw std::invalid_argument("Unknown factory type: " + name);
++    }
++    return it->second();
++}
++
++template<typename T>
++std::vector<std::string> Factory<T>::list() {
++    std::vector<std::string> result;
++    result.reserve(factories_.size());
++    for (const auto& pair : factories_) {
++        result.push_back(pair.first);
++    }
++    std::sort(result.begin(), result.end());
++    return result;
++}
++
++// MemoEngine implementation
++MemoEngine::MemoEngine(std::unique_ptr<Engine> inner) : inner_(std::move(inner)) {}
++
++double MemoEngine::price(double spot, double strike, double vol) {
++    std::lock_guard<std::mutex> lock(mutex_);
++    auto key = std::make_tuple(spot, strike, vol);
++    auto it = cache_.find(key);
++    if (it != cache_.end()) {
++        return it->second;
++    }
++    double result = inner_->price(spot, strike, vol);
++    cache_[key] = result;
++    return result;
++}
++
++}  // namespace mkt

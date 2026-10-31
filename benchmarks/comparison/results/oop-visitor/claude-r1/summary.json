@@ -1,0 +1,56 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.3,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 12,
+  "checks": {
+   "pricing_european": false,
+   "pricing_digital": false,
+   "pricing_barrier": false,
+   "pricing_zcb": false,
+   "delta": false,
+   "portfolio_nested": false,
+   "json_exact": false,
+   "user_visitor": false,
+   "adding_overload_is_compile_error": false,
+   "visitor_reusable": false,
+   "clone_is_deep": false,
+   "no_type_switch": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 1.1,
+  "output": "--- compile error (t)\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:7:17: error: \u2018inst\u2019 is not a namespace-name\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:11:26: error: expected class-name before \u2018{\u2019 token\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:11:45: error: \u2018EuropeanOption\u2019 does not name a type\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:11:33: error: \u2018void Partial::visit(const int&)\u2019 marked \u2018override\u2019, but does not override\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:26: error: expected class-name before \u2018{\u2019 token\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:75: error: \u2018EuropeanOption\u2019 does not name a type\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:132: error: \u2018DigitalOption\u2019 does not name a type\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:120: error: \u2018void Counter::visit(const int&)\u2019 cannot be overloaded with \u2018void Counter::visit(const int&)\u2019\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:188: error: \u2018BarrierOption\u2019 does not name a type\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:176: error: \u2018void Counter::visit(const int&)\u2019 cannot be overloaded with \u2018void Counter::visit(const int&)\u2019\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:244: error: \u2018ZeroCouponBond\u2019 does not name a type\n/home/hadriensuper/testLLM/tasks/oop-visitor/hidden/test.cpp:12:232: error: \u2018void Counter::visit(const int&)\u2019 cannot be overloaded with \u2018void Counter::visit(const int&)\u2019\nFAIL no_type_switch\ngrep: /home/hadriensuper/testLLM/.work/grade/oop-visitor-3416829/err: No such file or directory\n"
+ }
+}

@@ -31,6 +31,12 @@ The confirmation policy is `NeverConfirm` (WP08d): the agent works on a
 disposable copy and acts without per-action prompts. `waiting_for_confirmation`
 should not occur; if it ever does, the turn watcher still bounds the wait by
 `run_timeout_s` rather than hanging.
+
+With `sandbox.persistent_conversations` (WP08e), a sandbox outlives its connection:
+it holds several conversations of one project, one active at a time, and closes
+`_SANDBOX_IDLE_S` after its client left. `resume` reattaches to a conversation, in
+this sandbox or in a new one if the bridge restarted, and replays what the client
+missed. Off, a session ends with its connection, as described above.
 """
 
 from __future__ import annotations
@@ -41,6 +47,8 @@ import os
 import subprocess
 import threading
 import uuid
+from collections import deque
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal, cast
@@ -68,7 +76,7 @@ from openhands_adapter import (
     reap_orphan_sandboxes,
 )
 from openhands_bridge import apply as apply_mod
-from openhands_bridge import memory
+from openhands_bridge import conversations, memory
 from openhands_bridge import models as models_mod
 from openhands_bridge.auth import ensure_token, serve_options, validate_project_path
 from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers, unavailable_reason
@@ -76,6 +84,7 @@ from openhands_bridge.protocol import (
     CAPABILITIES,
     AppliedEntry,
     ApplyChanges,
+    ArchiveConversation,
     AwaitingConfirmation,
     BundleDiffMessage,
     CancelTurn,
@@ -85,6 +94,8 @@ from openhands_bridge.protocol import (
     Compact,
     ConfirmAction,
     ContextStats,
+    ConversationItem,
+    Conversations,
     ErrorMessage,
     EventDelta,
     EventMessage,
@@ -95,6 +106,7 @@ from openhands_bridge.protocol import (
     HistoryCompacted,
     InboundMessage,
     Interrupt,
+    ListConversations,
     ListMcpServers,
     ListModels,
     McpServerEntry,
@@ -104,6 +116,8 @@ from openhands_bridge.protocol import (
     RequestBundleDiff,
     RequestDiff,
     RestoreCheckpoint,
+    Resume,
+    Resumed,
     SessionProgress,
     SessionStarted,
     SetModel,
@@ -153,6 +167,9 @@ _CANCEL_GRACE_S = 30.0
 _STOP_CALL_TIMEOUT_S = 10.0
 _DISCONNECT_SYNC_TIMEOUT_S = 60.0
 _RECALL_TIMEOUT_S = 10.0
+# How much a client can catch up on, and how long a sandbox waits for it to come back.
+_REPLAY_LIMIT = 2000
+_SANDBOX_IDLE_S = 900.0
 
 # At most one *AgentSession* (= one Docker sandbox) at a time across the whole
 # process, but connections are NOT gated. `_session_owner` is the connection
@@ -161,6 +178,44 @@ _RECALL_TIMEOUT_S = 10.0
 _session_guard = asyncio.Lock()
 _background_tasks: set[asyncio.Task[str | None]] = set()
 _session_owner: _Connection | None = None
+_sandbox: _Sandbox | None = None
+
+
+@dataclass
+class _ConversationState:
+    """What a connection works with, kept while the conversation is not the active one."""
+
+    conversation_id: str
+    seq: int = 0
+    replay: deque[tuple[int, str]] = field(default_factory=lambda: deque(maxlen=_REPLAY_LIMIT))
+    baseline_hashes: dict[str, str] = field(default_factory=dict)
+    conflicts: set[str] = field(default_factory=set)
+    draft: memory.SessionDraft | None = None
+
+
+@dataclass
+class _Sandbox:
+    """The long-lived sandbox: one project, in one mode, with one set of tools."""
+
+    session: AgentSession
+    key: tuple[object, ...]
+    states: dict[str, _ConversationState] = field(default_factory=dict)
+    idle_task: asyncio.Task[None] | None = None
+
+
+def _forward_event(event: Event) -> None:
+    """A sandbox outlives connections, so its callback follows whichever one owns it."""
+    owner = _session_owner
+    if owner is not None:
+        owner.relay.on_event(event)
+
+
+def _sandbox_key(request: StartSession) -> tuple[object, ...]:
+    return (request.project_path, request.mode, request.profile, tuple(request.mcp_servers))
+
+
+def _persistent() -> bool:
+    return load_openhands_config().sandbox.persistent_conversations
 
 
 def _error_from(exc: AppError) -> ErrorMessage:
@@ -283,6 +338,7 @@ class _Connection:
         self.baseline_hashes: dict[str, str] = {}
         self.conflicts: set[str] = set()
         self.draft: memory.SessionDraft | None = None
+        self.state: _ConversationState | None = None
         self._seq = 0
         self._send_lock = asyncio.Lock()
         self._turn_terminal = asyncio.Event()
@@ -295,8 +351,12 @@ class _Connection:
         async with self._send_lock:
             self._seq += 1
             message.seq = self._seq
+            raw = serialize_outbound(message)
+            # Deltas are left out: the event that ends them carries the whole text.
+            if self.state is not None and not isinstance(message, EventDelta):
+                self.state.replay.append((self._seq, raw))
             with contextlib.suppress(ConnectionClosed):
-                await self.ws.send(serialize_outbound(message))
+                await self.ws.send(raw)
 
     def send_threadsafe(self, message: OutboundMessage) -> None:
         asyncio.run_coroutine_threadsafe(self.send(message), self.loop)
@@ -309,9 +369,24 @@ class _Connection:
 
         self.loop.call_soon_threadsafe(_apply)
 
+    def bind(self, state: _ConversationState) -> None:
+        self.unbind()
+        self.state = state
+        self._seq = state.seq
+        self.baseline_hashes = state.baseline_hashes
+        self.conflicts = state.conflicts
+        self.draft = state.draft
+
+    def unbind(self) -> None:
+        state, self.state = self.state, None
+        if state is not None:
+            state.seq = self._seq
+            state.baseline_hashes = self.baseline_hashes
+            state.conflicts = self.conflicts
+            state.draft = self.draft
+
 
 async def _handle_connection(ws: ServerConnection) -> None:
-    global _session_owner
     loop = asyncio.get_running_loop()
     conn = _Connection(ws, loop)
     try:
@@ -331,23 +406,31 @@ async def _handle_connection(ws: ServerConnection) -> None:
     finally:
         await _end_running_turn(conn)
         await _close_draft(conn)
-        if conn.session is not None:
-            try:
-                await asyncio.to_thread(conn.session.__exit__, None, None, None)
-            except Exception:  # noqa: BLE001 - ownership below must still be released
-                logger.warning("session teardown failed", exc_info=True)
-        _record_in_background(conn.draft)
-        async with _session_guard:
-            if _session_owner is conn:
-                _session_owner = None
-            no_active_session = _session_owner is None
-        if no_active_session:
-            # The session's own teardown normally removes its container (--rm);
-            # sweep here too in case __exit__ failed, and pick up anything a
-            # previous bridge process leaked. One container at a time (issue #8).
-            reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
-            if reaped:
-                logger.info("reaped orphan sandbox containers", extra={"containers": reaped})
+        if _sandbox is not None and conn.session is _sandbox.session:
+            await _release_sandbox(conn)
+        else:
+            await _end_session(conn)
+
+
+async def _end_session(conn: _Connection) -> None:
+    global _session_owner
+    if conn.session is not None:
+        try:
+            await asyncio.to_thread(conn.session.__exit__, None, None, None)
+        except Exception:  # noqa: BLE001 - ownership below must still be released
+            logger.warning("session teardown failed", exc_info=True)
+    _record_in_background(conn.draft)
+    async with _session_guard:
+        if _session_owner is conn:
+            _session_owner = None
+        no_active_session = _session_owner is None and _sandbox is None
+    if no_active_session:
+        # The session's own teardown normally removes its container (--rm);
+        # sweep here too in case __exit__ failed, and pick up anything a
+        # previous bridge process leaked. One container at a time (issue #8).
+        reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
+        if reaped:
+            logger.info("reaped orphan sandbox containers", extra={"containers": reaped})
 
 
 async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
@@ -392,6 +475,22 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
                 profiles=list_profiles(),
             )
         )
+        return
+
+    if isinstance(inbound, ListConversations):
+        await conn.send(_conversation_list(conn))
+        return
+
+    if isinstance(inbound, ArchiveConversation):
+        await _handle_archive(conn, inbound)
+        return
+
+    if isinstance(inbound, Resume):
+        await _handle_resume(conn, inbound)
+        return
+
+    if isinstance(inbound, StartSession) and _persistent():
+        await _enter_conversation(conn, inbound, None)
         return
 
     if isinstance(inbound, StartSession):
@@ -449,12 +548,225 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
         await _handle_apply_changes(conn, inbound)
 
 
-async def _start_session(conn: _Connection, request: StartSession) -> bool:
+def _conversation_list(conn: _Connection) -> Conversations:
+    active = conn.state.conversation_id if conn.state is not None else None
+    return Conversations(
+        items=[
+            ConversationItem(
+                conversation_id=record.conversation_id,
+                title=record.title,
+                updated_at=record.updated_at,
+                turns=record.turns,
+                active=record.conversation_id == active,
+            )
+            for record in conversations.listed()
+        ]
+    )
+
+
+async def _handle_archive(conn: _Connection, message: ArchiveConversation) -> None:
+    if conn.state is not None and conn.state.conversation_id == message.conversation_id:
+        await conn.send(
+            ErrorMessage(code="CONVERSATION_ACTIVE", message="Switch away from it first.")
+        )
+        return
+    if not conversations.archive(message.conversation_id):
+        await conn.send(_unknown_conversation(message.conversation_id))
+        return
+    state = _sandbox.states.get(message.conversation_id) if _sandbox is not None else None
+    if state is not None:
+        _record_in_background(state.draft)
+        state.draft = None
+    await conn.send(_conversation_list(conn))
+
+
+def _unknown_conversation(conversation_id: str) -> ErrorMessage:
+    return ErrorMessage(
+        code="UNKNOWN_CONVERSATION",
+        message="This bridge does not know that conversation.",
+        details={"conversation_id": conversation_id},
+    )
+
+
+async def _handle_resume(conn: _Connection, message: Resume) -> None:
+    record = conversations.get(message.conversation_id) if _persistent() else None
+    if record is None:
+        await conn.send(_unknown_conversation(message.conversation_id))
+        return
+    request = StartSession(
+        mcp_servers=record.mcp_servers,
+        project_path=record.project_path,
+        profile=record.profile,
+        mode="read_only" if record.mode == "read_only" else "agent",
+    )
+    if not await _enter_conversation(conn, request, record):
+        return
+    assert conn.state is not None
+    for seq, raw in list(conn.state.replay):
+        if seq > message.last_seq:
+            with contextlib.suppress(ConnectionClosed):
+                await conn.ws.send(raw)
+    await conn.send(Resumed())
+
+
+async def _enter_conversation(
+    conn: _Connection, request: StartSession, record: conversations.ConversationRecord | None
+) -> bool:
+    """Gets `conn` onto a conversation, of the sandbox in place when it fits. Without a
+    `record` the conversation is a new one. One active at a time: the running turn ends."""
+    global _session_owner
+    if conn.turn_id is not None:
+        await _handle_cancel(conn, CancelTurn(turn_id=conn.turn_id))
+    if conn.turn_task is not None:
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await conn.turn_task
+    await _close_draft(conn)
+
+    key = _sandbox_key(request)
+    async with _session_guard:
+        if _session_owner is not None and _session_owner is not conn:
+            await conn.send(
+                ErrorMessage(
+                    code="SESSION_BUSY",
+                    message="A chat session is already active on this bridge.",
+                )
+            )
+            return False
+        _session_owner = conn
+        if _sandbox is not None and _sandbox.key != key:
+            conn.unbind()
+            conn.session = None
+            await _close_sandbox()
+
+    conversation_id = record.conversation_id if record is not None else None
+    if _sandbox is None:
+        started = await _start_session(conn, request, conversation_id, seq=_seq_of(record))
+        if not started:
+            async with _session_guard:
+                if _session_owner is conn:
+                    _session_owner = None
+        return started
+
+    sandbox = _sandbox
+    if sandbox.idle_task is not None:
+        sandbox.idle_task.cancel()
+        sandbox.idle_task = None
+    conn.unbind()
+    session = sandbox.session
+    conn.session = session
+    await conn.relay.release(session)
+    opened = await asyncio.to_thread(session.open_conversation, conversation_id)
+    state = sandbox.states.get(opened)
+    if state is None:
+        state = await _new_state(session, opened, request, _seq_of(record))
+        sandbox.states[opened] = state
+        _index_conversation(opened, request)
+    conn.bind(state)
+    if record is None:
+        await conn.send(_session_started(session, request, [], []))
+    return True
+
+
+def _seq_of(record: conversations.ConversationRecord | None) -> int:
+    return record.seq if record is not None else 0
+
+
+def _index_conversation(conversation_id: str, request: StartSession) -> None:
+    if conversations.get(conversation_id) is None:
+        conversations.save(
+            conversations.ConversationRecord(
+                conversation_id=conversation_id,
+                project_path=request.project_path,
+                mode=request.mode,
+                profile=request.profile,
+                mcp_servers=request.mcp_servers,
+            )
+        )
+
+
+async def _new_state(
+    session: AgentSession, opened: str, request: StartSession, seq: int
+) -> _ConversationState:
+    state = _ConversationState(conversation_id=opened, seq=seq)
+    if session.project_path is not None:
+        state.baseline_hashes = await asyncio.to_thread(_snapshot_host_tree, session.project_path)
+    if not session.read_only:
+        state.draft = memory.SessionDraft(
+            conversation_id=opened,
+            profile=request.profile or DEFAULT_PROFILE,
+            started_at=datetime.now(UTC),
+            project=session.project_path.name if session.project_path else None,
+        )
+    return state
+
+
+async def _release_sandbox(conn: _Connection) -> None:
+    """The client left: the sandbox waits for it. Its conversations stay as they are."""
+    global _session_owner
+    conn.unbind()
+    conn.session = None
+    async with _session_guard:
+        if _session_owner is conn:
+            _session_owner = None
+    assert _sandbox is not None
+    _sandbox.idle_task = asyncio.create_task(_close_when_idle(_sandbox))
+
+
+async def _close_when_idle(sandbox: _Sandbox) -> None:
+    await asyncio.sleep(_SANDBOX_IDLE_S)
+    async with _session_guard:
+        if _sandbox is sandbox and _session_owner is None:
+            await _close_sandbox()
+
+
+async def _close_sandbox() -> None:
+    """The caller holds the guard. Every conversation stays on disk, for `resume`."""
+    global _sandbox
+    sandbox, _sandbox = _sandbox, None
+    if sandbox is None:
+        return
+    if sandbox.idle_task is not None and sandbox.idle_task is not asyncio.current_task():
+        sandbox.idle_task.cancel()
+    try:
+        await asyncio.to_thread(sandbox.session.__exit__, None, None, None)
+    except Exception:  # noqa: BLE001 - the sandbox is gone for the bridge either way
+        logger.warning("sandbox teardown failed", exc_info=True)
+    for state in sandbox.states.values():
+        _record_in_background(state.draft)
+    reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
+    if reaped:
+        logger.info("reaped orphan sandbox containers", extra={"containers": reaped})
+
+
+def _session_started(
+    session: AgentSession,
+    request: StartSession,
+    mcp_servers: list[str],
+    mcp_unavailable: list[str],
+) -> SessionStarted:
+    return SessionStarted(
+        conversation_id=str(session.conversation.id),
+        llm_source=session.llm_source,
+        mode="read_only" if session.read_only else "agent",
+        copy_warnings=session.working_copy.copy_errors if session.working_copy else [],
+        profile=request.profile or DEFAULT_PROFILE,
+        mcp_servers=mcp_servers,
+        mcp_unavailable=mcp_unavailable,
+    )
+
+
+async def _start_session(
+    conn: _Connection,
+    request: StartSession,
+    conversation_id: str | None = None,
+    *,
+    seq: int = 0,
+) -> bool:
     def report_step(step: int) -> None:
         conn.send_threadsafe(SessionProgress(steps=list(STARTUP_STEPS), current=step))
 
     report_step(STEP_CHECKS)
-    # We hold the session guard and there is no active session, so any existing
+    # There is no active session, so any existing
     # agent-server-* container is an orphan -- clear it before spinning up a new
     # one so leaked sandboxes never pile up on a low-storage host.
     reaped = await asyncio.to_thread(reap_orphan_sandboxes, None)
@@ -471,15 +783,18 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
             build_mcp_config, request.mcp_servers, config
         )
         profile = request.profile or DEFAULT_PROFILE
+        persistent = config.sandbox.persistent_conversations
         session = AgentSession(
             oh_config=config,
             confirmation_policy=NeverConfirm(),
-            callbacks=[conn.relay.on_event],
+            callbacks=[_forward_event if persistent else conn.relay.on_event],
             project_path=project_path,
             read_only=request.mode == "read_only",
             mcp_config=mcp_config,
             profile=profile,
             on_step=report_step,
+            persistent=persistent,
+            conversation_id=conversation_id,
         )
         await asyncio.to_thread(session.__enter__)
     except AppError as exc:
@@ -494,27 +809,26 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
     # must count as a conflict, not end up in the reference hashes.
     if session.project_path is not None:
         report_step(STEP_BASELINE)
-        conn.baseline_hashes = await asyncio.to_thread(_snapshot_host_tree, session.project_path)
-
     conn.session = session
-    if not session.read_only:
-        conn.draft = memory.SessionDraft(
-            conversation_id=str(session.conversation.id),
-            profile=profile,
-            started_at=datetime.now(UTC),
-            project=session.project_path.name if session.project_path else None,
+    state = await _new_state(session, str(session.conversation.id), request, seq)
+    if persistent:
+        global _sandbox
+        _sandbox = _Sandbox(session=session, key=_sandbox_key(request))
+        _sandbox.states[state.conversation_id] = state
+        conn.bind(state)
+        _index_conversation(state.conversation_id, request)
+    else:
+        conn.baseline_hashes = state.baseline_hashes
+        conn.draft = state.draft
+    if conversation_id is None:
+        await conn.send(
+            _session_started(
+                session,
+                request,
+                sorted(cast("dict[str, object]", mcp_config.get("mcpServers", {}))),
+                mcp_unavailable,
+            )
         )
-    await conn.send(
-        SessionStarted(
-            conversation_id=str(session.conversation.id),
-            llm_source=session.llm_source,
-            mode="read_only" if session.read_only else "agent",
-            copy_warnings=session.working_copy.copy_errors if session.working_copy else [],
-            profile=profile,
-            mcp_servers=sorted(cast("dict[str, object]", mcp_config.get("mcpServers", {}))),
-            mcp_unavailable=mcp_unavailable,
-        )
-    )
     await conn.relay.release(session)
     return True
 
@@ -729,6 +1043,8 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
     conn.turn_id = None
     conn.turn_task = None
     await conn.send(TurnFinished(turn_id=turn_id, reason=reason))
+    if conn.state is not None:
+        conversations.note_turn(conn.state.conversation_id, message.text, conn._seq)
 
 
 async def _handle_cancel(conn: _Connection, message: CancelTurn) -> None:
@@ -895,8 +1211,12 @@ async def _handle_restore_checkpoint(conn: _Connection, message: RestoreCheckpoi
 
 
 def _capabilities() -> list[str]:
-    streaming = load_openhands_config().llm.stream
-    return [*CAPABILITIES, "deltas"] if streaming else list(CAPABILITIES)
+    config = load_openhands_config()
+    extra = {
+        "deltas": config.llm.stream,
+        "resume": config.sandbox.persistent_conversations,
+    }
+    return [*CAPABILITIES, *(name for name, offered in extra.items() if offered)]
 
 
 async def _pull_from_host(conn: _Connection, session: AgentSession) -> list[str]:

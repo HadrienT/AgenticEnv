@@ -1,0 +1,252 @@
+diff --git a/src/asian.cpp b/src/asian.cpp
+index 1b80c57..c6f21c7 100644
+--- a/src/asian.cpp
++++ b/src/asian.cpp
+@@ -1,6 +1,245 @@
+ #include "asian.hpp"
++
++#include <algorithm>
++#include <bit>
++#include <cmath>
++#include <cstdint>
++#include <limits>
++#include <numbers>
+ #include <stdexcept>
++
++// Input domain, for both functions: S0 > 0, sigma >= 0, T >= 0, n >= 1, all reals finite;
++// K may be any finite value (for K <= 0 the call is always exercised). Monte Carlo also
++// needs paths >= 1. Anything else throws std::invalid_argument.
++//
++// With sigma == 0 or T == 0 the payoff is deterministic, so the price is exact and
++// std_error is 0. Otherwise a single path gives no variance estimate and std_error is NaN.
++
+ namespace mc {
+-double geometric_asian_call(double, double, double, double, double, double, int) { throw std::logic_error("not implemented"); }
+-McResult arithmetic_asian_call(double, double, double, double, double, double, int, std::int64_t, std::uint64_t, bool) { throw std::logic_error("not implemented"); }
++namespace {
++
++void validate(double S0, double K, double r, double q, double sigma, double T, int n) {
++    if (!std::isfinite(S0) || !std::isfinite(K) || !std::isfinite(r) || !std::isfinite(q) ||
++        !std::isfinite(sigma) || !std::isfinite(T)) {
++        throw std::invalid_argument("asian: arguments must be finite");
++    }
++    if (S0 <= 0.0) throw std::invalid_argument("asian: S0 must be positive");
++    if (sigma < 0.0) throw std::invalid_argument("asian: sigma must be non-negative");
++    if (T < 0.0) throw std::invalid_argument("asian: T must be non-negative");
++    if (n < 1) throw std::invalid_argument("asian: n must be at least 1");
+ }
++
++double normal_cdf(double x) {
++    // erfc rather than erf keeps relative accuracy in the lower tail.
++    return 0.5 * std::erfc(-x * std::numbers::sqrt2 / 2.0);
++}
++
++// Layer boundaries of the 256-layer Marsaglia-Tsang ziggurat for the standard normal.
++struct ZigguratTable {
++    static constexpr double tail_start = 3.6541528853610088;
++
++    double x[257];
++    double f[257];  // unnormalized density exp(-x^2/2) at x[i]
++
++    ZigguratTable() {
++        // Each layer has the area of the base layer: its rectangle up to tail_start plus the tail.
++        const double density_at_tail = std::exp(-0.5 * tail_start * tail_start);
++        const double layer_area =
++            tail_start * density_at_tail +
++            std::sqrt(std::numbers::pi / 2.0) * std::erfc(tail_start / std::numbers::sqrt2);
++        x[0] = layer_area / density_at_tail;
++        x[1] = tail_start;
++        for (int i = 1; i < 255; ++i) {
++            x[i + 1] = std::sqrt(-2.0 * std::log(layer_area / x[i] + std::exp(-0.5 * x[i] * x[i])));
++        }
++        x[256] = 0.0;
++        for (int i = 0; i < 257; ++i) f[i] = std::exp(-0.5 * x[i] * x[i]);
++    }
++};
++
++// Standard normal stream: xoshiro256++ seeded through SplitMix64, ziggurat sampling.
++// Hand-written because std::normal_distribution is implementation-defined and slow: the same
++// seed would give different prices across standard libraries, and its log and sqrt per pair
++// would dominate the run time. The ziggurat is a rejection method, so unlike an inverse-CDF
++// approximation it has no approximation error and does not truncate the tails.
++class NormalStream {
++public:
++    explicit NormalStream(std::uint64_t seed) {
++        for (auto& word : s_) {
++            seed += 0x9e3779b97f4a7c15ULL;
++            std::uint64_t z = seed;
++            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
++            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
++            word = z ^ (z >> 31);
++        }
++    }
++
++    double next() {
++        static const ZigguratTable table;
++        for (;;) {
++            // One word supplies the layer (low 8 bits), the sign (bit 8) and the position in
++            // the layer (top 53 bits); these bit fields do not overlap.
++            const std::uint64_t bits = next_word();
++            const unsigned layer = static_cast<unsigned>(bits & 0xff);
++            const double sign = (bits & 0x100) != 0 ? -1.0 : 1.0;
++            const double z = to_unit(bits) * table.x[layer];
++
++            if (z < table.x[layer + 1]) return sign * z;  // inside the layer's core rectangle
++            if (layer == 0) return sign * tail();
++            const double y = table.f[layer] + to_unit(next_word()) * (table.f[layer + 1] - table.f[layer]);
++            if (y < std::exp(-0.5 * z * z)) return sign * z;
++        }
++    }
++
++private:
++    static double to_unit(std::uint64_t word) {  // in [0, 1)
++        return static_cast<double>(word >> 11) * 0x1p-53;
++    }
++
++    double tail() {  // Marsaglia's method: |Z| conditional on |Z| > tail_start
++        for (;;) {
++            // 1 - to_unit(...) is in (0, 1], so both logs are finite.
++            const double a = -std::log(1.0 - to_unit(next_word())) / ZigguratTable::tail_start;
++            const double b = -std::log(1.0 - to_unit(next_word()));
++            if (2.0 * b >= a * a) return ZigguratTable::tail_start + a;
++        }
++    }
++
++    std::uint64_t next_word() {
++        const std::uint64_t result = std::rotl(s_[0] + s_[3], 23) + s_[0];
++        const std::uint64_t t = s_[1] << 17;
++        s_[2] ^= s_[0];
++        s_[3] ^= s_[1];
++        s_[1] ^= s_[2];
++        s_[0] ^= s_[3];
++        s_[2] ^= t;
++        s_[3] = std::rotl(s_[3], 45);
++        return result;
++    }
++
++    std::uint64_t s_[4];
++};
++
++// Running first and second moments (Welford) of the pair (d, c), where c is the discounted
++// control payoff and d = arithmetic payoff - c.
++//
++// Working on the difference rather than on the arithmetic payoff is what keeps the residual
++// variance accurate: the two payoffs are nearly collinear, so expanding Var(Y - beta*C) from
++// Var(Y), Cov(Y, C) and Var(C) would cancel almost every significant digit.
++struct Moments {
++    double count = 0.0, mean_d = 0.0, mean_c = 0.0, ss_d = 0.0, ss_c = 0.0, sp_dc = 0.0;
++
++    void add(double d, double c) {
++        count += 1.0;
++        const double delta_d = d - mean_d;
++        const double delta_c = c - mean_c;
++        mean_d += delta_d / count;
++        mean_c += delta_c / count;
++        ss_d += delta_d * (d - mean_d);
++        ss_c += delta_c * (c - mean_c);
++        sp_dc += delta_d * (c - mean_c);
++    }
++};
++
++}  // namespace
++
++double geometric_asian_call(double S0, double K, double r, double q, double sigma, double T, int n) {
++    validate(S0, K, r, q, sigma, T, n);
++
++    // ln G is normal: its mean is the average of E[ln S(t_i)], and its variance is
++    // sigma^2/n^2 * sum_ij min(t_i, t_j), with sum_ij min(i, j) = n(n+1)(2n+1)/6.
++    const double m = static_cast<double>(n);
++    const double time_mean = T * (m + 1.0) / (2.0 * m);
++    const double variance = sigma * sigma * T * (m + 1.0) * (2.0 * m + 1.0) / (6.0 * m * m);
++    const double log_mean = (r - q - 0.5 * sigma * sigma) * time_mean;
++
++    const double discount = std::exp(-r * T);
++    const double forward = S0 * std::exp(log_mean + 0.5 * variance);  // E[G]
++
++    if (variance == 0.0) return discount * std::max(forward - K, 0.0);
++    if (K <= 0.0) return discount * (forward - K);
++
++    const double stdev = std::sqrt(variance);
++    const double d1 = (std::log(S0 / K) + log_mean + variance) / stdev;
++    const double d2 = d1 - stdev;
++    return discount * (forward * normal_cdf(d1) - K * normal_cdf(d2));
++}
++
++McResult arithmetic_asian_call(double S0, double K, double r, double q, double sigma, double T, int n,
++                               std::int64_t paths, std::uint64_t seed, bool control_variate) {
++    validate(S0, K, r, q, sigma, T, n);
++    if (paths < 1) throw std::invalid_argument("asian: paths must be at least 1");
++
++    const double discount = std::exp(-r * T);
++    const double inv_n = 1.0 / static_cast<double>(n);
++    const double dt = T * inv_n;
++
++    if (sigma == 0.0 || T == 0.0) {
++        double average = 0.0;
++        for (int i = 1; i <= n; ++i) average += std::exp((r - q) * dt * i);
++        return {discount * std::max(S0 * average * inv_n - K, 0.0), 0.0};
++    }
++
++    const double drift = (r - q - 0.5 * sigma * sigma) * dt;
++    const double vol = sigma * std::sqrt(dt);
++
++    // Paths are split into two folds and each fold is adjusted with the coefficient estimated
++    // on the other one. A coefficient fitted on the paths it is applied to is correlated with
++    // their control error, which biases the price by O(1/paths); out-of-fold, it is independent
++    // of them, so the price stays unbiased for any path count while still using every path.
++    // The residuals are out-of-sample too, so std_error needs no degrees-of-freedom correction
++    // for the estimated coefficient.
++    Moments folds[2];
++    NormalStream normals(seed);
++    for (std::int64_t path = 0; path < paths; ++path) {
++        double log_s = 0.0, sum_log_s = 0.0, sum_s = 0.0;
++        for (int i = 0; i < n; ++i) {
++            log_s += drift + vol * normals.next();
++            sum_log_s += log_s;
++            sum_s += std::exp(log_s);
++        }
++        const double arithmetic = discount * std::max(S0 * sum_s * inv_n - K, 0.0);
++        const double geometric = discount * std::max(S0 * std::exp(sum_log_s * inv_n) - K, 0.0);
++        folds[path & 1].add(arithmetic - geometric, geometric);
++    }
++
++    const double control_value = control_variate ? geometric_asian_call(S0, K, r, q, sigma, T, n) : 0.0;
++
++    // Each path contributes d + c - beta * (c - control_value). Writing gamma = beta - 1 gives
++    // d - gamma * (c - control_value) + control_value. The plain estimator is beta = 0.
++    //
++    // The least-squares gamma is sp_dc / ss_c, which is unbounded: a fold whose only control
++    // payoff is a path barely in the money gives a huge slope, and the price inherits heavy
++    // tails when paths are few or exercise is rare. The ss_d / count term in the denominator
++    // shrinks gamma towards 0 (posterior mean under a N(0, 1) prior on gamma, the residual
++    // variance being approximated by ss_d / count). It keeps the adjustment's standard deviation
++    // of the order of the plain standard error at worst, and its effect fades as 1/paths.
++    // Depending only on the other fold, it does not break unbiasedness.
++    double weighted_mean = 0.0;
++    double residual_ss = 0.0;
++    double fold_means[2];
++    for (int k = 0; k < 2; ++k) {
++        const Moments& fold = folds[k];
++        const Moments& other = folds[1 - k];
++        double gamma = -1.0;
++        if (control_variate) {
++            const double denominator = other.count > 0.0 ? other.ss_c + other.ss_d / other.count : 0.0;
++            gamma = denominator > 0.0 ? other.sp_dc / denominator : 0.0;
++        }
++        fold_means[k] = fold.mean_d - gamma * (fold.mean_c - control_value) + control_value;
++        weighted_mean += fold.count * fold_means[k];
++        residual_ss += std::max(fold.ss_d - 2.0 * gamma * fold.sp_dc + gamma * gamma * fold.ss_c, 0.0);
++    }
++
++    const double count = static_cast<double>(paths);
++    const double price = weighted_mean / count;
++    if (paths == 1) return {price, std::numeric_limits<double>::quiet_NaN()};
++
++    for (int k = 0; k < 2; ++k) {
++        const double gap = fold_means[k] - price;
++        residual_ss += folds[k].count * gap * gap;
++    }
++    return {price, std::sqrt(residual_ss / (count - 1.0) / count)};
++}
++
++}  // namespace mc

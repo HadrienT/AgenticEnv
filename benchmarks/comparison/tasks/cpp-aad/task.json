@@ -1,0 +1,1 @@
+{"category":"cpp","checks":["simple_chain","aliasing","division_and_compound","elementary_functions","bs_greeks","max_kink","two_outputs","rewind_bounded","mc_pathwise_delta","no_alloc_after_reserve","cost_ratio","thread_local_tapes"]}

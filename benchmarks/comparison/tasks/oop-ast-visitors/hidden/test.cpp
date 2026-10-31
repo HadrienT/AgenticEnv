@@ -1,0 +1,22 @@
+#include "ast.hpp"
+#include "chk.hpp"
+#include <random>
+#include <string>
+using namespace ast;
+static Ptr A() { return var("a"); } static Ptr B() { return var("b"); } static Ptr C() { return var("c"); }
+static bool eq(const Node& n, const char* s) { auto g = print(n); if (g != s) fprintf(stderr, "  got [%s] want [%s]\n", g.c_str(), s); return g == s; }
+static Ptr rnd(std::mt19937& g, int d) { int k = g() % (d <= 0 ? 2 : 8); switch (k) { case 0: return var((g() % 2) ? "x" : "y"); case 1: return num(double(int(g() % 7)) / 2 + .5); case 2: return add(rnd(g, d - 1), rnd(g, d - 1)); case 3: return sub(rnd(g, d - 1), rnd(g, d - 1)); case 4: return mul(rnd(g, d - 1), rnd(g, d - 1)); case 5: return neg(rnd(g, d - 1)); case 6: return pow_(add(num(3), mul(rnd(g, d - 1), rnd(g, d - 1))) , 2); default: return exp_(mul(num(.1), rnd(g, d - 1))); } }
+int main() {
+    sec("eval", [] { Env e{{"a", 2}, {"b", 3}}; auto n = add(mul(A(), pow_(B(), 2)), sub(exp_(num(0)), log_(num(1)))); auto m = neg(mul(A(), B())); return near(eval(*n, e), 19, 1e-12) && near(eval(*m, e), -6, 1e-12); });
+    sec("eval_unknown_var", [] { try { eval(*var("zz"), {}); } catch (const std::out_of_range&) { return true; } return false; });
+    sec("print_precedence", [] { return eq(*mul(add(A(), B()), C()), "(a + b) * c") && eq(*add(A(), mul(B(), C())), "a + b * c") && eq(*sub(A(), sub(B(), C())), "a - (b - c)") && eq(*sub(sub(A(), B()), C()), "a - b - c") && eq(*mul(A(), add(B(), C())), "a * (b + c)") && eq(*pow_(mul(A(), B()), 2), "(a * b)^2") && eq(*neg(add(A(), B())), "-(a + b)") && eq(*mul(neg(A()), B()), "-a * b") && eq(*pow_(neg(A()), 2), "(-a)^2") && eq(*exp_(add(A(), num(1.5))), "exp(a + 1.5)") && eq(*add(A(), add(B(), C())), "a + (b + c)") && eq(*mul(A(), mul(B(), C())), "a * (b * c)") && eq(*pow_(pow_(A(), 2), 3), "(a^2)^3") && eq(*pow_(num(-2), 2), "(-2)^2") && eq(*sub(A(), neg(B())), "a - -b"); });
+    sec("vars_sorted", [] { auto n = add(mul(var("z"), A()), exp_(sub(var("m"), A()))); auto s = vars(*n); return s == std::set<std::string>{"a", "m", "z"} && vars(*num(1)).empty(); });
+    sec("fold_constants", [] { auto n = add(mul(num(2), num(3)), A()); return eq(*fold(*n), "6 + a") && eq(*fold(*exp_(num(0))), "1") && eq(*fold(*pow_(add(num(1), num(2)), 2)), "9") && eq(*fold(*neg(num(4))), "-4"); });
+    sec("fold_identities", [] { return eq(*fold(*add(A(), num(0))), "a") && eq(*fold(*add(num(0), A())), "a") && eq(*fold(*sub(A(), num(0))), "a") && eq(*fold(*sub(num(0), A())), "-a") && eq(*fold(*mul(A(), num(1))), "a") && eq(*fold(*mul(num(0), add(A(), B()))), "0") && eq(*fold(*pow_(A(), 1)), "a") && eq(*fold(*pow_(add(A(), B()), 0)), "1") && eq(*fold(*neg(neg(A()))), "a") && eq(*fold(*add(mul(num(0), A()), mul(num(1), B()))), "b") && eq(*fold(*mul(add(num(1), sub(num(1), num(1))), add(A(), mul(num(0), B())))), "a"); });
+    sec("fold_does_not_mutate", [] { auto n = add(mul(num(1), A()), num(0)); auto s = print(*n); auto f = fold(*n); auto d = diff(*n, "a"); auto c = clone(*n); return print(*n) == s && print(*c) == s; });
+    sec("diff_rules", [] { return eq(*fold(*diff(*mul(A(), A()), "a")), "a + a") && eq(*fold(*diff(*pow_(A(), 3), "a")), "3 * a^2") && eq(*fold(*diff(*B(), "a")), "0") && eq(*fold(*diff(*neg(A()), "a")), "-1"); });
+    sec("diff_numeric_fuzz", [] { std::mt19937 g(42); int checked = 0; for (int i = 0; i < 400; i++) { auto n = rnd(g, 4); auto d = fold(*diff(*n, "x")); Env e{{"x", .7}, {"y", 1.3}}, u = e, v = e; double h = 1e-5; u["x"] += h; v["x"] -= h; double fd = (eval(*n, u) - eval(*n, v)) / (2 * h), an = eval(*d, e); if (!std::isfinite(fd) || !std::isfinite(an) || std::fabs(fd) > 1e6) continue; checked++; if (std::fabs(fd - an) > 1e-5 * (1 + std::fabs(an))) { fprintf(stderr, "  %s fd %g an %g\n", print(*n).c_str(), fd, an); return false; } double f0 = eval(*n, e), f1 = eval(*fold(*n), e); if (std::fabs(f0 - f1) > 1e-9 * (1 + std::fabs(f0))) return false; } return checked > 300; });
+    sec("clone_independent", [] { auto n = mul(add(A(), num(2)), B()); auto c = clone(*n); n.reset(); return eq(*c, "(a + 2) * b") && near(eval(*c, {{"a", 1}, {"b", 2}}), 6, 1e-12); });
+    sec("deep_tree_destructor", [] { auto t = num(0); for (int i = 0; i < 1000000; i++) t = add(std::move(t), num(1)); auto u = var("x"); for (int i = 0; i < 1000000; i++) u = neg(std::move(u)); auto w = num(1); for (int i = 0; i < 1000000; i++) w = mul(num(2), std::move(w)); t.reset(); u.reset(); w.reset(); return true; }, 60);
+    return 0;
+}

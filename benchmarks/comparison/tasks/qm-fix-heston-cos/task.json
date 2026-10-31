@@ -1,0 +1,1 @@
+{"category": "quant-modeling", "base": "qm", "resource": "qm", "checks": ["andersen_case_price", "standard_case_price", "existing_cos_suite", "library_builds"]}

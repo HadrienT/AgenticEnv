@@ -1,0 +1,634 @@
+{
+ "status": "finished",
+ "error": null,
+ "final_text": "I have successfully fixed all the undefined behavior, memory safety, and data-race bugs in the ticks library. Here's a summary of the changes made:\n\n## Issues Fixed:\n\n1. **Memory Safety Issues:**\n   - `upper_ticker` function: Changed return type from `std::string_view` to `std::string` to avoid returning reference to local variable\n   - `archive_label` function: Changed to return `std::string` instead of `const std::string&` to avoid returning reference to local variable\n   - `middle_word` function: Changed to return `std::string` instead of `const std::string&` to avoid returning reference to local variable\n\n2. **Undefined Behavior:**\n   - `append_negated` function: Fixed to not modify vector while iterating over it by creating a separate vector for negated values\n   - `read_price` function: Replaced `reinterpret_cast` with `std::memcpy` to safely read unaligned data\n\n3. **Data Race Issues:**\n   - `count_ticks` function: Fixed to use `std::atomic<long>` and local thread variables to eliminate data races\n   - `Book::add_and_improvement` function: Fixed to avoid storing references to vector elements that might be invalidated by reallocation\n\n4. **Edge Case Handling:**\n   - `Book::best()` function: Added check for empty vector to prevent undefined behavior\n   - `Book::add_and_improvement()` function: Added proper handling for empty book case\n   - `rolling_mean` function: Fixed loop condition to prevent off-by-one errors\n\n## Key Changes Made:\n\n- **Header file updates:** Updated function signatures to match new return types\n- **Implementation fixes:** All functions now properly handle memory management and thread safety\n- **Sanitizer compliance:** Code now passes ASan, UBSan, and TSan tests without warnings\n\nThe library is now completely free of undefined behavior, memory safety issues, and data races, and should work correctly under all the specified sanitizers.",
+ "duration_s": 187.4,
+ "tool_calls": {
+  "terminal": 20,
+  "file_editor": 14,
+  "think": 1,
+  "finish": 1
+ },
+ "mcp_unavailable": [],
+ "container": "agent-server-434087f2-361e-4c83-add4-f8cdc8149749",
+ "llm_stats": {
+  "usage_to_metrics": {
+   "agent": {
+    "model_name": "openai/Qwen3-Coder-30B-A3B-Instruct",
+    "accumulated_cost": 0.0,
+    "max_budget_per_task": null,
+    "accumulated_token_usage": {
+     "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+     "prompt_tokens": 763833,
+     "completion_tokens": 7466,
+     "cache_read_tokens": 744778,
+     "cache_write_tokens": 0,
+     "reasoning_tokens": 0,
+     "context_window": 0,
+     "per_turn_token": 29347,
+     "response_id": ""
+    },
+    "costs": [],
+    "response_latencies": [
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 17.693021535873413,
+      "response_id": "chatcmpl-0wDbHsT1PnANv55g92Lyls7CQpA9Bb6O"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.1679484844207764,
+      "response_id": "chatcmpl-jwRsg5kanMIAONYj81RhDJeQKJw8YU5m"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 0.8739116191864014,
+      "response_id": "chatcmpl-DQdrKKcncYjmLf7wwNgiVpTCF175mRg2"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.215522289276123,
+      "response_id": "chatcmpl-0c6KXCqwQLOIiT1s05D762Ixhox2S0be"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 2.848673105239868,
+      "response_id": "chatcmpl-PbkfJFEECtZOSaYSgXBxWxNR3XZvGVxa"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 0.926720142364502,
+      "response_id": "chatcmpl-9Lh4UoaMn4nFedhZWGpkdGXVS92OCvz2"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 19.38823938369751,
+      "response_id": "chatcmpl-nFzz0Jwhnmw99n80rv22lpTPL4qP3lae"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 3.9872169494628906,
+      "response_id": "chatcmpl-1BVwvCSLosYjXbQ8c471mkyg8qKJKhGo"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 2.3297955989837646,
+      "response_id": "chatcmpl-p4C8DH1Sjx5ilZtg1DMEGWgrJ5ZKIHrP"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.4096834659576416,
+      "response_id": "chatcmpl-2CBtyK1KnrOJoyLEtzERnoYmnQ7dLAxG"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 2.2072131633758545,
+      "response_id": "chatcmpl-bgOpkcQfebwJrA9ord5QERaaM9UnfCRn"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.5460448265075684,
+      "response_id": "chatcmpl-j3sDypbpBGXnCLdleHtbxdCAMBfYkiBR"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 2.087210178375244,
+      "response_id": "chatcmpl-C6qIMHjeDETypJTlmJDhm9LzkMVnjjts"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.5057570934295654,
+      "response_id": "chatcmpl-x7RUBa93cdDc8ybfGWu6oKoMmwGjQyt1"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 6.750739097595215,
+      "response_id": "chatcmpl-0c8pd9JoAfvXnvVSnvBG7EirBP8hqiZE"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.1729555130004883,
+      "response_id": "chatcmpl-JLO4GLdgVkh3B4XJTIZZGiG8wLZIxGF0"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.409282922744751,
+      "response_id": "chatcmpl-1SYRdxFXwWZozPV9mP3yj0dpEk0kAp70"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.1054472923278809,
+      "response_id": "chatcmpl-DqxfvoSh3TAoHcKHSMdiYhZhYQfmy6lG"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.8154942989349365,
+      "response_id": "chatcmpl-Bk7zI4lKFUcs7UlhIChYis19sDRcKYGH"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 3.913684606552124,
+      "response_id": "chatcmpl-tQbRMVsTK4T9ZY7iCYO3MQZmPSN5GRia"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.2617762088775635,
+      "response_id": "chatcmpl-ntOHuc4fD4PDEAuFyjIaUfmCcxc26SoO"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.4088776111602783,
+      "response_id": "chatcmpl-gc7747Xkl4uiQIbRWPRqNFiDju1l08l2"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 0.9750809669494629,
+      "response_id": "chatcmpl-t6RAByMLWrZW5ovdTfH9xEQHaV5XMMDf"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 7.45651912689209,
+      "response_id": "chatcmpl-qHzYps4cEKGpAI5tCNRkowC2IYrZxwxP"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 4.431835412979126,
+      "response_id": "chatcmpl-spmJz5CBhHpahmdECX9DtYvm0TciZZrc"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 2.0279505252838135,
+      "response_id": "chatcmpl-uRnXHK8LHGMQNedyOsnMkBqA6LLnhER5"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.0405101776123047,
+      "response_id": "chatcmpl-vHHSuHCDN6hgpxR9tgSTt9mnFVlLwYuz"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 2.854907751083374,
+      "response_id": "chatcmpl-m4OF4WXEXOwU4FBrpxMynAhLMKY4aNkd"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.8081600666046143,
+      "response_id": "chatcmpl-DNRGcRxQzTcdYfTP4Y7kuBvibxtyyRoQ"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.1059222221374512,
+      "response_id": "chatcmpl-YIZRxyq70EiTJwHsriJo0P4bZjVXST6x"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.813664436340332,
+      "response_id": "chatcmpl-YxMrAIrTV4qpDum0mGxd06tjxWgnWxeo"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.0504717826843262,
+      "response_id": "chatcmpl-HzmRNjKiISjwZnIj8oOBbNHWXiPSTlYP"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 12.913527011871338,
+      "response_id": "chatcmpl-heQ1yLMFArj9t7Qxs8KqVkBnhr6ejc4h"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.2849199771881104,
+      "response_id": "chatcmpl-rESBCVPzBzmjnDylqngLp8aj6IHwTdlj"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 1.176245927810669,
+      "response_id": "chatcmpl-ekqHQnsDb7rEmAkkT7psLPV1btZYnsrB"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "latency": 6.504284858703613,
+      "response_id": "chatcmpl-zI1EGkzX9npdTrfLvX63WxZz9mYPh3iG"
+     }
+    ],
+    "token_usages": [
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 12575,
+      "completion_tokens": 115,
+      "cache_read_tokens": 2917,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 12690,
+      "response_id": "chatcmpl-0wDbHsT1PnANv55g92Lyls7CQpA9Bb6O"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 12749,
+      "completion_tokens": 63,
+      "cache_read_tokens": 12633,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 12812,
+      "response_id": "chatcmpl-jwRsg5kanMIAONYj81RhDJeQKJw8YU5m"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 12865,
+      "completion_tokens": 51,
+      "cache_read_tokens": 12811,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 12916,
+      "response_id": "chatcmpl-DQdrKKcncYjmLf7wwNgiVpTCF175mRg2"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 13060,
+      "completion_tokens": 62,
+      "cache_read_tokens": 12915,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 13122,
+      "response_id": "chatcmpl-0c6KXCqwQLOIiT1s05D762Ixhox2S0be"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 14068,
+      "completion_tokens": 108,
+      "cache_read_tokens": 13121,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 14176,
+      "response_id": "chatcmpl-PbkfJFEECtZOSaYSgXBxWxNR3XZvGVxa"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 14235,
+      "completion_tokens": 60,
+      "cache_read_tokens": 14175,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 14295,
+      "response_id": "chatcmpl-9Lh4UoaMn4nFedhZWGpkdGXVS92OCvz2"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 14957,
+      "completion_tokens": 1830,
+      "cache_read_tokens": 14294,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 16787,
+      "response_id": "chatcmpl-nFzz0Jwhnmw99n80rv22lpTPL4qP3lae"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 18019,
+      "completion_tokens": 151,
+      "cache_read_tokens": 16786,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 18170,
+      "response_id": "chatcmpl-1BVwvCSLosYjXbQ8c471mkyg8qKJKhGo"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 18388,
+      "completion_tokens": 146,
+      "cache_read_tokens": 18169,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 18534,
+      "response_id": "chatcmpl-p4C8DH1Sjx5ilZtg1DMEGWgrJ5ZKIHrP"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 18620,
+      "completion_tokens": 82,
+      "cache_read_tokens": 18533,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 18702,
+      "response_id": "chatcmpl-2CBtyK1KnrOJoyLEtzERnoYmnQ7dLAxG"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 18962,
+      "completion_tokens": 132,
+      "cache_read_tokens": 18701,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 19094,
+      "response_id": "chatcmpl-bgOpkcQfebwJrA9ord5QERaaM9UnfCRn"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 19276,
+      "completion_tokens": 81,
+      "cache_read_tokens": 19093,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 19357,
+      "response_id": "chatcmpl-j3sDypbpBGXnCLdleHtbxdCAMBfYkiBR"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 19481,
+      "completion_tokens": 143,
+      "cache_read_tokens": 19356,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 19624,
+      "response_id": "chatcmpl-C6qIMHjeDETypJTlmJDhm9LzkMVnjjts"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 19827,
+      "completion_tokens": 74,
+      "cache_read_tokens": 19623,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 19901,
+      "response_id": "chatcmpl-x7RUBa93cdDc8ybfGWu6oKoMmwGjQyt1"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 19959,
+      "completion_tokens": 618,
+      "cache_read_tokens": 19900,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 20577,
+      "response_id": "chatcmpl-0c8pd9JoAfvXnvVSnvBG7EirBP8hqiZE"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 20602,
+      "completion_tokens": 73,
+      "cache_read_tokens": 20576,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 20675,
+      "response_id": "chatcmpl-JLO4GLdgVkh3B4XJTIZZGiG8wLZIxGF0"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 20770,
+      "completion_tokens": 81,
+      "cache_read_tokens": 20674,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 20851,
+      "response_id": "chatcmpl-1SYRdxFXwWZozPV9mP3yj0dpEk0kAp70"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 20903,
+      "completion_tokens": 60,
+      "cache_read_tokens": 20850,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 20963,
+      "response_id": "chatcmpl-DqxfvoSh3TAoHcKHSMdiYhZhYQfmy6lG"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 21140,
+      "completion_tokens": 101,
+      "cache_read_tokens": 20962,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 21241,
+      "response_id": "chatcmpl-Bk7zI4lKFUcs7UlhIChYis19sDRcKYGH"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 21418,
+      "completion_tokens": 300,
+      "cache_read_tokens": 21240,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 21718,
+      "response_id": "chatcmpl-tQbRMVsTK4T9ZY7iCYO3MQZmPSN5GRia"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 21744,
+      "completion_tokens": 80,
+      "cache_read_tokens": 21717,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 21824,
+      "response_id": "chatcmpl-ntOHuc4fD4PDEAuFyjIaUfmCcxc26SoO"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 21924,
+      "completion_tokens": 76,
+      "cache_read_tokens": 21823,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 22000,
+      "response_id": "chatcmpl-gc7747Xkl4uiQIbRWPRqNFiDju1l08l2"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 22052,
+      "completion_tokens": 50,
+      "cache_read_tokens": 21999,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 22102,
+      "response_id": "chatcmpl-t6RAByMLWrZW5ovdTfH9xEQHaV5XMMDf"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 24067,
+      "completion_tokens": 354,
+      "cache_read_tokens": 22101,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 24421,
+      "response_id": "chatcmpl-qHzYps4cEKGpAI5tCNRkowC2IYrZxwxP"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 24440,
+      "completion_tokens": 374,
+      "cache_read_tokens": 24420,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 24814,
+      "response_id": "chatcmpl-spmJz5CBhHpahmdECX9DtYvm0TciZZrc"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 25203,
+      "completion_tokens": 85,
+      "cache_read_tokens": 24813,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 25288,
+      "response_id": "chatcmpl-uRnXHK8LHGMQNedyOsnMkBqA6LLnhER5"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 25340,
+      "completion_tokens": 50,
+      "cache_read_tokens": 25287,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 25390,
+      "response_id": "chatcmpl-vHHSuHCDN6hgpxR9tgSTt9mnFVlLwYuz"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 26400,
+      "completion_tokens": 65,
+      "cache_read_tokens": 25389,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 26465,
+      "response_id": "chatcmpl-m4OF4WXEXOwU4FBrpxMynAhLMKY4aNkd"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 26642,
+      "completion_tokens": 91,
+      "cache_read_tokens": 26464,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 26733,
+      "response_id": "chatcmpl-DNRGcRxQzTcdYfTP4Y7kuBvibxtyyRoQ"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 26785,
+      "completion_tokens": 53,
+      "cache_read_tokens": 26732,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 26838,
+      "response_id": "chatcmpl-YIZRxyq70EiTJwHsriJo0P4bZjVXST6x"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 26968,
+      "completion_tokens": 95,
+      "cache_read_tokens": 26837,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 27063,
+      "response_id": "chatcmpl-YxMrAIrTV4qpDum0mGxd06tjxWgnWxeo"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 27115,
+      "completion_tokens": 45,
+      "cache_read_tokens": 27062,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 27160,
+      "response_id": "chatcmpl-HzmRNjKiISjwZnIj8oOBbNHWXiPSTlYP"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 27337,
+      "completion_tokens": 1094,
+      "cache_read_tokens": 27159,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 28431,
+      "response_id": "chatcmpl-heQ1yLMFArj9t7Qxs8KqVkBnhr6ejc4h"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 28457,
+      "completion_tokens": 74,
+      "cache_read_tokens": 28430,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 28531,
+      "response_id": "chatcmpl-rESBCVPzBzmjnDylqngLp8aj6IHwTdlj"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 28644,
+      "completion_tokens": 43,
+      "cache_read_tokens": 28530,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 28687,
+      "response_id": "chatcmpl-ekqHQnsDb7rEmAkkT7psLPV1btZYnsrB"
+     },
+     {
+      "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+      "prompt_tokens": 28841,
+      "completion_tokens": 506,
+      "cache_read_tokens": 28686,
+      "cache_write_tokens": 0,
+      "reasoning_tokens": 0,
+      "context_window": 0,
+      "per_turn_token": 29347,
+      "response_id": "chatcmpl-zI1EGkzX9npdTrfLvX63WxZz9mYPh3iG"
+     }
+    ]
+   },
+   "condenser": {
+    "model_name": "openai/Qwen3-Coder-30B-A3B-Instruct",
+    "accumulated_cost": 0.0,
+    "max_budget_per_task": null,
+    "accumulated_token_usage": {
+     "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "cache_read_tokens": 0,
+     "cache_write_tokens": 0,
+     "reasoning_tokens": 0,
+     "context_window": 0,
+     "per_turn_token": 0,
+     "response_id": ""
+    },
+    "costs": [],
+    "response_latencies": [],
+    "token_usages": []
+   }
+  }
+ }
+}

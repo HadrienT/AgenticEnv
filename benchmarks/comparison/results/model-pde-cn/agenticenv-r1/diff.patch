@@ -1,0 +1,192 @@
+diff --git a/src/pde.cpp b/src/pde.cpp
+index c370d2d..5b4fd50 100644
+--- a/src/pde.cpp
++++ b/src/pde.cpp
+@@ -1,5 +1,186 @@
+ #include "pde.hpp"
++#include <vector>
++#include <algorithm>
++#include <cmath>
+ #include <stdexcept>
++
+ namespace model {
+-PdeResult pde_price(Kind, double, double, double, double, double, double, int, int) { throw std::logic_error("not implemented"); }
++
++// Helper function to compute payoff
++double payoff(Kind kind, double S, double K) {
++    switch (kind) {
++        case Kind::EuropeanCall:
++            return std::max(S - K, 0.0);
++        case Kind::EuropeanPut:
++            return std::max(K - S, 0.0);
++        case Kind::AmericanPut:
++            return std::max(K - S, 0.0);
++        case Kind::DigitalCall:
++            return (S > K) ? 1.0 : 0.0;
++        default:
++            return 0.0;
++    }
+ }
++
++// Thomas algorithm for solving tridiagonal systems
++void solve_tridiagonal(const std::vector<double>& a, const std::vector<double>& b, 
++                       const std::vector<double>& c, const std::vector<double>& d,
++                       std::vector<double>& x) {
++    int n = static_cast<int>(b.size());
++    std::vector<double> p(n, 0.0);
++    std::vector<double> q(n, 0.0);
++    
++    // Forward elimination
++    p[0] = c[0] / b[0];
++    q[0] = d[0] / b[0];
++    
++    for (int i = 1; i < n; ++i) {
++        double denom = b[i] - a[i] * p[i-1];
++        p[i] = c[i] / denom;
++        q[i] = (d[i] - a[i] * q[i-1]) / denom;
++    }
++    
++    // Backward substitution
++    x[n-1] = q[n-1];
++    for (int i = n - 2; i >= 0; --i) {
++        x[i] = q[i] - p[i] * x[i+1];
++    }
++}
++
++PdeResult pde_price(Kind kind, double S, double K, double r, double q, double sigma, double T, int nS, int nT) {
++    // Set up the grid parameters
++    const double S_min = 1e-6;  // Minimum spot value
++    const double S_max = 1e6;   // Maximum spot value
++    
++    // Create log grid for the PDE
++    double log_S_min = std::log(S_min);
++    double log_S_max = std::log(S_max);
++    double dlog = (log_S_max - log_S_min) / nS;
++    
++    // Create the spot grid in log-space
++    std::vector<double> log_grid(nS + 1);
++    for (int i = 0; i <= nS; ++i) {
++        log_grid[i] = log_S_min + i * dlog;
++    }
++    
++    // Convert log grid to spot grid
++    std::vector<double> spot_grid(nS + 1);
++    for (int i = 0; i <= nS; ++i) {
++        spot_grid[i] = std::exp(log_grid[i]);
++    }
++    
++    // Time step
++    double dt = T / nT;
++    
++    // Compute the coefficients for the Crank-Nicolson scheme
++    double alpha = 0.5 * sigma * sigma * dt / (dlog * dlog);
++    double beta = 0.5 * dt * (r - q) / dlog;
++    
++    // Create the coefficient matrices for Crank-Nicolson
++    std::vector<double> a(nS + 1, 0.0);
++    std::vector<double> b(nS + 1, 0.0);
++    std::vector<double> c(nS + 1, 0.0);
++    std::vector<double> d(nS + 1, 0.0);
++    
++    // Fill the coefficient vectors for the tridiagonal system
++    for (int i = 1; i < nS; ++i) {
++        a[i] = -alpha - 0.5 * beta;
++        b[i] = 1.0 + 2.0 * alpha;
++        c[i] = -alpha + 0.5 * beta;
++    }
++    
++    // Initialize the option values at maturity
++    std::vector<double> V(nS + 1, 0.0);
++    for (int i = 0; i <= nS; ++i) {
++        V[i] = payoff(kind, spot_grid[i], K);
++    }
++    
++    // For American options, we need to handle early exercise
++    bool is_american = (kind == Kind::AmericanPut);
++    
++    // Time-stepping loop (backward in time)
++    for (int j = nT - 1; j >= 0; --j) {
++        if (is_american) {
++            // For American put, we need to use the Brennan-Schwartz method
++            // Set up the tridiagonal system for Crank-Nicolson
++            for (int i = 1; i < nS; ++i) {
++                d[i] = V[i] + alpha * (V[i+1] - 2.0 * V[i] + V[i-1]) + 
++                       0.5 * dt * (r - q) * (V[i+1] - V[i-1]) / (2.0 * dlog);
++            }
++            
++            // Apply boundary conditions - simplified for now
++            d[0] = 0.0;  // This is a simplified boundary condition
++            d[nS] = 0.0; // This is a simplified boundary condition
++            
++            // Solve the tridiagonal system
++            std::vector<double> V_new(nS + 1, 0.0);
++            solve_tridiagonal(a, b, c, d, V_new);
++            
++            // Apply early exercise condition for American put
++            for (int i = 0; i <= nS; ++i) {
++                double exercise_value = payoff(kind, spot_grid[i], K);
++                V_new[i] = std::max(V_new[i], exercise_value);
++            }
++            
++            V = V_new;
++        } else {
++            // For European options, just solve the tridiagonal system
++            for (int i = 1; i < nS; ++i) {
++                d[i] = V[i] + alpha * (V[i+1] - 2.0 * V[i] + V[i-1]) + 
++                       0.5 * dt * (r - q) * (V[i+1] - V[i-1]) / (2.0 * dlog);
++            }
++            
++            // Apply boundary conditions - simplified for now
++            d[0] = 0.0;  // This is a simplified boundary condition
++            d[nS] = 0.0; // This is a simplified boundary condition
++            
++            // Solve the tridiagonal system
++            std::vector<double> V_new(nS + 1, 0.0);
++            solve_tridiagonal(a, b, c, d, V_new);
++            V = V_new;
++        }
++    }
++    
++    // Interpolate to get the value at the requested spot
++    int i = 0;
++    while (i < nS && spot_grid[i] < S) {
++        ++i;
++    }
++    
++    double value = 0.0;
++    double delta = 0.0;
++    double gamma = 0.0;
++    
++    if (i == 0) {
++        // S is below the first grid point
++        value = V[0];
++        delta = 0.0;
++        gamma = 0.0;
++    } else if (i == nS) {
++        // S is above the last grid point
++        value = V[nS];
++        delta = 0.0;
++        gamma = 0.0;
++    } else {
++        // Interpolate between grid points
++        double S1 = spot_grid[i-1];
++        double S2 = spot_grid[i];
++        double V1 = V[i-1];
++        double V2 = V[i];
++        
++        double ratio = (S - S1) / (S2 - S1);
++        value = V1 + ratio * (V2 - V1);
++        
++        // Compute delta and gamma using finite differences
++        if (i > 0 && i < nS) {
++            double dS1 = S - S1;
++            double dS2 = S2 - S;
++            delta = (V2 - V1) / (S2 - S1);
++            gamma = (V2 - 2.0 * value + V1) / (dS1 * dS2);
++        }
++    }
++    
++    return {value, delta, gamma};
++}
++
++}  // namespace model

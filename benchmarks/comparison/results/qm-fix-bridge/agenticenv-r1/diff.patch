@@ -1,0 +1,13 @@
+diff --git a/include/quantModeling/engines/mc/sobol_bridge.hpp b/include/quantModeling/engines/mc/sobol_bridge.hpp
+index d828185..f5ad994 100644
+--- a/include/quantModeling/engines/mc/sobol_bridge.hpp
++++ b/include/quantModeling/engines/mc/sobol_bridge.hpp
+@@ -57,7 +57,7 @@ namespace quantModeling::mc
+         auto coord = [&](int j)
+         {
+             const uint32_t bits = sobol_randomise(sobol_point_bits(v.V + 32L * j, p), sh[j], v.owen);
+-            return inverse_normal_cdf(sobol_to_uniform(bits, 0u));
++            return inverse_normal_cdf(sobol_to_uniform(bits, sh[j]));
+         };
+         if (v.n == 0)
+         {

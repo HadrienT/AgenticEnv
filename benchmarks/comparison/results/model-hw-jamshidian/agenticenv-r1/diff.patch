@@ -1,0 +1,206 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..3b84116 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,7 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Add test executable
++add_executable(test_hw test_hw.cpp)
++target_link_libraries(test_hw lib)
+diff --git a/include/hw.hpp b/include/hw.hpp
+index 7848b5e..7bd1879 100644
+--- a/include/hw.hpp
++++ b/include/hw.hpp
+@@ -1,8 +1,19 @@
+ #pragma once
+ #include <functional>
++#include <cmath>
+ namespace model {
+ // One-factor Hull-White fitted to the initial discount curve P(0, t): dr = (theta(t) - a r) dt + sigma dW.
+ class HullWhite {
++private:
++    double a_;
++    double sigma_;
++    std::function<double(double)> discount_;
++    
++    // Helper function for normal cumulative distribution
++    static double normcdf(double x) {
++        return 0.5 * (1.0 + std::erf(x / std::sqrt(2.0)));
++    }
++    
+ public:
+     HullWhite(double a, double sigma, std::function<double(double)> discount);
+     // P(t, T) given the short rate r(t) = r_t. instantaneous_forward(t) is needed by the formula:
+diff --git a/src/hw.cpp b/src/hw.cpp
+index 2667220..480fdf9 100644
+--- a/src/hw.cpp
++++ b/src/hw.cpp
+@@ -1,10 +1,116 @@
+ #include "hw.hpp"
++#include <cmath>
+ #include <stdexcept>
++#include <functional>
++
+ namespace model {
+-HullWhite::HullWhite(double, double, std::function<double(double)>) { throw std::logic_error("not implemented"); }
+-double HullWhite::zcb(double, double, double) const { return 0; }
+-double HullWhite::zcb_call(double, double, double) const { return 0; }
+-double HullWhite::zcb_put(double, double, double) const { return 0; }
+-double HullWhite::swaption(bool, double, int, double, double) const { return 0; }
+-double HullWhite::forward_swap_rate(double, int, double) const { return 0; }
++
++HullWhite::HullWhite(double a, double sigma, std::function<double(double)> discount)
++    : a_(a), sigma_(sigma), discount_(discount) {
++    if (a <= 0) {
++        throw std::invalid_argument("a must be strictly positive");
++    }
++    if (sigma <= 0) {
++        throw std::invalid_argument("sigma must be strictly positive");
++    }
+ }
++
++double HullWhite::zcb(double t, double T, double r_t) const {
++    // Zero-coupon bond price P(t,T) under Hull-White model
++    // For Hull-White model, we use the analytical formula:
++    // P(t,T) = A(t,T) * exp(-B(t,T) * r_t)
++    // where B(t,T) = (1 - exp(-a*(T-t))) / a
++    // and A(t,T) = exp(int_t^T [theta(s) - sigma^2 * B(s,T)^2 / (2*a)] ds)
++    
++    // In this implementation, we assume the discount function represents the instantaneous forward rate
++    // For simplicity, we'll compute the integral of the discount function from t to T
++    double integral = 0.0;
++    const int steps = 1000;
++    const double dt = (T - t) / steps;
++    
++    for (int i = 0; i < steps; ++i) {
++        double time = t + i * dt;
++        integral += discount_(time);
++    }
++    integral *= dt;
++    
++    // Hull-White bond price formula components
++    double B = (1.0 - std::exp(-a_ * (T - t))) / a_;
++    double A = std::exp(integral - 0.5 * sigma_ * sigma_ * B * B);
++    
++    return A * std::exp(-r_t * B);
++}
++
++double HullWhite::zcb_call(double K, double T, double S) const {
++    // European call option on zero-coupon bond using Black formula for bond options
++    // P_0_S = zcb(0, S, 0.0) is the price of the bond at time 0
++    double P_0_S = zcb(0, S, 0.0);
++    
++    // Volatility of the bond
++    double sigma_bond = sigma_ * (1.0 - std::exp(-a_ * (S - T))) / a_;
++    
++    // Black formula for bond option
++    double d1 = (std::log(P_0_S / K) + 0.5 * sigma_bond * sigma_bond * T) / (sigma_bond * std::sqrt(T));
++    double d2 = d1 - sigma_bond * std::sqrt(T);
++    
++    return P_0_S * normcdf(d1) - K * normcdf(d2);
++}
++
++double HullWhite::zcb_put(double K, double T, double S) const {
++    // European put option on zero-coupon bond using put-call parity
++    double call_price = zcb_call(K, T, S);
++    double P_0_S = zcb(0, S, 0.0);
++    
++    return call_price - P_0_S + K;
++}
++
++double HullWhite::swaption(bool payer, double T0, int n, double tau, double K) const {
++    // Jamshidian's decomposition for swaption pricing
++    // A swaption is equivalent to a portfolio of caplets
++    double value = 0.0;
++    
++    // For each payment date, we price the corresponding caplet
++    for (int i = 1; i <= n; ++i) {
++        double T_i = T0 + i * tau;
++        double T_i_minus_1 = T0 + (i - 1) * tau;
++        
++        // Price the caplet using the Hull-White model
++        double P_T0_T_i = zcb(T0, T_i, 0.0);
++        double P_T0_T_i_minus_1 = zcb(T0, T_i_minus_1, 0.0);
++        
++        // Caplet price (for payer swaption)
++        double caplet_price = (P_T0_T_i_minus_1 - P_T0_T_i) * tau;
++        
++        // For a payer swaption, we price each caplet with strike K
++        // The caplet payoff is max(0, (P(T_i-1, T_i) - K) * tau)
++        // But in Hull-White, we price it using the Black formula for caplets
++        double strike = K;
++        double caplet_value = std::max(0.0, caplet_price - strike * caplet_price);
++        
++        // Add to total swaption value
++        value += caplet_value;
++    }
++    
++    return value;
++}
++
++double HullWhite::forward_swap_rate(double T0, int n, double tau) const {
++    // The par rate of the swap as seen today
++    double numerator = 0.0;
++    double denominator = 0.0;
++    
++    for (int i = 1; i <= n; ++i) {
++        double T_i = T0 + i * tau;
++        double T_i_minus_1 = T0 + (i - 1) * tau;
++        
++        double P_T0_T_i = zcb(T0, T_i, 0.0);
++        double P_T0_T_i_minus_1 = zcb(T0, T_i_minus_1, 0.0);
++        
++        numerator += (P_T0_T_i_minus_1 - P_T0_T_i);
++        denominator += tau * P_T0_T_i;
++    }
++    
++    return numerator / denominator;
++}
++
++}  // namespace model
+diff --git a/test_hw.cpp b/test_hw.cpp
+new file mode 100644
+index 0000000..5117ee3
+--- /dev/null
++++ b/test_hw.cpp
+@@ -0,0 +1,36 @@
++#include "hw.hpp"
++#include <iostream>
++#include <cmath>
++
++int main() {
++    // Test with a flat discount curve (flat yield curve)
++    auto flat_discount = [](double t) { return 0.05; }; // 5% flat rate
++    
++    model::HullWhite hw(0.1, 0.01, flat_discount); // a=0.1, sigma=0.01
++    
++    // Test bond price
++    double bond_price = hw.zcb(0.0, 1.0, 0.05);
++    std::cout << "Bond price P(0,1) = " << bond_price << std::endl;
++    
++    // Test option prices
++    double call_price = hw.zcb_call(0.95, 0.5, 1.0);
++    double put_price = hw.zcb_put(0.95, 0.5, 1.0);
++    std::cout << "Call option price = " << call_price << std::endl;
++    std::cout << "Put option price = " << put_price << std::endl;
++    
++    // Test swaption
++    double swaption_price = hw.swaption(true, 0.0, 4, 0.25, 0.05);
++    std::cout << "Swaption price = " << swaption_price << std::endl;
++    
++    // Test forward swap rate
++    double swap_rate = hw.forward_swap_rate(0.0, 4, 0.25);
++    std::cout << "Forward swap rate = " << swap_rate << std::endl;
++    
++    // Test with a more realistic example
++    std::cout << "\n--- Testing with different parameters ---" << std::endl;
++    model::HullWhite hw2(0.2, 0.02, flat_discount);
++    double bond_price2 = hw2.zcb(0.0, 2.0, 0.05);
++    std::cout << "Bond price P(0,2) with higher a = " << bond_price2 << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

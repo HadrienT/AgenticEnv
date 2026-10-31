@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Motion UI proof</title>
+<style>
+@font-face{font-family:SG;font-weight:400;src:url(node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2)}
+@font-face{font-family:SG;font-weight:500;src:url(node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2)}
+@font-face{font-family:JB;font-weight:400;src:url(node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2)}
+@font-face{font-family:JB;font-weight:500;src:url(node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2)}
+:root{--bg:#060a0b;--ink:#eef2ee;--mute:#8d968f;--dim:#4d5650;--line:#1f2a24;--line2:#2c3a30;--lime:#c6f135;--olive:#1d2a12;--violet:#8c7dff}
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg)}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;color:var(--ink);font-family:SG,sans-serif;
+  background:radial-gradient(1100px 700px at 62% 62%,#0d1610 0%,transparent 70%),radial-gradient(800px 500px at 10% 100%,#0b130e 0%,transparent 70%),var(--bg)}
+.abs{position:absolute}
+.mono{font-family:JB,monospace;text-transform:uppercase;letter-spacing:.2em;font-size:15px;color:var(--mute)}
+#title{left:80px;top:124px;font-size:66px;font-weight:500;letter-spacing:-.02em;white-space:nowrap}
+#title em{font-style:normal;color:var(--lime);margin-left:30px;text-shadow:0 0 28px #c6f13555}
+.sub{left:80px;top:208px;font-size:25px;color:#b9c1ba;white-space:nowrap}
+.tab{left:80px;width:340px;height:66px;border-radius:12px;display:flex;align-items:center;padding-left:26px;gap:22px;font-size:22px;color:var(--mute);border:1px solid transparent}
+.tab b{font:500 14px JB,monospace;color:var(--lime);opacity:.8}
+#tabHL{left:80px;width:340px;height:66px;border-radius:12px;border:2px solid var(--lime);background:linear-gradient(90deg,#26361499,#14200f66);box-shadow:0 0 22px #c6f13522}
+.row{left:500px;width:650px;height:122px;border-radius:14px;border:1px solid var(--line2);padding:22px 30px 0 74px;background:#0a100d}
+.row h3{font-size:25px;font-weight:500}
+.row p{font-size:19px;color:var(--mute);margin-top:6px}
+.row i{position:absolute;left:28px;top:30px;font:400 14px JB,monospace;color:var(--mute)}
+.row u{position:absolute;right:26px;top:28px;font:400 13px JB,monospace;color:var(--mute);text-decoration:none;letter-spacing:.06em}
+.row .hl{position:absolute;inset:-1px;border-radius:14px;border:2px solid var(--lime);background:linear-gradient(90deg,#2a3b1680,#17230f40);box-shadow:0 0 26px #c6f13526}
+.row h3,.row p{position:relative;z-index:1}.row i,.row u{z-index:1}
+#panel{left:1190px;top:360px;width:650px;height:567px;border-radius:16px;border:1px solid var(--line);background:#080d0b}
+#svg{left:1190px;top:360px}
+.cap{left:1190px;top:952px;font-size:19px;color:#b9c1ba;white-space:nowrap}
+#hair{left:80px;top:94px;height:1px;background:var(--line);width:1760px}
+#sweep{top:93px;height:2px;width:280px;background:linear-gradient(90deg,transparent,#c6f13580,transparent)}
+#div{left:450px;top:300px;width:1px;height:680px;background:var(--line)}
+#foot{left:80px;top:1062px;height:1px;width:1760px;background:var(--line)}
+#prog{left:80px;top:1061px;height:3px;background:var(--lime);box-shadow:0 0 12px #c6f13588}
+text{font-family:SG,sans-serif;fill:var(--ink)}
+.m{font-family:JB,monospace}
+</style></head><body><div id="stage">
+<div class="abs mono chrome" style="left:80px;top:48px;color:var(--ink);font-weight:500;font-size:18px">&#9670;&nbsp; Field Notes</div>
+<div class="abs mono chrome" style="right:80px;top:50px">Explained / LLM runtime</div>
+<div class="abs chrome" id="hair"></div><div class="abs" id="sweep"></div>
+<div class="abs chrome" id="title">Inside an LLM<em>before the answer</em></div>
+<div class="abs mono chrome" style="left:80px;top:300px">3 stages</div>
+<div class="abs mono" id="sec" style="left:500px;top:300px;color:var(--lime)"></div>
+<div class="abs chrome" id="div"></div>
+<div class="abs chrome" id="tabHL"></div>
+<canvas class="abs chrome" id="chip" width="340" height="230" style="left:80px;top:640px"></canvas>
+<div class="abs chrome" style="left:80px;width:340px;top:880px;text-align:center;color:var(--lime);font-weight:500;font-size:22px">TOKEN ENGINE</div>
+<div class="abs chrome" style="left:80px;width:340px;top:914px;text-align:center;color:var(--mute);font-size:18px">The moving part</div>
+<div class="abs chrome" id="panel"></div>
+<svg class="abs" id="svg" width="650" height="567" viewBox="0 0 650 567"></svg>
+<div class="abs mono chrome" style="left:80px;top:1026px;font-size:14px">LLM / from prompt to answer</div>
+<div class="abs mono chrome" style="right:80px;top:1026px;font-size:14px;letter-spacing:.12em">Split · Encode · Compute · Stream</div>
+<div class="abs chrome" id="foot"></div><div class="abs" id="prog"></div>
+</div>
+<script>
+const B=1.97, $=s=>document.querySelector(s), stage=$('#stage'), svg=$('#svg'), NS='http://www.w3.org/2000/svg';
+const LIME='#c6f135',MUTE='#8d968f',LINE='#2c3a30',DIM='#4d5650',VIOLET='#8c7dff';
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const ease=p=>1-Math.pow(1-clamp(p),3), io=p=>{p=clamp(p);return p*p*(3-2*p)};
+
+/* Timed items: every element gets a window [tin,tout] and a blur reveal, so frame t is a pure function of t. */
+const A=[], U=[];
+const reg=(el,tin,tout,o={})=>{A.push({el,tin,tout,dy:o.dy??10,blur:o.blur??7,fix:o.fix});return el};
+const el=(n,a={},p=svg)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const txt=(g,x,y,s,o={})=>{const e=el('text',{x,y,'font-size':o.size??20,'text-anchor':o.anchor??'middle','font-weight':o.w??400,fill:o.fill??'#eef2ee',class:o.mono?'m':''},g);e.textContent=s;e.style.fill=o.fill??'#eef2ee';if(o.ls)e.style.letterSpacing=o.ls;return e};
+
+/* Scene toolkit */
+function S(i){const T=B*(1+2*i),E=T+2*B+(i===5?.7:0);return{T,E,
+  label(s){const g=reg(el('g'),T+.1,E);txt(g,30,50,s.toUpperCase(),{size:14,anchor:'start',mono:1,fill:MUTE,ls:'.2em'})},
+  box(x,y,w,h,title,sub,tin,hlAt){const g=reg(el('g'),tin,E);
+    el('rect',{x,y,width:w,height:h,rx:12,fill:'#0b120e',stroke:LINE},g);
+    if(title)txt(g,x+w/2,y+(sub?h/2-4:h/2+7),title,{size:20,w:500});
+    if(sub)txt(g,x+w/2,y+h/2+20,sub,{size:15,fill:MUTE});
+    if(hlAt!=null){const r=reg(el('rect',{x,y,width:w,height:h,rx:12,fill:'#c6f13512',stroke:LIME,'stroke-width':2},g),hlAt,E,{dy:0,blur:0})}
+    return g},
+  line(pts,tin,dur=.5,o={}){const d='M'+pts.map(p=>p.join(' ')).join('L');
+    const p=el('path',{d,fill:'none',stroke:o.c??MUTE,'stroke-width':o.w??1.6,pathLength:1});
+    U.push(t=>{const q=ease((t-tin)/dur),f=io((t-(E-.3))/.3);p.style.strokeDasharray=`${q} 1`;p.style.opacity=(t<tin||t>E)?0:(1-f)})},
+  pill(s,tin){const g=reg(el('g'),T+.1,E,{dy:0});el('rect',{x:30,y:486,width:590,height:52,rx:12,fill:'#1d2a12'},g);
+    const c=reg(el('g'),tin,E);txt(c,325,519,s,{size:21,w:500,fill:LIME})},
+  cap(s1,s2){for(const[s,a,b]of[[s1,T+.1,T+B],[s2,T+B,E]]){const d=document.createElement('div');d.className='abs cap';d.textContent=s;stage.appendChild(d);reg(d,a,b,{dy:0,blur:5})}}}}
+
+/* 0 Tokenization */
+{const s=S(0),b=s.T+B;s.label('Tokens / split the input');s.box(155,72,340,54,'“Why is the sky blue?”',null,s.T+.25);
+ s.line([[325,126],[325,158]],s.T+.5,.3);s.line([[62,158],[588,158]],s.T+.6,.4);
+ ['Why',' is',' the',' sky',' blue','?'].forEach((w,i)=>{const x=30+i*100,tin=s.T+.8+i*.12;s.line([[x+45,158],[x+45,190]],tin,.2);
+  s.box(x,190,90,62,w.trim(),null,tin,b-.1+i*.08);
+  const g=reg(el('g'),b+.1+i*.12,s.E);const n=[2895,318,279,6766,6437,30][i];const e=txt(g,x+45,296,'0',{size:19,mono:1,fill:LIME});
+  U.push(t=>{e.textContent=Math.round(n*ease((t-(b+.1+i*.12))/.7))});s.line([[x+45,252],[x+45,274]],b+i*.12,.2,{c:LIME})});
+ const g=reg(el('g'),b+.8,s.E);txt(g,325,370,'6 pieces · 6 integers',{size:18,fill:MUTE});
+ s.pill('Sequence of token IDs',b+1.1);s.cap('1 / Text is cut into known pieces.','2 / Every piece maps to a number.')}
+
+/* 1 Embedding */
+{const s=S(1),b=s.T+B;s.label('Embedding / meaning as position');
+ s.box(30,90,330,330,null,null,s.T+.2);const g0=reg(el('g'),s.T+.3,s.E);txt(g0,195,124,'Lookup table',{size:19,w:500});
+ for(let r=0;r<7;r++)for(let c=0;c<7;c++){const g=reg(el('rect',{x:64+c*40,y:146+r*38,width:30,height:28,rx:4,fill:'#2b3a30'}),s.T+.35+(r+c)*.035,s.E,{dy:0,blur:3})}
+ const pl=reg(el('g'),s.T+1,s.E);txt(pl,392,262,'+',{size:30,fill:MUTE});
+ s.box(424,150,196,210,null,null,s.T+.9,b-.1);const g1=reg(el('g'),s.T+1,s.E);txt(g1,522,134,'Vector',{size:19,w:500});
+ for(let r=0;r<5;r++)for(let c=0;c<4;c++){const x=446+c*40,y=168+r*36,on=(r*7+c*3)%5!==0;const e=el('rect',{x,y,width:30,height:26,rx:4,fill:'#2b3a30'});
+  const f=el('rect',{x,y,width:30,height:26,rx:4,fill:LIME}),tin=b+.1+(r*4+c)*.055;
+  reg(e,s.T+1.1+(r+c)*.03,s.E,{dy:0,blur:3});U.push(t=>{f.style.opacity=on?ease((t-tin)/.2)*(1-io((t-(s.E-.3))/.3)):0})}
+ s.line([[195,420],[195,456],[522,456],[522,360]],b+.5,.5,{c:LIME});
+ s.pill('Tokens become coordinates',b+1.1);s.cap('1 / Each ID selects one row of a learned table.','2 / That row is a position in meaning space.')}
+
+/* 2 Context assembly */
+{const s=S(2),b=s.T+B;s.label('Context / build the window');
+ [['System','Rules'],['History','Past turns'],['Documents','Retrieved']].forEach(([a,c],i)=>{const x=30+i*200;s.box(x,76,190,84,a,c,s.T+.25+i*.16);s.line([[x+95,160],[x+95,200],[325,200],[325,226]],s.T+.7+i*.1,.45)});
+ s.box(90,226,470,216,null,null,s.T+1,b+1.2);const g=reg(el('g'),s.T+1.1,s.E);txt(g,325,264,'Context window',{size:21,w:500});
+ [[LIME,.42,'System'],[VIOLET,.68,'History'],[LIME,.88,'Documents']].forEach(([c,v,l],i)=>{const y=294+i*44,g=reg(el('g'),s.T+1.2,s.E);
+  txt(g,122,y+14,l,{size:15,anchor:'start',fill:MUTE});el('rect',{x:232,y:y+2,width:296,height:12,rx:6,fill:'#1a241d'},g);
+  const r=el('rect',{x:232,y:y+2,height:12,rx:6,fill:c},g);U.push(t=>{r.setAttribute('width',296*v*ease((t-(b+.1+i*.25))/.8))})});
+ s.pill('Prompt assembled',b+1.1);s.cap('1 / Three sources feed one fixed budget.','2 / What does not fit gets dropped.')}
+
+/* 3 Forward pass: isometric wire stack */
+{const s=S(3),b=s.T+B;s.label('Layers / refine the sequence');
+ const P=(x,y,z)=>[325+(x-y)*.86,320+(x+y)*.5-z];
+ const G=reg(el('g'),s.T+.25,s.E);
+ for(let i=-4;i<=4;i++){for(const[a,c]of[[[i*40,-160,0],[i*40,160,0]],[[-160,i*40,0],[160,i*40,0]]]){const p=P(...a),q=P(...c);el('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:'#1c271f'},G)}}
+ const N=5;for(let n=0;n<N;n++){const z=26+n*34,cs=[[-100,-100],[100,-100],[100,100],[-100,100]].map(([x,y])=>P(x,y,z)).map(p=>p.join(',')).join(' ');
+  const base=el('polygon',{points:cs,fill:'#0b120ecc',stroke:'#3c4d40','stroke-width':1.4}),hot=el('polygon',{points:cs,fill:'#c6f13522',stroke:LIME,'stroke-width':2.4});
+  reg(base,s.T+.5+n*.18,s.E,{dy:12,blur:3});
+  U.push(t=>{const u=(t-(s.T+1.3))/(2*B-1.9),act=u*N*1.25-n,v=u<0||u>1.02?0:clamp(1-Math.abs(act-.5)*1.1);hot.style.opacity=v*(1-io((t-(s.E-.3))/.3))})}
+ const c=P(0,0,0),t2=P(0,0,196);s.line([[c[0],c[1]+6],[c[0],c[1]-14]],s.T+1.2,.2,{c:LIME,w:3});
+ s.line([[t2[0],t2[1]+30],[t2[0],t2[1]-6]],b+1.1,.3,{c:LIME,w:3});
+ s.pill('Every token sees every other token',b+1.1);s.cap('1 / The sequence climbs a stack of layers.','2 / Each layer sharpens the representation.')}
+
+/* 4 Sampling */
+{const s=S(4),b=s.T+B;s.label('Sampling / pick the next token');s.box(120,72,410,54,'“The sky is ___”',null,s.T+.25);s.line([[325,126],[325,166]],s.T+.5,.3);
+ [['blue',.62,1],['clear',.18],['grey',.12],['dark',.08]].forEach(([w,v,w0],i)=>{const y=170+i*72,g=reg(el('g'),s.T+.7+i*.1,s.E);
+  el('rect',{x:30,y,width:590,height:60,rx:10,fill:'#0b120e',stroke:LINE},g);txt(g,56,y+38,w,{size:21,w:500,anchor:'start'});
+  el('rect',{x:160,y:y+24,width:360,height:12,rx:6,fill:'#1a241d'},g);const r=el('rect',{x:160,y:y+24,height:12,rx:6,fill:w0?LIME:VIOLET},g);
+  const n=txt(g,596,y+38,'0%',{size:17,anchor:'end',mono:1,fill:MUTE});
+  U.push(t=>{const q=ease((t-(s.T+1+i*.14))/.8);r.setAttribute('width',360*v*q/.62*.98);n.textContent=Math.round(v*100*q)+'%'});
+  if(w0)reg(el('rect',{x:30,y,width:590,height:60,rx:10,fill:'#c6f13510',stroke:LIME,'stroke-width':2}),b+.35,s.E,{dy:0,blur:0})});
+ s.pill('Next token: blue',b+1.1);s.cap('1 / The model outputs a probability for every token.','2 / One is drawn, then the loop restarts.')}
+
+/* 5 Streaming */
+{const s=S(5),b=s.T+B;s.label('Stream / word by word');s.box(30,110,590,250,null,null,s.T+.25);
+ const words='The sky is blue because air scatters short wavelengths more strongly.'.split(' ');const g=reg(el('g'),s.T+.3,s.E);
+ const fo=el('foreignObject',{x:58,y:136,width:534,height:200},g),d=document.createElement('div');d.style.cssText='font:400 32px/1.42 SG,sans-serif;color:#eef2ee';fo.appendChild(d);
+ const sp=words.map(w=>{const e=document.createElement('span');e.textContent=w+' ';d.appendChild(e);return e});
+ U.push(t=>sp.forEach((e,i)=>{const q=ease((t-(s.T+.6+i*.22))/.25);e.style.opacity=q;e.style.color=t-(s.T+.6+i*.22)<.4?'#c6f135':'#eef2ee'}));
+ s.pill('Answer delivered',b+.95);s.cap('1 / Each token is decoded back into text.','2 / The same loop ran once per word.')}
+
+/* Static timelines */
+const fams=[{label:'01 / Prepare',sub:'Turning raw text into something a model can read.',from:B*1,to:B*7,tab:0,rows:[['Tokenization','Split text into integer IDs','tokenizer'],['Embedding','Map each ID to a vector','weights'],['Context assembly','Fit everything in one window','runtime']]},
+{label:'02 / Generate',sub:'Turning numbers back into words, one token at a time.',from:B*7,to:B*13,tab:1,rows:[['Forward pass','Run the sequence through layers','gpu'],['Sampling','Draw one token from the output','logits'],['Streaming','Decode and send to the reader','client']]}];
+const TABY=[345,421,497];['Prepare','Generate','Post-process'].forEach((n,i)=>{const d=document.createElement('div');d.className='abs tab chrome';d.style.top=TABY[i]+'px';d.innerHTML=`<b>0${i+1}</b>${n}`;stage.insertBefore(d,$('#panel'));d.dataset.tab=i});
+fams.forEach((f,fi)=>{const su=document.createElement('div');su.className='abs sub';su.textContent=f.sub;stage.appendChild(su);reg(su,f.from-(fi?0:B*.65),f.to+(fi?1:0),{dy:0,blur:5});
+ f.rows.forEach((r,i)=>{const d=document.createElement('div');d.className='abs row';d.style.top=(345+i*136)+'px';d.innerHTML=`<i>0${i+1}</i><h3>${r[0]}</h3><p>${r[1]}</p><u>${r[2]}</u><div class="hl"></div>`;stage.appendChild(d);
+  const st=f.from+i*2*B,hl=d.querySelector('.hl');reg(d,f.from-(fi?0:B*.45)+i*.09+(fi?.12:0),f.to+(fi?1:0),{dy:14,blur:6});
+  U.push(t=>{hl.style.opacity=ease((t-st-.05)/.3)*(1-ease((t-st-2*B+.05)/.3))})})});
+const secs=fams.map((f,fi)=>{const d=document.createElement('div');d.textContent=f.label;d.style.position='absolute';d.style.whiteSpace='nowrap';$('#sec').appendChild(d);reg(d,fi?f.from:f.from-.5,fi?f.to+1:f.to,{dy:0,blur:4});return d});
+
+/* Chrome intro stagger */
+const chrome=[...document.querySelectorAll('.chrome')];chrome.forEach((e,i)=>{if(e.id==='hair'||e.id==='foot'){return}e.style.willChange='opacity'});
+
+/* 3D chip: rotating cuboids with depth-sorted shaded faces */
+const cx=$('#chip').getContext('2d');
+function chip(t){const W=340,H=230;cx.clearRect(0,0,W,H);const a=.72+.3*Math.sin(t*.42),e=.62,sc=.8;
+ const rot=([x,y,z])=>{const X=x*Math.cos(a)-y*Math.sin(a),Y=x*Math.sin(a)+y*Math.cos(a);return[X,Y*Math.cos(e)-z*Math.sin(e),Y*Math.sin(e)+z*Math.cos(e)]};
+ const face=(pts,c)=>{cx.beginPath();pts.map(rot).forEach((p,i)=>{const x=170+p[0]*sc,y=112+p[1]*sc;i?cx.lineTo(x,y):cx.moveTo(x,y)});cx.closePath();cx.fillStyle=`rgb(${c.join(',')})`;cx.fill();cx.strokeStyle='rgba(0,0,0,.45)';cx.stroke()};
+ const shade=(c,s)=>c.map(v=>Math.round(v*s));
+ const cub=(x0,y0,z0,x1,y1,z1,c)=>{for(const[n,pts,s]of[[[1,0,0],[[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],.55],[[-1,0,0],[[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],.3],[[0,1,0],[[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],.4],[[0,-1,0],[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],.3]])if(rot(n)[2]>0)face(pts,shade(c,s));face([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c)};
+ cub(-105,-80,-34,105,80,-12,[122,126,118]);face([[-94,-68,-12],[94,-68,-12],[94,68,-12],[-94,68,-12]],[26,30,27]);
+ const fins=[...Array(8)].map((_,i)=>-92+i*25),depth=x=>x*Math.sin(a);fins.sort((u,v)=>depth(u)-depth(v));
+ for(const x of fins)cub(x,-66,-12,x+16,66,18,[182,184,170])}
+
+const DUR=B*13+.7;
+function seek(t){
+ for(const a of A){const p=ease((t-a.tin)/.42),q=io((t-(a.tout-.3))/.3),on=t>=a.tin&&t<=a.tout;const s=a.el.style;s.opacity=on?p*(1-q):0;s.transform=`translateY(${a.dy*(1-p)}px)`;const bl=a.blur*((1-p)+q);s.filter=bl>.05?`blur(${bl}px)`:'none'}
+ U.forEach(f=>f(t));
+ /* intro: chrome rises in during the first beat */
+ chrome.forEach((e,i)=>{const p=ease((t-.05-i*.045)/.5);e.style.opacity=p;if(!['hair','foot'].includes(e.id))e.style.transform=`translateY(${8*(1-p)}px)`;});
+ $('#hair').style.transformOrigin=$('#foot').style.transformOrigin='left';$('#hair').style.transform=`scaleX(${ease(t/.8)})`;$('#foot').style.transform=`scaleX(${ease(t/.8)})`;
+ const y=t<B*7?345:345+76*io((t-B*7+.1)/.5);$('#tabHL').style.top=y+'px';
+ document.querySelectorAll('[data-tab]').forEach((d,i)=>{const act=(t<B*7?0:1)===i;d.style.color=act?'#eef2ee':'#8d968f'});
+ $('#prog').style.width=1760*clamp(t/(B*13))+'px';
+ $('#sweep').style.left=(80+1500*((t*.22)%1))+'px';$('#sweep').style.opacity=clamp(t-.8)*.8;
+ chip(t);
+ /* end card fade */
+ stage.style.opacity=1-io((t-(DUR-.35))/.35);
+}
+window.DUR=DUR;window.seek=seek;seek(new URLSearchParams(location.search).get('t')*1||0);
+</script></body></html>

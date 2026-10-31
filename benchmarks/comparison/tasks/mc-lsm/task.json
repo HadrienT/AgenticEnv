@@ -1,0 +1,1 @@
+{"category":"monte-carlo","checks":["ls_table_itm","ls_table_high_vol","ls_table_otm","above_european","deep_itm_floor","no_exercise_value","se_is_honest","basis_not_ill_conditioned","speed"]}

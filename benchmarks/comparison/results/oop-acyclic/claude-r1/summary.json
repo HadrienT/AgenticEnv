@@ -1,0 +1,53 @@
+{
+ "status": "error",
+ "error": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "final_text": "You've hit your 5-hour limit \u00b7 resets 4:50pm (Europe/Paris)",
+ "duration_s": 2.1,
+ "turns": 1,
+ "usd_equivalent": 0,
+ "usage": {
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "input_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 0,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 0,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "",
+  "iterations": [],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "models": [],
+ "attempt": 0,
+ "diff_stat": "",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 9,
+  "checks": {
+   "existing_work": false,
+   "unsupported_throws_with_name": false,
+   "new_trade_new_visitor": false,
+   "extend_visitor_by_inheritance": false,
+   "try_accept": false,
+   "header_has_no_concrete_trades": false,
+   "library_not_rebuilt": false,
+   "exactly_one_dispatch": false,
+   "no_coupling": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 0.8,
+  "output": "/home/hadriensuper/testLLM/.work/grade/oop-acyclic-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-acyclic/hidden/test.cpp:8:17: error: \u2018trade\u2019 is not a namespace-name\n/home/hadriensuper/testLLM/.work/grade/oop-acyclic-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-acyclic/hidden/test.cpp:9:28: error: expected template-name before \u2018<\u2019 token\n/home/hadriensuper/testLLM/.work/grade/oop-acyclic-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-acyclic/hidden/test.cpp:9:28: error: expected \u2018{\u2019 before \u2018<\u2019 token\n/home/hadriensuper/testLLM/.work/grade/oop-acyclic-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-acyclic/hidden/test.cpp:9:28: error: expected unqualified-id before \u2018<\u2019 token\n/home/hadriensuper/testLLM/.work/grade/oop-acyclic-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-acyclic/hidden/test.cpp:10:26: error: expected class-name before \u2018,\u2019 token\n/home/hadriensuper/testLLM/.work/grade/oop-acyclic-3416829/t.err:/home/hadriensuper/testLLM/tasks/oop-acyclic/hidden/test.cpp:10:35: error: expected template-name before \u2018<\u2019 token\nFAIL library_not_rebuilt\nFAIL header_has_no_concrete_trades\nFAIL no_coupling\n"
+ }
+}

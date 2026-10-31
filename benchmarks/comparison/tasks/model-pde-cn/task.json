@@ -1,0 +1,1 @@
+{"category":"models","checks":["american_put_1","american_put_2_dividend","american_put_3_long","american_put_itm_exercise","european_call_second_order","digital_accuracy","digital_second_order","digital_gamma_smooth","put_call_grid_independent","spot_not_on_grid"]}

@@ -1,0 +1,17 @@
+diff --git a/ANSWERS.md b/ANSWERS.md
+new file mode 100644
+index 0000000..fa26e3c
+--- /dev/null
++++ b/ANSWERS.md
+@@ -0,0 +1,10 @@
++1: include/quantModeling/core/platform.hpp
++2: 12
++3: BLOCKSIZE = 16384, ADJSIZE = 32768, DATASIZE = 65536
++4: Philox4x32 with 10 rounds
++5: price_equity_digital_bs_analytic
++6: UnsupportedInstrument
++7: 21201
++8: nvcc uses g++-13 for CUDA builds, not the system default, because CUDA 12.4 specifically requires g++-13
++9: sobol_point_bits
++10: include/quantModeling/engines/pde/european_vanilla.hpp
+\ No newline at end of file

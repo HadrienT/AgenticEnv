@@ -1,0 +1,1 @@
+{"category":"oop","checks":["eval","eval_unknown_var","print_precedence","vars_sorted","fold_constants","fold_identities","fold_does_not_mutate","diff_rules","diff_numeric_fuzz","clone_independent","deep_tree_destructor","no_leaks_asan"]}
