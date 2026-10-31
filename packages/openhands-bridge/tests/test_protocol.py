@@ -111,6 +111,7 @@ def test_welcome_defaults_advertise_this_bridge() -> None:
 
     assert welcome.protocol == PROTOCOL_VERSION
     assert welcome.capabilities == list(CAPABILITIES)
+    assert "deltas" not in welcome.capabilities  # only announced when configured
     assert "apply" in welcome.capabilities
     assert "checkpoints" in welcome.capabilities
 

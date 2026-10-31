@@ -42,7 +42,7 @@ attend chaque réponse sans rien voir.
 
 | Livrable |
 |---|
-| `LLM(stream=True)` côté SDK, relais `event_delta`, capability `deltas`. Vérifier le passage par `RemoteConversation`. |
+| `LLM(stream=True)` côté SDK, relais `event_delta`, capability `deltas`. Derrière `llm.stream` dans `configs/openhands.yaml`, désactivé tant que le passage par `RemoteConversation` n'a pas été vérifié sur un vrai sandbox. |
 
 **Acceptation** : premier token visible en moins de 2 s après le début de génération.
 

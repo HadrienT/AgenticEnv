@@ -203,6 +203,16 @@ class WorkingCopy:
                 return None
             return Path(tmp.name).read_bytes()
 
+    def write_file(self, relpath: str, source: Path) -> None:
+        """Copies a host file into the copy."""
+        self._run(f"mkdir -p {shlex.quote(str(Path(relpath).parent))}")
+        remote = f"{self._root.rstrip('/')}/{relpath}"
+        if not self._ws.file_upload(str(source), remote).success:
+            raise DependencyError(f"could not copy {relpath} into the sandbox")
+
+    def remove_file(self, relpath: str) -> None:
+        self._run(f"rm -f {shlex.quote(relpath)}")
+
     def is_executable(self, relpath: str) -> bool:
         code, _ = self._run(f"test -x {shlex.quote(relpath)}")
         return code == 0

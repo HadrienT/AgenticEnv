@@ -52,6 +52,10 @@ class _LocalWorkspace:
         )
         return _Result(proc.returncode, proc.stdout, proc.stderr)
 
+    def file_upload(self, source: str, dest: str) -> _Download:
+        shutil.copyfile(source, dest)
+        return _Download(True)
+
     def file_download(self, source: str, dest: str) -> _Download:
         if not Path(source).is_file():
             return _Download(False)
@@ -135,7 +139,11 @@ async def _serve(
     monkeypatch: pytest.MonkeyPatch, harness: _Harness, *, read_only: bool = False
 ) -> AsyncIterator[ClientConnection]:
     monkeypatch.setattr(srv, "reap_orphan_sandboxes", lambda _keep=None: [])
-    monkeypatch.setattr(srv, "load_openhands_config", lambda: None)
+    monkeypatch.setattr(
+        srv,
+        "load_openhands_config",
+        lambda: SimpleNamespace(llm=SimpleNamespace(stream=False)),
+    )
     monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
     monkeypatch.setattr(srv.memory, "recall_context", lambda _text: None)
     monkeypatch.setattr(srv.memory, "record_episode", lambda _draft, ended_at: None)
@@ -219,8 +227,11 @@ async def test_undo_reverts_the_real_repo(client: ClientConnection, harness: _Ha
 async def test_conflict_is_skipped_stays_pending_then_can_be_overwritten(
     client: ClientConnection, harness: _Harness
 ) -> None:
-    (harness.host / "app.py").write_text("edited by the user\n")
-    harness.edits.append(_edit_app)
+    def edit_while_the_user_does(copy: Path) -> None:
+        (harness.host / "app.py").write_text("edited by the user\n")
+        _edit_app(copy)
+
+    harness.edits.append(edit_while_the_user_does)
 
     messages = await _turn(client)
 
@@ -244,3 +255,34 @@ async def test_read_only_session_never_writes(
 
         assert (harness.host / "app.py").read_text() == "v1\n"
         assert "changes_applied" not in [m["type"] for m in messages]
+
+
+async def test_an_edit_between_turns_reaches_the_copy_and_is_not_a_conflict(
+    client: ClientConnection, harness: _Harness
+) -> None:
+    seen: list[str] = []
+    harness.edits.append(lambda _copy: None)
+    await _turn(client)
+    (harness.host / "app.py").write_text("edited by the user\n")
+    harness.edits.append(lambda copy: seen.append((copy / "app.py").read_text()))
+    harness.edits.append(lambda copy: (copy / "app.py").write_text("edited by the agent\n"))
+
+    await _turn(client)
+    messages = await _turn(client)
+
+    assert seen == ["edited by the user\n"]
+    assert (harness.host / "app.py").read_text() == "edited by the agent\n"
+    applied = next(m for m in messages if m["type"] == "changes_applied")
+    assert applied["skipped"] == []
+
+
+async def test_a_secret_edited_on_the_host_never_enters_the_copy(
+    client: ClientConnection, harness: _Harness
+) -> None:
+    (harness.host / ".env").write_text("TOKEN=x\n")
+    subprocess.run(["git", "add", "-f", ".env"], cwd=harness.host, check=True)
+    harness.edits.append(lambda _copy: None)
+
+    await _turn(client)
+
+    assert not (harness.copy / ".env").exists()

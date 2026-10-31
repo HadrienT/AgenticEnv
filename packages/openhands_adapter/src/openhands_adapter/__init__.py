@@ -12,6 +12,7 @@ from __future__ import annotations
 # depend on the SDK directly (import-linter contract D14 in the root
 # pyproject.toml). Keep this list to what callers genuinely need.
 from openhands.sdk import Event
+from openhands.sdk.event import StreamingDeltaEvent
 from openhands.sdk.event.conversation_state import ConversationStateUpdateEvent
 from openhands.sdk.git.models import GitChange, GitChangeStatus
 from openhands.sdk.security.confirmation_policy import (
@@ -42,6 +43,7 @@ __all__ = [
     "GitChangeStatus",
     "NeverConfirm",
     "OpenHandsConfig",
+    "StreamingDeltaEvent",
     "list_profiles",
     "WorkingCopy",
     "load_openhands_config",

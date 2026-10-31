@@ -137,7 +137,7 @@ def _build_agent(
     # is still caught by the run-level `timeout_s`.
     llm_timeout_s = max(get_settings().llm.request_timeout_s, 600)
 
-    def _llm(usage_id: str) -> LLM:
+    def _llm(usage_id: str, *, stream: bool = False) -> LLM:
         return LLM(
             usage_id=usage_id,
             model=model,
@@ -145,6 +145,7 @@ def _build_agent(
             api_key=SecretStr("local-llm"),  # llama-server does not enforce a real key
             temperature=0.0,
             timeout=llm_timeout_s,
+            stream=stream,
         )
 
     # Without a condenser OpenHands never trims history: it grows every step
@@ -161,7 +162,7 @@ def _build_agent(
     notes = repo_notes(str(project_path) if project_path else None)
     prompt = profile.prompt()
     agent = Agent(
-        llm=_llm("agent"),
+        llm=_llm("agent", stream=cfg.llm.stream),
         # Registered by register_default_tools() under these exact snake_case keys
         # (openhands.sdk.tool.registry) -- NOT the "TerminalTool"-style class names.
         tools=[Tool(name=name) for name in profile.builtin_tools],

@@ -11,8 +11,8 @@ Protocol v2 (agenticenv-chat/docs/bridge-v2-spec.md): `hello`/`welcome`
 negotiation, a monotonic `seq` on every outbound message, turn boundaries,
 cancellation, mid-turn context stats, and -- for WP08d/WP08g -- a disposable
 sandbox working copy applied to the real repo at the end of each turn. Capabilities the
-bridge does NOT implement yet (deltas, todo, compact, interrupt, models,
-resume) are simply not announced; the client degrades per capability.
+bridge does NOT implement yet (resume), or leaves off by configuration (deltas), are
+simply not announced; the client degrades per capability.
 """
 
 from __future__ import annotations
@@ -27,7 +27,17 @@ PROTOCOL_VERSION = 2
 # Capabilities this bridge announces in `welcome`. Announce ONLY what is
 # implemented and tested (spec §1). WP08d adds `apply` (not in the spec's
 # original list -- added to protocol.ts in the same cross-repo change).
-CAPABILITIES: tuple[str, ...] = ("turns", "cancel", "diffs", "checkpoints", "apply")
+CAPABILITIES: tuple[str, ...] = (
+    "turns",
+    "cancel",
+    "diffs",
+    "checkpoints",
+    "apply",
+    "compact",
+    "interrupt",
+    "todo",
+    "models",
+)
 
 _MAX_PAYLOAD_BYTES = 256 * 1024  # spec §3: truncate larger payloads
 
@@ -140,6 +150,39 @@ class ApplyChanges(BaseModel):
     force: bool = False
 
 
+class Compact(BaseModel):
+    """Folds the conversation history now rather than when the window fills up."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["compact"] = "compact"
+
+
+class Interrupt(BaseModel):
+    """An instruction for the running turn, picked up at the agent's next step."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["interrupt"] = "interrupt"
+    turn_id: str
+    text: str
+
+
+class ListModels(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["list_models"] = "list_models"
+
+
+class SetModel(BaseModel):
+    """Switches the served model to a profile of `configs/models.yaml`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["set_model"] = "set_model"
+    model_id: str
+
+
 InboundMessage = Annotated[
     Hello
     | StartSession
@@ -150,7 +193,11 @@ InboundMessage = Annotated[
     | RequestDiff
     | RequestBundleDiff
     | RestoreCheckpoint
-    | ApplyChanges,
+    | ApplyChanges
+    | Compact
+    | Interrupt
+    | ListModels
+    | SetModel,
     Field(discriminator="type"),
 ]
 _inbound_adapter: TypeAdapter[InboundMessage] = TypeAdapter(InboundMessage)
@@ -265,6 +312,44 @@ class CheckpointMessage(_Out):
     files: list[str] = Field(default_factory=list)
 
 
+class EventDelta(_Out):
+    type: Literal["event_delta"] = "event_delta"
+    turn_id: str
+    event_id: str
+    text: str
+
+
+class HistoryCompacted(_Out):
+    type: Literal["history_compacted"] = "history_compacted"
+    turns_summarized: int = 0
+    summary: str = ""
+
+
+class TodoItem(BaseModel):
+    id: str
+    text: str
+    state: Literal["pending", "active", "done", "skipped"]
+
+
+class TodoMessage(_Out):
+    type: Literal["todo"] = "todo"
+    items: list[TodoItem]
+
+
+class ModelEntry(BaseModel):
+    id: str
+    label: str
+    context_window: int
+    current: bool
+    state: Literal["ready", "loading", "error"] | None = None
+    error: str | None = None
+
+
+class Models(_Out):
+    type: Literal["models"] = "models"
+    models: list[ModelEntry]
+
+
 class CheckpointRestored(_Out):
     type: Literal["checkpoint_restored"] = "checkpoint_restored"
     checkpoint_id: str
@@ -337,6 +422,10 @@ OutboundMessage = (
     | AwaitingConfirmation
     | ErrorMessage
     | McpServers
+    | EventDelta
+    | HistoryCompacted
+    | TodoMessage
+    | Models
 )
 
 

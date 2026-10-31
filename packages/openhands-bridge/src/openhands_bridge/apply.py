@@ -41,6 +41,13 @@ _PROTECTED_GLOBS = (
     ".devcontainer/*",
     "*.pem",
     "*.key",
+    "id_rsa*",
+    "id_ed25519*",
+    ".netrc",
+    ".pgpass",
+    "credentials.json",
+    "secrets/*",
+    "*/secrets/*",
 )
 
 ReadSandbox = Callable[[str], "bytes | None"]

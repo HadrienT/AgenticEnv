@@ -29,6 +29,7 @@ class _Fake:
         self.fail_send: Exception | None = None
         self.fail_stats = False
         self.sessions = 0
+        self.calls: list[str] = []
 
 
 def _session_type(fake: _Fake) -> type:
@@ -67,6 +68,8 @@ def _session_type(fake: _Fake) -> type:
                 conversation_stats=SimpleNamespace(get_combined_metrics=metrics),
                 pause=pause,
                 reject_pending_actions=lambda: None,
+                condense=lambda: fake.calls.append("condense"),
+                send_message=fake.calls.append,
             )
 
         def final_text(self) -> str:
@@ -89,7 +92,11 @@ def _session_type(fake: _Fake) -> type:
 def fake(monkeypatch: pytest.MonkeyPatch) -> _Fake:
     state = _Fake()
     monkeypatch.setattr(srv, "reap_orphan_sandboxes", lambda _keep=None: [])
-    monkeypatch.setattr(srv, "load_openhands_config", lambda: None)
+    monkeypatch.setattr(
+        srv,
+        "load_openhands_config",
+        lambda: SimpleNamespace(llm=SimpleNamespace(stream=False)),
+    )
     monkeypatch.setattr(srv, "build_mcp_config", lambda _selected, _config: ({}, []))
     monkeypatch.setattr(srv.memory, "recall_context", lambda _text: None)
     monkeypatch.setattr(srv.memory, "record_episode", lambda _draft, ended_at: None)
@@ -216,3 +223,38 @@ async def test_a_session_that_fails_to_start_leaves_the_bridge_usable(
 
         monkeypatch.setattr(srv, "AgentSession", healthy)
         await _start(ws)
+
+
+async def test_interrupt_reaches_the_agent_during_the_turn(url: str, fake: _Fake) -> None:
+    async with connect(url) as ws:
+        await _start(ws)
+        turn_id = await _begin_turn(ws)
+        await ws.send(json.dumps({"type": "interrupt", "turn_id": turn_id, "text": "use tabs"}))
+        await ws.send(json.dumps({"type": "cancel_turn", "turn_id": turn_id}))
+        await _until(ws, "turn_finished")
+
+    assert fake.calls == ["use tabs"]
+
+
+async def test_compact_condenses_between_turns_only(url: str, fake: _Fake) -> None:
+    async with connect(url) as ws:
+        await _start(ws)
+        await ws.send(json.dumps({"type": "compact"}))
+        await _until(ws, "history_compacted")
+
+        await _begin_turn(ws)
+        await ws.send(json.dumps({"type": "compact"}))
+        assert (await _until(ws, "error"))["code"] == "TURN_IN_PROGRESS"
+
+    assert fake.calls == ["condense"]
+
+
+def test_task_tracker_results_become_todo_items() -> None:
+    task = SimpleNamespace(title="write tests", status="in_progress")
+    event = SimpleNamespace(tool_name="task_tracker", observation=SimpleNamespace(task_list=[task]))
+
+    items = srv._todo_items(event)  # type: ignore[arg-type]
+
+    assert items is not None
+    assert (items[0].text, items[0].state) == ("write tests", "active")
+    assert srv._todo_items(SimpleNamespace(tool_name="terminal")) is None  # type: ignore[arg-type]

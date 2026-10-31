@@ -43,7 +43,7 @@ import threading
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import Any, Literal, cast
 
 from corelib.errors import AppError
 from corelib.logging import get_logger
@@ -57,15 +57,18 @@ from openhands_adapter import (
     Event,
     GitChange,
     NeverConfirm,
+    StreamingDeltaEvent,
     list_profiles,
     load_openhands_config,
     reap_orphan_sandboxes,
 )
 from openhands_bridge import apply as apply_mod
 from openhands_bridge import memory
+from openhands_bridge import models as models_mod
 from openhands_bridge.auth import ensure_token, serve_options, validate_project_path
 from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers
 from openhands_bridge.protocol import (
+    CAPABILITIES,
     AppliedEntry,
     ApplyChanges,
     AwaitingConfirmation,
@@ -74,25 +77,34 @@ from openhands_bridge.protocol import (
     ChangesApplied,
     CheckpointMessage,
     CheckpointRestored,
+    Compact,
     ConfirmAction,
     ContextStats,
     ErrorMessage,
+    EventDelta,
     EventMessage,
     FileDiffMessage,
     FilesChanged,
     GitChangeDTO,
     Hello,
+    HistoryCompacted,
     InboundMessage,
+    Interrupt,
     ListMcpServers,
+    ListModels,
     McpServerEntry,
     McpServers,
+    Models,
     OutboundMessage,
     RequestBundleDiff,
     RequestDiff,
     RestoreCheckpoint,
     SessionStarted,
+    SetModel,
     SkippedEntry,
     StartSession,
+    TodoItem,
+    TodoMessage,
     TurnFinished,
     TurnFinishedReason,
     TurnStarted,
@@ -113,6 +125,12 @@ _DEFAULT_HOST = "127.0.0.1"
 # resolves through `conversation.pause()`; `waiting_for_confirmation` is
 # deliberately absent -- that turn is still live, waiting on the user.
 _TERMINAL_TURN_STATUSES = frozenset({"finished", "error", "stuck", "paused"})
+
+_TODO_STATES: dict[str, Literal["pending", "active", "done"]] = {
+    "todo": "pending",
+    "in_progress": "active",
+    "done": "done",
+}
 
 # Agent-server internals that live under the sandbox workspace and must never be
 # shown as "the agent changed this file in your project".
@@ -144,6 +162,17 @@ def _error_from(exc: AppError) -> ErrorMessage:
 
 def _utcnow() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def _todo_items(event: Event) -> list[TodoItem] | None:
+    """The agent's `task_tracker` list, when `event` is one of its results."""
+    tasks = getattr(getattr(event, "observation", None), "task_list", None)
+    if getattr(event, "tool_name", None) != "task_tracker" or tasks is None:
+        return None
+    return [
+        TodoItem(id=str(index), text=task.title, state=_TODO_STATES.get(task.status, "pending"))
+        for index, task in enumerate(tasks)
+    ]
 
 
 class _EventRelay:
@@ -180,7 +209,17 @@ class _EventRelay:
         self._dispatch(event)
 
     def _dispatch(self, event: Event) -> None:
+        turn_id = self._conn.turn_id
+        if isinstance(event, StreamingDeltaEvent):
+            if event.content and turn_id:
+                self._conn.send_threadsafe(
+                    EventDelta(turn_id=turn_id, event_id=turn_id, text=event.content)
+                )
+            return
         self._conn.send_threadsafe(EventMessage(event=event.model_dump(mode="json")))
+        todo = _todo_items(event)
+        if todo is not None:
+            self._conn.send_threadsafe(TodoMessage(items=todo))
         if (
             isinstance(event, ConversationStateUpdateEvent)
             and event.key == "execution_status"
@@ -292,7 +331,23 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
     if isinstance(inbound, Hello):
         conn.client_id = inbound.client
         conn.protocol = inbound.protocol
-        await conn.send(Welcome())
+        await conn.send(Welcome(capabilities=_capabilities()))
+        return
+
+    if isinstance(inbound, ListModels):
+        await conn.send(Models(models=await asyncio.to_thread(models_mod.list_models)))
+        return
+
+    if isinstance(inbound, SetModel):
+        if conn.session is not None:
+            await conn.send(
+                ErrorMessage(
+                    code="SESSION_ACTIVE", message="End the session before switching the model."
+                )
+            )
+            return
+        await models_mod.switch_model(inbound.model_id)
+        await conn.send(Models(models=await asyncio.to_thread(models_mod.list_models)))
         return
 
     if isinstance(inbound, ListMcpServers):
@@ -339,12 +394,18 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
         await conn.send(ErrorMessage(code="NO_SESSION", message="Send start_session first."))
         return
 
-    if isinstance(inbound, UserMessage | RestoreCheckpoint | ApplyChanges) and conn.turn_task:
+    if isinstance(inbound, UserMessage | RestoreCheckpoint | ApplyChanges | Compact) and (
+        conn.turn_task
+    ):
         await conn.send(
             ErrorMessage(code="TURN_IN_PROGRESS", message="Wait for the running turn to finish.")
         )
     elif isinstance(inbound, UserMessage):
         conn.turn_task = asyncio.create_task(_handle_user_message(conn, inbound))
+    elif isinstance(inbound, Compact):
+        await _handle_compact(conn)
+    elif isinstance(inbound, Interrupt):
+        await _handle_interrupt(conn, inbound)
     elif isinstance(inbound, CancelTurn):
         await _handle_cancel(conn, inbound)
     elif isinstance(inbound, ConfirmAction):
@@ -592,6 +653,11 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
 
         await conn.send(TurnStarted(turn_id=turn_id))
         prompt = _compose_prompt(message)
+        if _auto_applies(session):
+            pulled = await _pull_from_host(conn, session)
+            if pulled:
+                note = f"<user_edits>Changed by the user since your last turn: {', '.join(pulled)}"
+                prompt = f"{note}</user_edits>\n\n{prompt}"
         draft = conn.draft
         if draft is not None:
             if not draft.messages:
@@ -630,6 +696,22 @@ async def _handle_cancel(conn: _Connection, message: CancelTurn) -> None:
     conn.cancelled = True
     conn.cancel_deadline = conn.loop.time() + _CANCEL_GRACE_S
     await _stop_agent(conn.session)
+
+
+async def _handle_compact(conn: _Connection) -> None:
+    session = conn.session
+    assert session is not None
+    await asyncio.to_thread(session.conversation.condense)
+    await conn.send(HistoryCompacted())
+
+
+async def _handle_interrupt(conn: _Connection, message: Interrupt) -> None:
+    """Queued by the agent-server and read at the agent's next step. A message for a
+    turn that just ended would be lost: the client's own fallback sends it as a turn."""
+    if conn.turn_id != message.turn_id or conn.session is None:
+        return
+    conversation = cast(Any, conn.session.conversation)  # same SDK typing quirk as `send()`
+    await asyncio.to_thread(conversation.send_message, message.text)
 
 
 async def _handle_confirm_action(conn: _Connection, message: ConfirmAction) -> None:
@@ -769,6 +851,39 @@ async def _handle_restore_checkpoint(conn: _Connection, message: RestoreCheckpoi
     if _auto_applies(session):
         await _sync_to_host(conn, session)
     await _emit_files_changed(conn)
+
+
+def _capabilities() -> list[str]:
+    streaming = load_openhands_config().llm.stream
+    return [*CAPABILITIES, "deltas"] if streaming else list(CAPABILITIES)
+
+
+async def _pull_from_host(conn: _Connection, session: AgentSession) -> list[str]:
+    """What the user edited since the last sync goes into the copy before the agent
+    starts, so it works on the current file rather than end in a conflict (WP17 §5).
+    Protected paths stay out: secrets are masked from the sandbox on purpose."""
+    project_path = session.project_path
+    working_copy = session.working_copy
+    assert project_path is not None and working_copy is not None
+
+    current = await asyncio.to_thread(_snapshot_host_tree, project_path)
+    known = conn.baseline_hashes
+    edited = [p for p, h in current.items() if known.get(p) != h and not apply_mod.is_protected(p)]
+    removed = [p for p in known if p not in current and not apply_mod.is_protected(p)]
+    # Files the agent left pending are not the user's: the sync owns them.
+    edited = [p for p in edited if p not in conn.conflicts]
+    if not edited and not removed:
+        return []
+
+    for relpath in edited:
+        await asyncio.to_thread(working_copy.write_file, relpath, project_path / relpath)
+        conn.baseline_hashes[relpath] = current[relpath]
+    for relpath in removed:
+        await asyncio.to_thread(working_copy.remove_file, relpath)
+        conn.baseline_hashes.pop(relpath, None)
+    if not conn.conflicts:
+        await asyncio.to_thread(working_copy.mark_applied)
+    return sorted([*edited, *removed])
 
 
 def _auto_applies(session: AgentSession) -> bool:
