@@ -52,10 +52,14 @@ from websockets.exceptions import ConnectionClosed
 
 from openhands_adapter import (
     DEFAULT_PROFILE,
+    STARTUP_STEPS,
+    STEP_BASELINE,
+    STEP_CHECKS,
     AgentSession,
     ConversationStateUpdateEvent,
     Event,
     GitChange,
+    MessageEvent,
     NeverConfirm,
     StreamingDeltaEvent,
     list_profiles,
@@ -66,7 +70,7 @@ from openhands_bridge import apply as apply_mod
 from openhands_bridge import memory
 from openhands_bridge import models as models_mod
 from openhands_bridge.auth import ensure_token, serve_options, validate_project_path
-from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers
+from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers, unavailable_reason
 from openhands_bridge.protocol import (
     CAPABILITIES,
     AppliedEntry,
@@ -99,6 +103,7 @@ from openhands_bridge.protocol import (
     RequestBundleDiff,
     RequestDiff,
     RestoreCheckpoint,
+    SessionProgress,
     SessionStarted,
     SetModel,
     SkippedEntry,
@@ -109,6 +114,7 @@ from openhands_bridge.protocol import (
     TurnFinishedReason,
     TurnStarted,
     Usage,
+    UserDisplay,
     UserMessage,
     Welcome,
     parse_inbound,
@@ -192,6 +198,8 @@ class _EventRelay:
         self._conn = conn
         self._lock = threading.Lock()
         self._buffering = True
+        # Replaces the next user echo, whose text is the whole composed prompt.
+        self.user_display: UserDisplay | None = None
         self._buffer: list[Event] = []
         self.session: AgentSession | None = None
 
@@ -210,13 +218,18 @@ class _EventRelay:
 
     def _dispatch(self, event: Event) -> None:
         turn_id = self._conn.turn_id
+        display = None
+        if isinstance(event, MessageEvent) and event.source == "user":
+            display, self.user_display = self.user_display, None
         if isinstance(event, StreamingDeltaEvent):
             if event.content and turn_id:
                 self._conn.send_threadsafe(
                     EventDelta(turn_id=turn_id, event_id=turn_id, text=event.content)
                 )
             return
-        self._conn.send_threadsafe(EventMessage(event=event.model_dump(mode="json")))
+        self._conn.send_threadsafe(
+            EventMessage(event=event.model_dump(mode="json"), user_display=display)
+        )
         todo = _todo_items(event)
         if todo is not None:
             self._conn.send_threadsafe(TodoMessage(items=todo))
@@ -352,11 +365,15 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
 
     if isinstance(inbound, ListMcpServers):
         servers = await asyncio.to_thread(list_mcp_servers)
+        config = load_openhands_config()
         await conn.send(
             McpServers(
                 servers=[
                     McpServerEntry(
-                        name=s.name, transport=s.transport, tools_allowlist=s.tools_allowlist
+                        name=s.name,
+                        transport=s.transport,
+                        tools_allowlist=s.tools_allowlist,
+                        unavailable=unavailable_reason(s, config),
                     )
                     for s in servers
                 ],
@@ -421,6 +438,10 @@ async def _dispatch_inbound(conn: _Connection, inbound: InboundMessage) -> None:
 
 
 async def _start_session(conn: _Connection, request: StartSession) -> bool:
+    def report_step(step: int) -> None:
+        conn.send_threadsafe(SessionProgress(steps=list(STARTUP_STEPS), current=step))
+
+    report_step(STEP_CHECKS)
     # We hold the session guard and there is no active session, so any existing
     # agent-server-* container is an orphan -- clear it before spinning up a new
     # one so leaked sandboxes never pile up on a low-storage host.
@@ -446,6 +467,7 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
             read_only=request.mode == "read_only",
             mcp_config=mcp_config,
             profile=profile,
+            on_step=report_step,
         )
         await asyncio.to_thread(session.__enter__)
     except AppError as exc:
@@ -459,6 +481,7 @@ async def _start_session(conn: _Connection, request: StartSession) -> bool:
     # Before `session_started`: an edit made once the client sees the session
     # must count as a conflict, not end up in the reference hashes.
     if session.project_path is not None:
+        report_step(STEP_BASELINE)
         conn.baseline_hashes = await asyncio.to_thread(_snapshot_host_tree, session.project_path)
 
     conn.session = session
@@ -658,11 +681,17 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
             if pulled:
                 note = f"<user_edits>Changed by the user since your last turn: {', '.join(pulled)}"
                 prompt = f"{note}</user_edits>\n\n{prompt}"
+        loaded = [ctx.label for ctx in message.context]
         draft = conn.draft
         if draft is not None:
             if not draft.messages:
-                prompt = await _with_past_experience(prompt, message.text)
+                recalled = await _with_past_experience(prompt, message.text)
+                if recalled != prompt:
+                    loaded.append("past lessons")
+                prompt = recalled
             draft.messages.append(message.text)
+        if prompt != message.text:
+            conn.relay.user_display = UserDisplay(text=message.text, loaded=loaded)
         await asyncio.to_thread(_fire_run, session, prompt)
         reason = _reason_for(conn, await _await_turn_terminal(conn, session))
     except AppError as exc:

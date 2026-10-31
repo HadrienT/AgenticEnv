@@ -12,7 +12,8 @@ sandbox:
   # pinned in packages/openhands_adapter/pyproject.toml -- a mismatch reintroduces
   # the event-parsing incompatibilities noted in the WP08b piège table.
   # The digest is what is actually trusted; the tag only says which release it is.
-  image: ghcr.io/openhands/agent-server:1.21.0-python@sha256:9853a9eb75dfe42837b64d3b61a05f3c1f25549ecde39a89f703dbf92c87dca9
+  # agenticenv/agent:latest is built FROM that digest, see infra/docker/agent/Dockerfile.
+  image: agenticenv/agent:latest
   platform: linux/amd64
   enable_gpu: false
   working_dir: /workspace
@@ -36,9 +37,9 @@ sandbox:
     - credentials.json
     - secrets
 
-  # The image can run the code MCP servers (infra/docker/agent/Dockerfile, built by
-  # `just build-agent-image`). Set `image` to agenticenv/agent:latest along with this.
-  code_tools: false
+  # The image runs the code MCP servers (infra/docker/agent/Dockerfile, built by
+  # `just build-agent-image`). On the stock agent-server image, set this to false.
+  code_tools: true
 
 mcp:
   # Where the host_http servers listen (AGX_MCP_HOST in agenticenv-mcp@.service) and

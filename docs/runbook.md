@@ -169,9 +169,8 @@ systemctl --user restart agenticenv-bridge
 npm run package && code --install-extension agenticenv-chat-*.vsix --force
 # then Developer: Reload Window
 
-# 3. Code tools in the sandbox (5.9 GB image):
+# 3. Code tools in the sandbox (5.9 GB image, configs/openhands.yaml uses it):
 just build-agent-image
-# in configs/openhands.yaml: sandbox.image: agenticenv/agent:latest, code_tools: true
 
 # 4. Remove what the tests left in the real database:
 bash infra/scripts/purge-test-residue.sh           # shows what would go

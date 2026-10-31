@@ -240,11 +240,28 @@ class SessionStarted(_Out):
     mode: Literal["agent", "read_only"] = "agent"
 
 
+class SessionProgress(_Out):
+    """Where the start of a session stands: `steps[current]` is under way."""
+
+    type: Literal["session_progress"] = "session_progress"
+    steps: list[str]
+    current: int
+
+
+class UserDisplay(BaseModel):
+    """What the user wrote, without the blocks added to the prompt around it."""
+
+    text: str
+    loaded: list[str] = Field(default_factory=list)
+
+
 class EventMessage(_Out):
     """One `openhands.sdk.event.Event`, already serialized (`model_dump(mode="json")`)."""
 
     type: Literal["event"] = "event"
     event: dict[str, Any]
+    # Set on the echo of a user message whose prompt carries more than its text.
+    user_display: UserDisplay | None = None
 
 
 class TurnStarted(_Out):
@@ -395,6 +412,8 @@ class McpServerEntry(BaseModel):
     name: str
     transport: str
     tools_allowlist: list[str] = Field(default_factory=list)
+    # Why a session could not use it right now.
+    unavailable: str | None = None
 
 
 class McpServers(_Out):
@@ -406,6 +425,7 @@ class McpServers(_Out):
 OutboundMessage = (
     Welcome
     | SessionStarted
+    | SessionProgress
     | EventMessage
     | TurnStarted
     | TurnFinished

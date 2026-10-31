@@ -66,6 +66,18 @@ _HOOK_TARGET = "/opt/agenticenv/hooks/block_dangerous.sh"
 _tools_registered = False
 
 
+# What a client shows while a session starts, in order. The steps can last from
+# under a second to a few minutes, so they carry no percentage.
+STARTUP_STEPS = (
+    "Checking the model and the sandbox image",
+    "Starting the sandbox container",
+    "Connecting the agent and its tools",
+    "Copying your project",
+    "Recording the state of your repo",
+)
+STEP_CHECKS, STEP_CONTAINER, STEP_AGENT, STEP_COPY, STEP_BASELINE = range(len(STARTUP_STEPS))
+
+
 def _ensure_tools_registered() -> None:
     global _tools_registered
     if not _tools_registered:
@@ -230,8 +242,10 @@ class AgentSession:
         project_path: str | Path | None = None,
         read_only: bool = False,
         profile: str = DEFAULT_PROFILE,
+        on_step: Callable[[int], None] | None = None,
     ) -> None:
         self._cfg = oh_config or load_openhands_config()
+        self._on_step = on_step or (lambda _: None)
         self._profile = load_profile(profile)
         self._confirmation_policy = confirmation_policy or NeverConfirm()
         self._mcp_config = mcp_config
@@ -346,6 +360,7 @@ class AgentSession:
             tmpfs_dirs = []
         volumes.append(f"{repo_root() / _HOOK_SOURCE}:{_HOOK_TARGET}:ro")
 
+        self._on_step(STEP_CONTAINER)
         workspace = AgenticEnvDockerWorkspace(
             server_image=self._cfg.sandbox.image,
             working_dir=working_dir,
@@ -362,6 +377,7 @@ class AgentSession:
         )
         self._workspace = workspace
 
+        self._on_step(STEP_AGENT)
         conversation = Conversation(
             agent,
             workspace=workspace,
@@ -380,6 +396,7 @@ class AgentSession:
         conversation.set_confirmation_policy(self._confirmation_policy)
 
         if self._project_path is not None:
+            self._on_step(STEP_COPY)
             working_copy = WorkingCopy(workspace, _WORKING_COPY)
             working_copy.initialize()
             self._working_copy = working_copy

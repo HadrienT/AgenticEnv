@@ -59,6 +59,15 @@ def _is_listening(host: str, port: int) -> bool:
         return False
 
 
+def unavailable_reason(server: McpServerSummary, config: OpenHandsConfig) -> str | None:
+    """Why a session could not use `server` right now, or None if it can."""
+    if server.reach == "host_http":
+        if not _is_listening(config.mcp.bind_host, server.port):
+            return "server not running"
+        return None
+    return None if config.sandbox.code_tools else "needs code_tools in configs/openhands.yaml"
+
+
 def build_mcp_config(
     selected: list[str], config: OpenHandsConfig
 ) -> tuple[dict[str, object], list[str]]:
@@ -70,21 +79,18 @@ def build_mcp_config(
     for server in list_mcp_servers():
         if selected and server.name not in selected:
             continue
-        if server.reach == "host_http":
-            if not _is_listening(config.mcp.bind_host, server.port):
-                unavailable.append(server.name)
-                continue
+        if unavailable_reason(server, config) is not None:
+            unavailable.append(server.name)
+        elif server.reach == "host_http":
             servers[server.name] = {
                 "url": f"http://{config.mcp.sandbox_host}:{server.port}/mcp",
                 "headers": {"Authorization": f"Bearer {mcp_token()}"},
             }
-        elif config.sandbox.code_tools:
+        else:
             servers[server.name] = {
                 "command": f"{_SANDBOX_REPO}/.venv/bin/{server.name}-mcp",
                 "env": _sandbox_env(),
             }
-        else:
-            unavailable.append(server.name)
     return ({"mcpServers": servers} if servers else {}), unavailable
 
 

@@ -12,11 +12,12 @@ from typing import Any
 
 import pytest
 import pytest_asyncio
+from openhands.sdk import Message, TextContent
 from openhands_bridge import server as srv
 from websockets.asyncio.client import ClientConnection, connect
 from websockets.asyncio.server import serve
 
-from openhands_adapter import ConversationStateUpdateEvent
+from openhands_adapter import STARTUP_STEPS, ConversationStateUpdateEvent, MessageEvent
 
 
 class _Fake:
@@ -30,6 +31,8 @@ class _Fake:
         self.fail_stats = False
         self.sessions = 0
         self.calls: list[str] = []
+        self.steps_reported: list[int] = []
+        self.echo_user = False
 
 
 def _session_type(fake: _Fake) -> type:
@@ -43,6 +46,8 @@ def _session_type(fake: _Fake) -> type:
 
         def __init__(self, **kwargs: Any) -> None:
             callbacks = kwargs["callbacks"]
+            self.callbacks = callbacks
+            self.on_step = kwargs.get("on_step", lambda _: None)
             fake.sessions += 1
 
             def pause() -> None:
@@ -76,14 +81,23 @@ def _session_type(fake: _Fake) -> type:
             return ""
 
         def __enter__(self) -> Any:
+            for step in fake.steps_reported:
+                self.on_step(step)
             return self
 
         def __exit__(self, *_: object) -> None:
             fake.exited.set()
 
-        def send(self, _text: str, *, blocking: bool = True) -> None:
+        def send(self, text: str, *, blocking: bool = True) -> None:
             if fake.fail_send is not None:
                 raise fake.fail_send
+            if fake.echo_user:
+                echo = MessageEvent(
+                    source="user",
+                    llm_message=Message(role="user", content=[TextContent(text=text)]),
+                )
+                for callback in self.callbacks:
+                    callback(echo)
 
     return FakeSession
 
@@ -258,3 +272,41 @@ def test_task_tracker_results_become_todo_items() -> None:
     assert items is not None
     assert (items[0].text, items[0].state) == ("write tests", "active")
     assert srv._todo_items(SimpleNamespace(tool_name="terminal")) is None  # type: ignore[arg-type]
+
+
+async def test_session_start_reports_each_step_before_session_started(
+    url: str, fake: _Fake
+) -> None:
+    fake.steps_reported = [1, 2]
+    async with connect(url) as ws:
+        await ws.send(json.dumps({"type": "start_session"}))
+        seen = [await _until(ws, "session_progress") for _ in range(3)]
+
+    assert [m["current"] for m in seen] == [0, 1, 2]
+    assert seen[0]["steps"] == list(STARTUP_STEPS)
+
+
+async def test_user_echo_carries_what_was_written_not_the_prompt(
+    url: str, fake: _Fake, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake.echo_user = True
+    monkeypatch.setattr(srv.memory, "recall_context", lambda _text: "<past_experience>x")
+    block = {"kind": "instructions", "label": "instructions (CLAUDE.md)", "body": "LONG"}
+    async with connect(url) as ws:
+        await _start(ws)
+        await ws.send(json.dumps({"type": "user_message", "text": "go", "context": [block]}))
+        echo = await _until(ws, "event")
+
+    assert "LONG" in echo["event"]["llm_message"]["content"][0]["text"]
+    assert echo["user_display"] == {
+        "text": "go",
+        "loaded": ["instructions (CLAUDE.md)", "past lessons"],
+    }
+
+
+async def test_a_plain_message_has_no_user_display(url: str, fake: _Fake) -> None:
+    fake.echo_user = True
+    async with connect(url) as ws:
+        await _start(ws)
+        await _begin_turn(ws)
+        assert (await _until(ws, "event"))["user_display"] is None

@@ -7,7 +7,12 @@ from pathlib import Path
 import pytest
 from corelib.config import reset_settings_cache
 from corelib.errors import ConfigError
-from openhands_bridge.mcp_catalog import build_mcp_config, list_mcp_servers
+from openhands_bridge.mcp_catalog import (
+    McpServerSummary,
+    build_mcp_config,
+    list_mcp_servers,
+    unavailable_reason,
+)
 
 from openhands_adapter import OpenHandsConfig
 
@@ -137,3 +142,10 @@ def test_code_servers_run_inside_the_sandbox_when_the_image_has_them(
     entry = config["mcpServers"]["cppdev"]  # type: ignore[index]
     assert entry["command"].endswith("/cppdev-mcp")
     assert entry["env"]["AGX_REPO_ROOT"] == "/opt/agenticenv"
+
+
+def test_the_reason_a_code_server_is_unavailable_names_the_setting() -> None:
+    server = McpServerSummary(name="cppdev", transport="stdio", reach="sandbox_stdio")
+
+    assert "code_tools" in (unavailable_reason(server, _config(code_tools=False)) or "")
+    assert unavailable_reason(server, _config(code_tools=True)) is None
