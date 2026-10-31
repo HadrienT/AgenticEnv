@@ -103,16 +103,14 @@ just run-bridge         # serve chat clients on 127.0.0.1:8300
 | `just test-integration` | Adds the tests that require PostgreSQL |
 | `just test-e2e` | OpenHands smoke test; requires Docker and `llama-server` |
 
-Run `just --list` for all recipes. Tests run locally; there is no CI pipeline yet.
+Run `just --list` for all recipes. CI runs the lint and the tests that do not need the end-to-end
+stack on every change.
 
 ## Current limitations
 
-- **MCP in the sandbox:** MCP servers run on the host over stdio and are only available to the
-  headless OpenHands CLI, which runs without a Docker sandbox. Sandboxed sessions do not have
-  access to them yet.
-- **Retrieval quality:** `kbase` and `agentmem` embed text with a feature-hashing placeholder, and
-  `kbase` reranks by lexical overlap. Both are deterministic and offline, but not semantic. Moving
-  to real models requires a configuration change and a new implementation of each interface.
+- **Retrieval quality:** the default configuration embeds text with a deterministic feature-hashing
+  model, which is offline but not semantic. `configs/kbase-bge.yaml` and `configs/agentmem-bge.yaml`
+  switch to bge-m3 on a local `llama-server`.
 - **Sessions:** one active session at a time, with no resume yet
   ([#10](https://github.com/HadrienT/AgenticEnv/issues/10)).
 

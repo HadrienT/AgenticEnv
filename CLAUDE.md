@@ -1,76 +1,69 @@
-# AgenticEnv — notes pour Claude Code
+# AgenticEnv — notes for Claude Code
 
-Atelier de dev agentique **local** : `packages/openhands_adapter` (SDK OpenHands +
-sandbox Docker pilotant `llama-server`), `packages/openhands-bridge` (serveur
-WebSocket exposé à un client de chat), les serveurs MCP (`*-mcp`), `corelib`.
+**Local** agentic development workshop: `packages/openhands_adapter` (OpenHands SDK + Docker
+sandbox driving `llama-server`), `packages/openhands-bridge` (WebSocket server exposed to a chat
+client), the MCP servers (`*-mcp`), `corelib`.
 
-**Repo jumeau** : [`agenticenv-chat`](https://github.com/HadrienT/agenticenv-chat)
-— l'extension VS Code qui parle au bridge. Les deux évoluent ensemble ; le
-protocole du fil est `packages/openhands-bridge/src/openhands_bridge/protocol.py`,
-miroité manuellement dans `agenticenv-chat/src/protocol.ts` (test de dérive côté
-client).
+**Twin repository**: [`agenticenv-chat`](https://github.com/HadrienT/agenticenv-chat), the VS Code
+extension that talks to the bridge. The two evolve together; the wire protocol is
+`packages/openhands-bridge/src/openhands_bridge/protocol.py`, manually mirrored in
+`agenticenv-chat/src/protocol.ts` (drift test on the client side).
 
-## Suivi du travail — GitHub Issues, pas de markdown de handoff
+## Tracking work: GitHub Issues, no handoff markdown
 
-Le « JIRA » du projet, ce sont les **GitHub Issues des deux repos**. `gh` est
-authentifié (compte `HadrienT`).
+The project's "JIRA" is the **GitHub Issues of both repositories**. `gh` is authenticated (account
+`HadrienT`).
 
-- **Au démarrage d'une session** : `gh issue list --state open` sur **ce repo** ET
-  sur `HadrienT/agenticenv-chat`. Chaque repo a une issue épinglée
-  **`📋 Board`** qui agrège tout (AgenticEnv#9, agenticenv-chat#3).
-- **Une tâche ou un bug qui concerne l'autre repo** →
-  `gh issue create --repo HadrienT/agenticenv-chat …`. **Jamais** un fichier
-  markdown de passation.
-- **Issue traitée** → `gh issue close <n> --repo … --comment "fait dans <sha>"`,
-  et cocher la case correspondante dans le Board.
-- **Labels** : `cross-repo` (coordination), `blocked` (attend l'autre repo),
-  `needs-verification` (code fait, reste un test manuel), `from-bridge` /
-  `from-client`.
-- Les gros morceaux de **conception** restent dans `blueprint/wp/*.md` ; l'issue y
-  renvoie, elle ne les remplace pas.
+- **At the start of a session**: `gh issue list --state open` on **this repository** AND on
+  `HadrienT/agenticenv-chat`. Each repository has a pinned **`📋 Board`** issue that aggregates
+  everything (AgenticEnv#9, agenticenv-chat#3).
+- **A task or bug concerning the other repository** →
+  `gh issue create --repo HadrienT/agenticenv-chat …`. **Never** a markdown handoff file.
+- **Issue handled** → `gh issue close <n> --repo … --comment "done in <sha>"`, and tick the matching
+  box in the Board.
+- **Labels**: `cross-repo` (coordination), `blocked` (waiting on the other repository),
+  `needs-verification` (code done, a manual test remains), `from-bridge` / `from-client`.
+- Large pieces of **design** stay in `blueprint/wp/*.md`; the issue points to them, it does not
+  replace them.
 
-## Commandes
+## Commands
 
 | | |
 |---|---|
-| `just lint` | ruff + `mypy --strict` par paquet + import-linter — **vert avant tout commit** |
-| `just test` | pytest (hors `integration` / `e2e`) |
-| `just test-integration` | avec Postgres, sur une base `agenticenv_test` reconstruite à chaque run (`conftest.py`) |
-| `just bench-agent <label>` | banc de l'agent (Docker + `llama-server`, plusieurs minutes par tâche) |
-| `uv run kbase eval --label <x>` | mesure de la recherche sur `benchmarks/retrieval/queries.yaml` |
-| `just test-e2e` | smoke OpenHands (Docker + `llama-server` requis, hors CI) |
-| `just run-bridge` | lance le bridge WebSocket sur `127.0.0.1:8300` |
+| `just lint` | ruff + `mypy --strict` per package + import-linter: **green before any commit** |
+| `just test` | pytest (excluding `integration` / `e2e`) |
+| `just test-integration` | with Postgres, on an `agenticenv_test` database rebuilt at each run (`conftest.py`) |
+| `just bench-agent <label>` | agent benchmark (Docker + `llama-server`, several minutes per task) |
+| `uv run kbase eval --label <x>` | retrieval measurement on `benchmarks/retrieval/queries.yaml` |
+| `just test-e2e` | OpenHands smoke test (Docker + `llama-server` required, outside CI) |
+| `just run-bridge` | runs the WebSocket bridge on `127.0.0.1:8300` |
 
-## Divers
+## Miscellaneous
 
-- **Conversation avec le mainteneur : en français.** Code, identifiants, messages
-  de commit : en anglais. `blueprint/` est déjà en français.
-- **Réseau Docker fragile sur l'hôte de dev** : un teardown de veth sur le bridge
-  `docker0` par défaut a déjà figé l'hôte et coupé tout le LAN. Ne jamais faire
-  de `docker rm -f` en masse ; agir un conteneur à la fois, en expliquant le
-  rayon d'impact. Cf. issue #8.
-- **Le bridge en service tourne depuis ce checkout** (`agenticenv-bridge.service`) :
-  laisser `~/AgenticEnv` sur `main`, sinon un redémarrage charge du code non livré.
-- Commits : passer par une branche, pas directement sur `main`. Terminer les
-  messages de commit par `Co-Authored-By: Claude <noreply@anthropic.com>`.
+- **Language: English by default.** Everything you produce is in English: code, identifiers, comments, commit messages, PRs, issues, documentation and interface text. The only exception is the conversation: reply in the language the maintainer writes in, so in French when they write in French. `blueprint/` is historically in French: new content there is in English too.
+- **Fragile Docker networking on the dev host**: a veth teardown on the default `docker0` bridge has
+  already frozen the host and cut the whole LAN. Never a bulk `docker rm -f`; act one container at a
+  time, explaining the blast radius. See issue #8.
+- **The bridge in service runs from this checkout** (`agenticenv-bridge.service`): leave
+  `~/AgenticEnv` on `main`, otherwise a restart loads unshipped code.
+- Commits: go through a branch, not directly on `main`. End commit messages with
+  `Co-Authored-By: Claude <noreply@anthropic.com>`.
 
-## Sandbox OpenHands (l'agent qui tourne dans le conteneur)
+## OpenHands sandbox (the agent running in the container)
 
-Image `ghcr.io/openhands/agent-server:1.21.0-python` (Debian 13), **neuve à chaque
-session, jetée à la fin**. Fournie : Python 3.13 + `uv`/pip/poetry, Node 20 + npm,
-`gcc`/`g++`/`make`, git, `curl`/`wget`/`jq`, tmux, **`sudo` sans mot de passe**,
-Internet sortant. Pas de : `cmake`, `rg`/`fd`, `vim`, rust/go/java, ni **CUDA**.
+Image `ghcr.io/openhands/agent-server:1.21.0-python` (Debian 13), **new at each session, discarded
+at the end**. Provided: Python 3.13 + `uv`/pip/poetry, Node 20 + npm, `gcc`/`g++`/`make`, git,
+`curl`/`wget`/`jq`, tmux, **passwordless `sudo`**, outbound Internet. Not provided: `cmake`, `rg`/`fd`,
+`vim`, rust/go/java, or **CUDA**.
 
-L'agent installe ce qui manque lui-même (ça disparaît en fin de session) :
+The agent installs what is missing by itself (it disappears at the end of the session):
 
-- **nvcc / CUDA** : le composant `contrib non-free` n'est pas activé par défaut.
+- **nvcc / CUDA**: the `contrib non-free` component is not enabled by default.
   ```sh
   sudo sed -i 's/Components: main/Components: main contrib non-free/' \
     /etc/apt/sources.list.d/debian.sources
   sudo apt-get update && sudo apt-get install -y --no-install-recommends nvidia-cuda-toolkit
   ```
-  ⚠️ ~2 Go, retéléchargé à chaque session. nvcc **compile** sans GPU ; exécuter du
-  code CUDA exige `enable_gpu: true` dans `configs/openhands.yaml` (contention VRAM
-  avec `llama-server`).
-- **Web** : pas d'outil de navigation (`enable_browser=False`) ; passer par
-  `curl`/`wget`/`pip` dans le terminal.
+  ⚠️ ~2 GB, downloaded again at each session. nvcc **compiles** without a GPU; running CUDA code
+  requires `enable_gpu: true` in `configs/openhands.yaml` (VRAM contention with `llama-server`).
+- **Web**: no browsing tool (`enable_browser=False`); use `curl`/`wget`/`pip` in the terminal.
