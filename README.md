@@ -5,6 +5,8 @@ an [OpenHands](https://github.com/OpenHands/OpenHands) agent in a disposable Doc
 set of purpose-built tools for C++ development and numerical verification. No code or prompt leaves
 the machine for inference.
 
+**[How it works: interactive map](https://hadrient.github.io/atlas-pages/AgenticEnv/)**
+
 AgenticEnv is the workshop, not the product: its target is
 [`quant-modeling`](https://github.com/HadrienT/quant-modeling), a C++ derivatives pricing library.
 
