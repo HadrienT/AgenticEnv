@@ -1,0 +1,60 @@
+diff --git a/include/quantModeling/engines/mc/simulation_engine.hpp b/include/quantModeling/engines/mc/simulation_engine.hpp
+index 2382dd8..95e89ff 100644
+--- a/include/quantModeling/engines/mc/simulation_engine.hpp
++++ b/include/quantModeling/engines/mc/simulation_engine.hpp
+@@ -287,21 +287,21 @@ namespace quantModeling
+                 if (layout.covers(dim))
+                     bridge.emplace(layout.times, layout.factors, layout.stride);
+             }
+-            std::vector<double> point(bridge ? dim : 0);
++            std::vector<double> point(bridge ? static_cast<std::size_t>(bridge->n_ * bridge->factors_) : 0);
+ 
+             for (int b = 0; b < B; ++b)
+             {
+                 const uint64_t batch_seed =
+                     (static_cast<uint64_t>(static_cast<uint32_t>(seed)) << 32) |
+                     static_cast<uint64_t>(b);
+-                SobolSequence sobol(static_cast<int>(dim), batch_seed, settings.mc_sobol_owen);
++                SobolSequence sobol(static_cast<int>(bridge ? bridge->n_ * bridge->factors_ : dim), batch_seed, settings.mc_sobol_owen);
+                 std::vector<WelfordAccumulator> inner(n_labels);
+                 std::vector<MultiControlAccumulator> inner_cv(cv ? n_labels : 0);
+                 for (int p = 0; p < per_batch; ++p)
+                 {
+                     if (bridge)
+                     {
+-                        sobol.next_gaussian(std::span<double>(point.data(), dim));
++                        sobol.next_gaussian(std::span<double>(point.data(), static_cast<std::size_t>(bridge->n_ * bridge->factors_)));
+                         bridge->map(point, std::span<double>(gauss.data(), dim));
+                     }
+                     else
+diff --git a/include/quantModeling/engines/mc/simulation_engine_aad.hpp b/include/quantModeling/engines/mc/simulation_engine_aad.hpp
+index faaaadb..047a340 100644
+--- a/include/quantModeling/engines/mc/simulation_engine_aad.hpp
++++ b/include/quantModeling/engines/mc/simulation_engine_aad.hpp
+@@ -183,7 +183,7 @@ namespace quantModeling
+             if (layout.covers(dim))
+             {
+                 bridge.emplace(layout.times, layout.factors, layout.stride);
+-                point.resize(dim);
++                point.resize(bridge->n_ * bridge->factors_);
+             }
+         }
+ 
+@@ -201,7 +201,7 @@ namespace quantModeling
+             if (sobol)
+             {
+                 const auto b = static_cast<std::uint64_t>(done / per_rep);
+-                sequence.emplace(static_cast<int>(dim),
++                sequence.emplace(static_cast<int>(bridge ? bridge->n_ * bridge->factors_ : dim),
+                                  (static_cast<std::uint64_t>(static_cast<std::uint32_t>(seed)) << 32) | b);
+             }
+ 
+@@ -211,7 +211,7 @@ namespace quantModeling
+                 const auto path_index = static_cast<std::uint64_t>(done + p);
+                 if (sobol && bridge)
+                 {
+-                    sequence->next_gaussian(std::span<double>(point.data(), dim));
++                    sequence->next_gaussian(std::span<double>(point.data(), static_cast<std::size_t>(bridge->n_ * bridge->factors_)));
+                     bridge->map(point, std::span<double>(gauss.data(), dim));
+                 }
+                 else if (sobol)

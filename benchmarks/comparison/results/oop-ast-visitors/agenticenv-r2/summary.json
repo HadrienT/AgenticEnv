@@ -1,0 +1,80 @@
+{
+ "status": "timeout_or_error",
+ "error": "DependencyError: agent-server run failed: Conversation run failed for id=2f3410ff-c2ca-4f8a-89ad-e99674abcd92: Remote conversation ended with error",
+ "final_text": "",
+ "duration_s": 929.0,
+ "tool_calls": {
+  "file_editor": 85,
+  "terminal": 10,
+  "think": 2
+ },
+ "mcp_unavailable": [],
+ "container": "agent-server-277bc41d-46dd-4130-ac83-c8f04e67ee4f",
+ "llm_stats": {
+  "usage_to_metrics": {
+   "agent": {
+    "model_name": "openai/Qwen3-Coder-30B-A3B-Instruct",
+    "accumulated_cost": 0.0,
+    "max_budget_per_task": null,
+    "accumulated_token_usage": {
+     "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+     "prompt_tokens": 3935919,
+     "completion_tokens": 37262,
+     "cache_read_tokens": 3790373,
+     "cache_write_tokens": 0,
+     "reasoning_tokens": 0,
+     "context_window": 0,
+     "per_turn_token": 38089,
+     "response_id": ""
+    },
+    "costs": [],
+    "response_latencies": [],
+    "token_usages": []
+   },
+   "condenser": {
+    "model_name": "openai/Qwen3-Coder-30B-A3B-Instruct",
+    "accumulated_cost": 0.0,
+    "max_budget_per_task": null,
+    "accumulated_token_usage": {
+     "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+     "prompt_tokens": 14363,
+     "completion_tokens": 562,
+     "cache_read_tokens": 465,
+     "cache_write_tokens": 0,
+     "reasoning_tokens": 0,
+     "context_window": 0,
+     "per_turn_token": 7183,
+     "response_id": ""
+    },
+    "costs": [],
+    "response_latencies": [],
+    "token_usages": []
+   }
+  }
+ },
+ "attempt": 0,
+ "diff_stat": " include/ast.hpp | 293 ++++++++++++++++++++-\n src/ast.cpp     | 793 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--\n 2 files changed, 1069 insertions(+), 17 deletions(-)\n",
+ "grade": {
+  "score": 0.0,
+  "passed": 0,
+  "total": 12,
+  "checks": {
+   "eval": false,
+   "eval_unknown_var": false,
+   "print_precedence": false,
+   "vars_sorted": false,
+   "fold_constants": false,
+   "fold_identities": false,
+   "fold_does_not_mutate": false,
+   "diff_rules": false,
+   "diff_numeric_fuzz": false,
+   "clone_independent": false,
+   "deep_tree_destructor": false,
+   "no_leaks_asan": false
+  },
+  "unknown_names": [],
+  "exit": 0,
+  "grade_s": 4.2,
+  "output": "--- compile error (t)\n/home/hadriensuper/testLLM/.work/runs/oop-ast-visitors/agenticenv-r2/src/ast.cpp:471:13: error: \u2018right_num\u2019 was not declared in this scope\n/home/hadriensuper/testLLM/.work/runs/oop-ast-visitors/agenticenv-r2/src/ast.cpp:481:13: error: \u2018right_num\u2019 was not declared in this scope\n--- compile error (l)\n/home/hadriensuper/testLLM/.work/runs/oop-ast-visitors/agenticenv-r2/src/ast.cpp:471:13: error: \u2018right_num\u2019 was not declared in this scope\n/home/hadriensuper/testLLM/.work/runs/oop-ast-visitors/agenticenv-r2/src/ast.cpp:481:13: error: \u2018right_num\u2019 was not declared in this scope\nFAIL no_leaks_asan\n"
+ }
+}

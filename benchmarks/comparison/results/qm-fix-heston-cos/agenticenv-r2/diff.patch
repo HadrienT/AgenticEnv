@@ -1,0 +1,154 @@
+diff --git a/debug_heston b/debug_heston
+new file mode 100644
+index 0000000..891ce54
+Binary files /dev/null and b/debug_heston differ
+diff --git a/debug_heston.cpp b/debug_heston.cpp
+new file mode 100644
+index 0000000..748c713
+--- /dev/null
++++ b/debug_heston.cpp
+@@ -0,0 +1,88 @@
++#include <iostream>
++#include <iomanip>
++#include <complex>
++#include <cmath>
++
++// Simplified version of the Heston characteristic function
++std::complex<double> heston_log_return_characteristic_function(double u, double ttm, double v0, double kappa, double theta, double xi, double rho) noexcept
++{
++    using C = std::complex<double>;
++    constexpr C i(0.0, 1.0);
++
++    const C beta = kappa - i * rho * xi * u; // shorthand, appears repeatedly below
++    const C d_squared_minus_beta_squared = xi * xi * C(u * u, u);
++    const C D = std::sqrt(beta * beta + d_squared_minus_beta_squared);
++    const C beta_plus_D = beta + D;
++
++    // beta - D is computed via beta^2 - D^2 = -d_squared_minus_beta_squared
++    // rather than as a direct subtraction: for small xi, beta and D are
++    // both within O(xi^2) of each other (D -> beta as xi -> 0), so a
++    // direct subtraction loses precision catastrophically once xi drops
++    // much below 1e-3 -- verified empirically (tests/testHestonCOS.cpp
++    // hit prices off by 5+ orders of magnitude before this fix). This
++    // form is a division of two well-scaled quantities instead, with no
++    // cancellation.
++    const C beta_minus_D = -d_squared_minus_beta_squared / beta_plus_D;
++    const C G = beta_minus_D / beta_plus_D;
++
++    const C exp_mDt = std::exp(-D * ttm);
++    const C term_v0 = (v0 / (xi * xi)) * beta_minus_D * (1.0 - exp_mDt) / (1.0 - G * exp_mDt);
++    const C term_theta = (kappa * theta / (xi * xi)) *
++                         (ttm * beta_minus_D - 2.0 * std::log((1.0 - G * exp_mDt) / (1.0 - G)));
++
++    return std::exp(term_v0 + term_theta);
++}
++
++int main() {
++    // Test case from Andersen's paper
++    double v0 = 0.04;
++    double kappa = 0.5;
++    double theta = 0.04;
++    double xi = 1.0;
++    double rho = -0.9;
++    double ttm = 10.0;
++    
++    std::cout << std::fixed << std::setprecision(10);
++    std::cout << "Testing Heston characteristic function with parameters:" << std::endl;
++    std::cout << "v0 = " << v0 << ", kappa = " << kappa << ", theta = " << theta 
++              << ", xi = " << xi << ", rho = " << rho << ", ttm = " << ttm << std::endl;
++    
++    // Test the characteristic function at different values
++    double h = 1e-4;
++    std::complex<double> phi_plus = heston_log_return_characteristic_function(h, ttm, v0, kappa, theta, xi, rho);
++    std::complex<double> phi_minus = heston_log_return_characteristic_function(-h, ttm, v0, kappa, theta, xi, rho);
++    
++    std::cout << "phi(" << h << ") = " << phi_plus << std::endl;
++    std::cout << "phi(" << -h << ") = " << phi_minus << std::endl;
++    
++    std::complex<double> log_phi_plus = std::log(phi_plus);
++    std::complex<double> log_phi_minus = std::log(phi_minus);
++    
++    std::cout << "log(phi(" << h << ")) = " << log_phi_plus << std::endl;
++    std::cout << "log(phi(" << -h << ")) = " << log_phi_minus << std::endl;
++    
++    // Compute cumulants using finite differences
++    std::complex<double> i(0.0, 1.0);
++    double c1 = (-i * (log_phi_plus - log_phi_minus) / (2.0 * h)).real();
++    double c2 = (-(log_phi_plus + log_phi_minus) / (h * h)).real();
++    
++    std::cout << "c1 = " << c1 << std::endl;
++    std::cout << "c2 = " << c2 << std::endl;
++    
++    // Test with a larger step to see if it makes a difference
++    h = 1e-3;
++    phi_plus = heston_log_return_characteristic_function(h, ttm, v0, kappa, theta, xi, rho);
++    phi_minus = heston_log_return_characteristic_function(-h, ttm, v0, kappa, theta, xi, rho);
++    
++    log_phi_plus = std::log(phi_plus);
++    log_phi_minus = std::log(phi_minus);
++    
++    c1 = (-i * (log_phi_plus - log_phi_minus) / (2.0 * h)).real();
++    c2 = (-(log_phi_plus + log_phi_minus) / (h * h)).real();
++    
++    std::cout << "\nWith h = 1e-3:" << std::endl;
++    std::cout << "c1 = " << c1 << std::endl;
++    std::cout << "c2 = " << c2 << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/src/engines/analytic/heston_cos.cpp b/src/engines/analytic/heston_cos.cpp
+index f336f4d..8935615 100644
+--- a/src/engines/analytic/heston_cos.cpp
++++ b/src/engines/analytic/heston_cos.cpp
+@@ -47,7 +47,7 @@ namespace quantModeling
+         Real put_u_k(std::size_t k, Real a, Real b)
+         {
+             const Real d = std::clamp(Real(0.0), a, b);
+-            return (2.0 / (b - a)) * (-chi_k(k, a, d, a, b) + psi_k(k, a, d, a, b));
++            return (2.0 / (b - a)) * (chi_k(k, a, d, a, b) - psi_k(k, a, d, a, b));
+         }
+ 
+         /// First two cumulants of the log-return, estimated by central finite
+diff --git a/test_andersen_case.cpp b/test_andersen_case.cpp
+new file mode 100644
+index 0000000..bb32e09
+--- /dev/null
++++ b/test_andersen_case.cpp
+@@ -0,0 +1,35 @@
++#include <iostream>
++#include <iomanip>
++#include "quantModeling/engines/analytic/heston_cos.hpp"
++#include "quantModeling/models/equity/heston.hpp"
++
++int main() {
++    // Test case from Andersen's paper
++    // v0 = theta = 0.04, kappa = 0.5, xi = 1, rho = -0.9, T = 10, forward = 100, strike = 100
++    quantModeling::HestonParams params{0.04, 0.5, 0.04, 1.0, -0.9};
++    double forward = 100.0;
++    double strike = 100.0;
++    double ttm = 10.0;
++    double discount_factor = 1.0;
++    
++    std::cout << std::fixed << std::setprecision(6);
++    std::cout << "Heston COS Pricing Test Case" << std::endl;
++    std::cout << "Parameters:" << std::endl;
++    std::cout << "  v0 = " << params.v0 << std::endl;
++    std::cout << "  kappa = " << params.kappa << std::endl;
++    std::cout << "  theta = " << params.theta << std::endl;
++    std::cout << "  xi = " << params.xi << std::endl;
++    std::cout << "  rho = " << params.rho << std::endl;
++    std::cout << "  T = " << ttm << std::endl;
++    std::cout << "  Forward = " << forward << std::endl;
++    std::cout << "  Strike = " << strike << std::endl;
++    std::cout << "  Discount factor = " << discount_factor << std::endl;
++    std::cout << std::endl;
++    
++    double price = quantModeling::heston_cos_price(forward, strike, ttm, discount_factor, params, true);
++    std::cout << "COS price (call): " << price << std::endl;
++    std::cout << "Expected (from literature): 13.0847" << std::endl;
++    std::cout << "Difference: " << (price - 13.0847) << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

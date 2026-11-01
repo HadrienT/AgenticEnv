@@ -1,0 +1,309 @@
+diff --git a/include/market.hpp b/include/market.hpp
+index fe21752..0a06550 100644
+--- a/include/market.hpp
++++ b/include/market.hpp
+@@ -3,27 +3,53 @@
+ #include <memory>
+ #include <string>
+ #include <vector>
++#include <unordered_map>
++#include <unordered_set>
++#include <set>
++#include <mutex>
++#include <algorithm>
++#include <atomic>
++#include <tuple>
++
+ namespace mkt {
++
++// Observer/Observable pair with proper lifetime management
++class Observable;
+ class Observer {
+ public:
+-    virtual ~Observer();
++    virtual ~Observer() = default;
+     virtual void update() = 0;
+ protected:
+-    void observe(const std::shared_ptr<class Observable>& o);
+-    void stop_observing(const std::shared_ptr<class Observable>& o);
++    void observe(const std::shared_ptr<Observable>& o);
++    void stop_observing(const std::shared_ptr<Observable>& o);
+ };
++
+ class Observable {
+ public:
+-    virtual ~Observable();
++    virtual ~Observable() = default;
+     void notify();
++    
++    // For internal use by Observer
++    void add_observer(const std::shared_ptr<Observer>& o);
++    void remove_observer(const std::shared_ptr<Observer>& o);
++    
++private:
++    std::unordered_set<std::shared_ptr<Observer>> observers_;
++    mutable std::mutex mutex_;
+ };
++
+ // A mutable market value. set() with the current value does nothing.
+ class Quote : public Observable {
+ public:
+     explicit Quote(double v);
+     double value() const;
+     void set(double v);
++    
++private:
++    double value_;
++    mutable std::mutex mutex_;
+ };
++
+ // Lazily computed value. value() recomputes only if a dependency changed since the last
+ // computation; a LazyObject that was invalidated forwards the notification once to its
+ // own observers, and does not forward again until it has been recomputed.
+@@ -32,15 +58,30 @@ public:
+     double value() const;
+     long computations() const;   // how many times compute() ran
+     void update() override;
++    
+ protected:
+     virtual double compute() const = 0;
++    
++private:
++    mutable std::atomic<bool> dirty_{true};
++    mutable std::atomic<double> cached_value_{0.0};
++    mutable std::atomic<long> computations_{0};
++    mutable std::mutex mutex_;
++    mutable std::unordered_set<std::shared_ptr<Observable>> dependencies_;
++    mutable std::mutex dependencies_mutex_;
++    
++    // For dependency tracking
++    void add_dependency(const std::shared_ptr<Observable>& o);
++    void remove_dependency(const std::shared_ptr<Observable>& o);
+ };
++
+ // Black-Scholes forward-free price model used by tests.
+ struct Engine {
+     virtual ~Engine() = default;
+     virtual double price(double spot, double strike, double vol) const = 0;
+     virtual std::string name() const = 0;
+ };
++
+ // Name -> maker registry. REGISTER_ENGINE(key, Class), used at namespace scope in any
+ // translation unit, makes create(key) return a new Class. Built in: "intrinsic" prices
+ // max(spot - strike, 0) + vol, and "flat" prices strike.
+@@ -50,7 +91,20 @@ public:
+     void add(const std::string& key, std::function<std::unique_ptr<Engine>()> maker);
+     std::unique_ptr<Engine> create(const std::string& key) const;   // std::invalid_argument if unknown
+     std::vector<std::string> keys() const;                          // sorted
++    
++private:
++    std::unordered_map<std::string, std::function<std::unique_ptr<Engine>()>> makers_;
++    mutable std::mutex mutex_;
+ };
++
++// Helper macro for registration
++#define REGISTER_ENGINE(key, Class) \
++    static struct Register##Class { \
++        Register##Class() { \
++            mkt::EngineFactory::instance().add(key, []() { return std::make_unique<Class>(); }); \
++        } \
++    } register_##Class##_##key;
++
+ // Decorator: same interface as the wrapped engine, caches price() by exact argument
+ // triple. clear() empties the cache. name() is "memo(" + wrapped name + ")".
+ class MemoEngine : public Engine {
+@@ -59,5 +113,11 @@ public:
+     double price(double spot, double strike, double vol) const override;
+     std::string name() const override;
+     void clear();
++    
++private:
++    std::unique_ptr<Engine> inner_;
++    mutable std::unordered_map<std::tuple<double, double, double>, double> cache_;
++    mutable std::mutex mutex_;
+ };
++
+ }  // namespace mkt
+diff --git a/src/market.cpp b/src/market.cpp
+index caa5200..4f9f4aa 100644
+--- a/src/market.cpp
++++ b/src/market.cpp
+@@ -1 +1,159 @@
+-#include "market.hpp"
++#include "../include/market.hpp"
++#include <stdexcept>
++#include <algorithm>
++#include <iostream>
++#include <functional>
++
++namespace mkt {
++
++// Observer implementation
++void Observer::observe(const std::shared_ptr<Observable>& o) {
++    if (o) {
++        o->add_observer(std::shared_ptr<Observer>(this));
++    }
++}
++
++void Observer::stop_observing(const std::shared_ptr<Observable>& o) {
++    if (o) {
++        o->remove_observer(std::shared_ptr<Observer>(this));
++    }
++}
++
++// Observable implementation
++void Observable::notify() {
++    // Create a copy of observers to avoid issues with observers removing themselves during notification
++    std::unordered_set<std::shared_ptr<Observer>> observers_copy;
++    {
++        std::lock_guard<std::mutex> lock(mutex_);
++        observers_copy = observers_;
++    }
++    
++    // Notify all observers
++    for (const auto& observer : observers_copy) {
++        if (observer) {
++            observer->update();
++        }
++    }
++}
++
++void Observable::add_observer(const std::shared_ptr<Observer>& o) {
++    if (o) {
++        std::lock_guard<std::mutex> lock(mutex_);
++        observers_.insert(o);
++    }
++}
++
++void Observable::remove_observer(const std::shared_ptr<Observer>& o) {
++    if (o) {
++        std::lock_guard<std::mutex> lock(mutex_);
++        observers_.erase(o);
++    }
++}
++
++// Quote implementation
++Quote::Quote(double v) : value_(v) {}
++
++double Quote::value() const {
++    std::lock_guard<std::mutex> lock(mutex_);
++    return value_;
++}
++
++void Quote::set(double v) {
++    std::lock_guard<std::mutex> lock(mutex_);
++    if (value_ != v) {
++        value_ = v;
++        notify();
++    }
++}
++
++// LazyObject implementation
++double LazyObject::value() const {
++    std::lock_guard<std::mutex> lock(mutex_);
++    if (dirty_.load()) {
++        cached_value_.store(compute());
++        computations_.fetch_add(1);
++        dirty_.store(false);
++    }
++    return cached_value_.load();
++}
++
++long LazyObject::computations() const {
++    return computations_.load();
++}
++
++void LazyObject::update() {
++    dirty_.store(true);
++}
++
++void LazyObject::add_dependency(const std::shared_ptr<Observable>& o) {
++    if (o) {
++        std::lock_guard<std::mutex> lock(dependencies_mutex_);
++        dependencies_.insert(o);
++        o->add_observer(std::shared_ptr<Observer>(this));
++    }
++}
++
++void LazyObject::remove_dependency(const std::shared_ptr<Observable>& o) {
++    if (o) {
++        std::lock_guard<std::mutex> lock(dependencies_mutex_);
++        dependencies_.erase(o);
++        o->remove_observer(std::shared_ptr<Observer>(this));
++    }
++}
++
++// EngineFactory implementation
++EngineFactory& EngineFactory::instance() {
++    static EngineFactory instance;
++    return instance;
++}
++
++void EngineFactory::add(const std::string& key, std::function<std::unique_ptr<Engine>()> maker) {
++    std::lock_guard<std::mutex> lock(mutex_);
++    makers_[key] = maker;
++}
++
++std::unique_ptr<Engine> EngineFactory::create(const std::string& key) const {
++    std::lock_guard<std::mutex> lock(mutex_);
++    auto it = makers_.find(key);
++    if (it == makers_.end()) {
++        throw std::invalid_argument("Unknown engine key: " + key);
++    }
++    return it->second();
++}
++
++std::vector<std::string> EngineFactory::keys() const {
++    std::lock_guard<std::mutex> lock(mutex_);
++    std::vector<std::string> result;
++    result.reserve(makers_.size());
++    for (const auto& pair : makers_) {
++        result.push_back(pair.first);
++    }
++    std::sort(result.begin(), result.end());
++    return result;
++}
++
++// MemoEngine implementation
++MemoEngine::MemoEngine(std::unique_ptr<Engine> inner) : inner_(std::move(inner)), cache_() {}
++
++double MemoEngine::price(double spot, double strike, double vol) const {
++    std::lock_guard<std::mutex> lock(mutex_);
++    auto key = std::make_tuple(spot, strike, vol);
++    auto it = cache_.find(key);
++    if (it != cache_.end()) {
++        return it->second;
++    }
++    double result = inner_->price(spot, strike, vol);
++    cache_[key] = result;
++    return result;
++}
++
++std::string MemoEngine::name() const {
++    return "memo(" + inner_->name() + ")";
++}
++
++void MemoEngine::clear() {
++    std::lock_guard<std::mutex> lock(mutex_);
++    cache_.clear();
++}
++
++}  // namespace mkt
+diff --git a/test_compilation.cpp b/test_compilation.cpp
+new file mode 100644
+index 0000000..43d5f8d
+--- /dev/null
++++ b/test_compilation.cpp
+@@ -0,0 +1,7 @@
++#include "include/market.hpp"
++#include <iostream>
++
++int main() {
++    std::cout << "Compilation test successful!" << std::endl;
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_compilation.o b/test_compilation.o
+new file mode 100644
+index 0000000..58fd919
+Binary files /dev/null and b/test_compilation.o differ

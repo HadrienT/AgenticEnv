@@ -1,0 +1,284 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..7dfdef1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,10 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Add test executables
++add_executable(test_heston ../test_heston.cpp)
++target_link_libraries(test_heston lib)
++
++add_executable(test_performance ../test_performance.cpp)
++target_link_libraries(test_performance lib)
+diff --git a/src/heston.cpp b/src/heston.cpp
+index a856343..5d0249f 100644
+--- a/src/heston.cpp
++++ b/src/heston.cpp
+@@ -1,6 +1,145 @@
+ #include "heston.hpp"
+-#include <stdexcept>
++#include <random>
++#include <cmath>
++#include <algorithm>
++#include <numeric>
++#include <limits>
++
+ namespace mc {
+-McResult heston_call_mc(const HestonParams&, double, double, int, std::int64_t, std::uint64_t) { throw std::logic_error("not implemented"); }
+-McResult heston_forward_mc(const HestonParams&, double, int, std::int64_t, std::uint64_t) { throw std::logic_error("not implemented"); }
++namespace {
++    // Full truncation scheme for Heston variance process
++    inline double variance_step(double v, double kappa, double theta, double xi, double dw_v, double dt) {
++        // Full truncation scheme for variance process
++        double v_new = v + kappa * (theta - std::max(0.0, v)) * dt + xi * std::sqrt(std::max(0.0, v)) * dw_v;
++        return std::max(0.0, v_new);
++    }
++
++    // Generate correlated normal random variables
++    inline void correlated_normal(double z1, double z2, double rho, double& z1_new, double& z2_new) {
++        z1_new = z1;
++        z2_new = rho * z1 + std::sqrt(1.0 - rho * rho) * z2;
++    }
+ }
++
++McResult heston_call_mc(const HestonParams& p, double K, double T, int steps, std::int64_t paths, std::uint64_t seed) {
++    // Initialize random number generator
++    std::mt19937_64 rng(seed);
++    std::normal_distribution<double> dist(0.0, 1.0);
++    
++    // Calculate time step
++    double dt = T / steps;
++    
++    // Precompute constants for performance
++    double drift = (p.r - p.q) * dt;
++    double sqrt_dt = std::sqrt(dt);
++    double sqrt_one_minus_rho_sq = std::sqrt(1.0 - p.rho * p.rho);
++    
++    // Storage for results
++    std::vector<double> payoffs(paths);
++    
++    // Monte Carlo simulation
++    for (std::int64_t i = 0; i < paths; ++i) {
++        // Initialize asset price and variance
++        double S = p.S0;
++        double v = p.v0;
++        
++        // Generate correlated Brownian motions
++        double dw_S = dist(rng);
++        double dw_v = dist(rng);
++        double dw_S_corr, dw_v_corr;
++        correlated_normal(dw_S, dw_v, p.rho, dw_S_corr, dw_v_corr);
++        
++        // Simulate path
++        for (int j = 0; j < steps; ++j) {
++            // Update variance using full truncation scheme
++            v = variance_step(v, p.kappa, p.theta, p.xi, dw_v_corr, dt);
++            
++            // Update asset price
++            double diffusion = std::sqrt(std::max(0.0, v)) * dw_S_corr;
++            S *= std::exp(drift + diffusion);
++            
++            // Generate new Brownian motions for next step
++            dw_S = dist(rng);
++            dw_v = dist(rng);
++            correlated_normal(dw_S, dw_v, p.rho, dw_S_corr, dw_v_corr);
++        }
++        
++        // Calculate payoff
++        payoffs[i] = std::max(0.0, S - K);
++    }
++    
++    // Calculate mean and standard error
++    double mean = std::accumulate(payoffs.begin(), payoffs.end(), 0.0) / paths;
++    double variance = 0.0;
++    for (double payoff : payoffs) {
++        variance += (payoff - mean) * (payoff - mean);
++    }
++    variance /= (paths - 1);
++    double std_error = std::sqrt(variance / paths);
++    
++    // Discount to present value
++    double price = mean * std::exp(-p.r * T);
++    
++    return {price, std_error};
++}
++
++McResult heston_forward_mc(const HestonParams& p, double T, int steps, std::int64_t paths, std::uint64_t seed) {
++    // Initialize random number generator
++    std::mt19937_64 rng(seed);
++    std::normal_distribution<double> dist(0.0, 1.0);
++    
++    // Calculate time step
++    double dt = T / steps;
++    
++    // Precompute constants for performance
++    double drift = (p.r - p.q) * dt;
++    double sqrt_dt = std::sqrt(dt);
++    double sqrt_one_minus_rho_sq = std::sqrt(1.0 - p.rho * p.rho);
++    
++    // Storage for results
++    std::vector<double> prices(paths);
++    
++    // Monte Carlo simulation
++    for (std::int64_t i = 0; i < paths; ++i) {
++        // Initialize asset price and variance
++        double S = p.S0;
++        double v = p.v0;
++        
++        // Generate correlated Brownian motions
++        double dw_S = dist(rng);
++        double dw_v = dist(rng);
++        double dw_S_corr, dw_v_corr;
++        correlated_normal(dw_S, dw_v, p.rho, dw_S_corr, dw_v_corr);
++        
++        // Simulate path
++        for (int j = 0; j < steps; ++j) {
++            // Update variance using full truncation scheme
++            v = variance_step(v, p.kappa, p.theta, p.xi, dw_v_corr, dt);
++            
++            // Update asset price
++            double diffusion = std::sqrt(std::max(0.0, v)) * dw_S_corr;
++            S *= std::exp(drift + diffusion);
++            
++            // Generate new Brownian motions for next step
++            dw_S = dist(rng);
++            dw_v = dist(rng);
++            correlated_normal(dw_S, dw_v, p.rho, dw_S_corr, dw_v_corr);
++        }
++        
++        // Store final price
++        prices[i] = S;
++    }
++    
++    // Calculate mean and standard error
++    double mean = std::accumulate(prices.begin(), prices.end(), 0.0) / paths;
++    double variance = 0.0;
++    for (double price : prices) {
++        variance += (price - mean) * (price - mean);
++    }
++    variance /= (paths - 1);
++    double std_error = std::sqrt(variance / paths);
++    
++    return {mean, std_error};
++}
++
++}  // namespace mc
+diff --git a/test_heston.cpp b/test_heston.cpp
+new file mode 100644
+index 0000000..e66438a
+--- /dev/null
++++ b/test_heston.cpp
+@@ -0,0 +1,56 @@
++#include "include/heston.hpp"
++#include <iostream>
++#include <iomanip>
++
++int main() {
++    mc::HestonParams params{
++        .S0 = 100.0,
++        .r = 0.05,
++        .q = 0.02,
++        .v0 = 0.04,
++        .kappa = 0.5,
++        .theta = 0.04,
++        .xi = 1.0,
++        .rho = -0.9
++    };
++    
++    std::cout << std::fixed << std::setprecision(6);
++    std::cout << "Parameters:" << std::endl;
++    std::cout << "S0: " << params.S0 << std::endl;
++    std::cout << "r: " << params.r << std::endl;
++    std::cout << "q: " << params.q << std::endl;
++    std::cout << "v0: " << params.v0 << std::endl;
++    std::cout << "kappa: " << params.kappa << std::endl;
++    std::cout << "theta: " << params.theta << std::endl;
++    std::cout << "xi: " << params.xi << std::endl;
++    std::cout << "rho: " << params.rho << std::endl;
++    std::cout << std::endl;
++    
++    // Test with the challenging parameters from the requirements
++    auto result1 = mc::heston_call_mc(params, 100.0, 10.0, 80, 10000, 12345);
++    auto result2 = mc::heston_forward_mc(params, 10.0, 80, 10000, 12345);
++    
++    std::cout << "Call price: " << result1.price << " +/- " << result1.std_error << std::endl;
++    std::cout << "Forward price: " << result2.price << " +/- " << result2.std_error << std::endl;
++    
++    // Test with simpler parameters to see if it works
++    mc::HestonParams simple_params{
++        .S0 = 100.0,
++        .r = 0.05,
++        .q = 0.02,
++        .v0 = 0.04,
++        .kappa = 1.0,
++        .theta = 0.04,
++        .xi = 0.5,
++        .rho = -0.5
++    };
++    
++    std::cout << "\nSimple parameters test:" << std::endl;
++    auto result3 = mc::heston_call_mc(simple_params, 100.0, 1.0, 10, 10000, 12345);
++    auto result4 = mc::heston_forward_mc(simple_params, 1.0, 10, 10000, 12345);
++    
++    std::cout << "Call price (simple): " << result3.price << " +/- " << result3.std_error << std::endl;
++    std::cout << "Forward price (simple): " << result4.price << " +/- " << result4.std_error << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_performance.cpp b/test_performance.cpp
+new file mode 100644
+index 0000000..da4336c
+--- /dev/null
++++ b/test_performance.cpp
+@@ -0,0 +1,46 @@
++#include "include/heston.hpp"
++#include <iostream>
++#include <chrono>
++
++int main() {
++    mc::HestonParams params{
++        .S0 = 100.0,
++        .r = 0.05,
++        .q = 0.02,
++        .v0 = 0.04,
++        .kappa = 0.5,
++        .theta = 0.04,
++        .xi = 1.0,
++        .rho = -0.9
++    };
++    
++    // Test performance with 1M paths and 80 steps as required
++    const int steps = 80;
++    const std::int64_t paths = 1000000;
++    const double T = 10.0;
++    const double K = 100.0;
++    
++    auto start = std::chrono::high_resolution_clock::now();
++    
++    auto result1 = mc::heston_call_mc(params, K, T, steps, paths, 12345);
++    auto result2 = mc::heston_forward_mc(params, T, steps, paths, 12345);
++    
++    auto end = std::chrono::high_resolution_clock::now();
++    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
++    
++    std::cout << "Performance test:" << std::endl;
++    std::cout << "Paths: " << paths << std::endl;
++    std::cout << "Steps: " << steps << std::endl;
++    std::cout << "Time: " << duration.count() << " ms" << std::endl;
++    std::cout << "Call price: " << result1.price << " +/- " << result1.std_error << std::endl;
++    std::cout << "Forward price: " << result2.price << " +/- " << result2.std_error << std::endl;
++    
++    // Check if performance target is met (20 seconds max)
++    if (duration.count() <= 20000) {
++        std::cout << "✓ Performance target met!" << std::endl;
++    } else {
++        std::cout << "✗ Performance target NOT met!" << std::endl;
++    }
++    
++    return 0;
++}
+\ No newline at end of file

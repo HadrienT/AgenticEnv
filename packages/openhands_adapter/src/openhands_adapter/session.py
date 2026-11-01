@@ -39,6 +39,8 @@ from openhands.sdk.context.condenser import LLMSummarizingCondenser
 from openhands.sdk.conversation.exceptions import ConversationRunError
 from openhands.sdk.conversation.impl.remote_conversation import RemoteConversation
 from openhands.sdk.conversation.response_utils import get_agent_final_response
+from openhands.sdk.event import ActionEvent
+from openhands.sdk.event.conversation_error import ConversationErrorEvent
 from openhands.sdk.hooks import HookConfig, HookDefinition, HookMatcher
 from openhands.sdk.security.confirmation_policy import ConfirmationPolicyBase, NeverConfirm
 from openhands.sdk.utils.command import execute_command
@@ -58,10 +60,20 @@ logger = get_logger(__name__)
 # agent-server's own /workspace/conversations stays out of the copy).
 _PROJECT_SOURCE = "/workspace/source"
 _WORKING_COPY = "/workspace/project"
-# The policy hook: mounted, not copied into the project, so the agent's repo stays
-# untouched and every session gets it (WP12 §4).
-_HOOK_SOURCE = "agents/openhands-template/.openhands/hooks/block_dangerous.sh"
-_HOOK_TARGET = "/opt/agenticenv/hooks/block_dangerous.sh"
+# The policy hooks: mounted, not copied into the project, so the agent's repo stays
+# untouched and every session gets them (WP12 §4).
+_HOOK_SOURCE = "agents/openhands-template/.openhands/hooks"
+_HOOK_TARGET = "/opt/agenticenv/hooks"
+_GREEN_HOOK_TIMEOUT_S = 120
+# How many iterations before the cap the agent is told to land what it is doing.
+_WRAP_UP_MARGIN = 15
+_WRAP_UP_MESSAGE = (
+    "You have about {margin} iterations left before this run is cut off. Stop rewriting: get "
+    "the project to build and its tests to run, then finish. If you are cut off, your work "
+    "goes back to your last successful build."
+)
+_CAP_EVENT_CODE = "MaxIterationsReached"
+_CAP_LOOKBACK = 8
 # What the agent-server rehydrates a conversation from (WP08e §3). The working copies stay
 # out on purpose: edits reach the host at the end of each turn.
 _PERSISTED_DIRS = ("conversations", "bash_events")
@@ -212,8 +224,20 @@ def _build_agent(
 
 
 def _policy_hooks() -> HookConfig:
-    definition = HookDefinition(command=_HOOK_TARGET, timeout=10)
-    return HookConfig(pre_tool_use=[HookMatcher(matcher="terminal", hooks=[definition])])
+    def hook(script: str, timeout: int) -> list[HookDefinition]:
+        return [HookDefinition(command=f"{_HOOK_TARGET}/{script}", timeout=timeout)]
+
+    return HookConfig(
+        pre_tool_use=[HookMatcher(matcher="terminal", hooks=hook("block_dangerous.sh", 10))],
+        post_tool_use=[
+            HookMatcher(
+                matcher="terminal", hooks=hook("record_green_build.sh", _GREEN_HOOK_TIMEOUT_S)
+            )
+        ],
+        stop=[
+            HookMatcher(matcher="*", hooks=hook("require_green_build.sh", _GREEN_HOOK_TIMEOUT_S))
+        ],
+    )
 
 
 def _ensure_llm(
@@ -274,7 +298,8 @@ class AgentSession:
         self._profile = load_profile(profile)
         self._confirmation_policy = confirmation_policy or NeverConfirm()
         self._mcp_config = mcp_config
-        self._callbacks = callbacks or []
+        self._callbacks = [self._watch_iterations, *(callbacks or [])]
+        self._actions_this_run = 0
         # Host directory bind-mounted read-only; the agent works on a copy.
         # None -> the agent works in an empty in-container /workspace.
         self._project_path = Path(project_path).expanduser().resolve() if project_path else None
@@ -359,6 +384,38 @@ class AgentSession:
         `.workspace`."""
         return self._working_copy
 
+    @property
+    def _max_iterations(self) -> int:
+        return self._profile.limits.max_iterations or self._cfg.run.max_iterations
+
+    def _watch_iterations(self, event: Event) -> None:
+        """Warns the agent ahead of the cap, which would stop it wherever it stands."""
+        if not isinstance(event, ActionEvent):
+            return
+        self._actions_this_run += 1
+        if self._actions_this_run == self._max_iterations - _WRAP_UP_MARGIN:
+            threading.Thread(target=self._warn_of_the_cap, daemon=True).start()
+
+    def _warn_of_the_cap(self) -> None:
+        try:
+            # Same SDK typing quirk as in `send()`. Queued, and read at the next step.
+            cast(Any, self.conversation).send_message(
+                _WRAP_UP_MESSAGE.format(margin=_WRAP_UP_MARGIN)
+            )
+        except Exception:  # noqa: BLE001 - a missed warning must not disturb the run
+            logger.warning("could not warn the agent of the iteration cap", exc_info=True)
+
+    def fall_back_to_green(self) -> list[str]:
+        """After the iteration cap the agent stopped mid-edit, and what it left may not even
+        compile: the copy returns to its last successful build, so that this is what reaches
+        the repository. Returns the paths put back, none after any other outcome."""
+        events = list(self.conversation.state.events)[-_CAP_LOOKBACK:]
+        capped = any(
+            isinstance(event, ConversationErrorEvent) and event.code == _CAP_EVENT_CODE
+            for event in events
+        )
+        return self._working_copy.restore_green() if capped and self._working_copy else []
+
     def __enter__(self) -> AgentSession:
         # `with` skips `__exit__` when `__enter__` raises, and a container may be up by then.
         try:
@@ -437,9 +494,7 @@ class AgentSession:
             conversation_id=uuid.UUID(conversation_id) if conversation_id else None,
             visualizer=None,
             callbacks=self._callbacks,
-            max_iteration_per_run=(
-                self._profile.limits.max_iterations or self._cfg.run.max_iterations
-            ),
+            max_iteration_per_run=self._max_iterations,
             hook_config=_policy_hooks(),
             delete_on_close=not self._persistent,
         )
@@ -496,10 +551,14 @@ class AgentSession:
         # ignore` is not viable here since mypy itself disagrees run to run on
         # whether it is needed; route through `Any` instead, which is stable.
         untyped_conversation = cast(Any, conversation)
+        self._actions_this_run = 0
         untyped_conversation.send_message(message)
         try:
             untyped_conversation.run(blocking=blocking, timeout=self.run_timeout_s)
         except ConversationRunError as exc:
+            restored = self.fall_back_to_green()
+            if restored:
+                logger.warning("iteration cap: back to the last build", extra={"paths": restored})
             raise DependencyError(
                 f"agent-server run failed: {exc}",
                 details={"conversation_id": str(conversation.id)},

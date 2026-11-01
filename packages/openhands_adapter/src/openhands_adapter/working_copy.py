@@ -28,6 +28,9 @@ if TYPE_CHECKING:
 _BASELINE_REF = "refs/agenticenv/baseline"
 _APPLIED_REF = "refs/agenticenv/applied"
 _CHECKPOINT_NS = "refs/agenticenv/checkpoints"
+# Written by the sandbox hook `record_green_build.sh`: the last tree that built this turn.
+_GREEN_REF = "refs/agenticenv/green"
+_ABANDONED_REF = "refs/agenticenv/abandoned"
 
 _MAX_COPY_ERRORS = 50
 
@@ -120,6 +123,7 @@ class WorkingCopy:
             return None
         cp_id = uuid.uuid4().hex[:12]
         self._commit_tree_to_ref(f"{_CHECKPOINT_NS}/{cp_id}", parent=_BASELINE_REF)
+        self._git(f"update-ref -d {_GREEN_REF}")
         return Checkpoint(checkpoint_id=cp_id, files=self._changed_paths(_BASELINE_REF))
 
     def restore(self, checkpoint_id: str) -> None:
@@ -135,6 +139,19 @@ class WorkingCopy:
             raise DependencyError(
                 f"unknown or unrestorable checkpoint {checkpoint_id}: {out.strip()}"
             )
+
+    def restore_green(self) -> list[str]:
+        """Back to the last tree that built this turn, the paths put back in return. What
+        is set aside stays in `refs/agenticenv/abandoned`. Nothing happens without a build."""
+        if not self._is_git or self._git(f"cat-file -e {_GREEN_REF}")[0] != 0:
+            return []
+        paths = self._changed_paths(_GREEN_REF)
+        if paths:
+            self._commit_tree_to_ref(_ABANDONED_REF, parent=None)
+            code, out = self._git(f"add -A -N && git read-tree --reset -u {_GREEN_REF}")
+            if code != 0:
+                raise DependencyError(f"could not restore the last build: {out.strip()}")
+        return paths
 
     def _changed_paths(self, base: str) -> list[str]:
         code, out = self._git(f"add -A -N && git diff --name-only {base}")

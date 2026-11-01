@@ -1,0 +1,911 @@
+diff --git a/include/ast.hpp b/include/ast.hpp
+index dab756e..987eabd 100644
+--- a/include/ast.hpp
++++ b/include/ast.hpp
+@@ -4,30 +4,159 @@
+ #include <set>
+ #include <string>
+ namespace ast {
++// Forward declarations
+ class Node;
+-using Ptr = std::unique_ptr<Node>;
+-using Env = std::map<std::string, double>;
++class Visitor;
++class Num;
++class Var;
++class Add;
++class Sub;
++class Mul;
++class Neg;
++class Pow;
++class Exp;
++class Log;
++class Div;
+ 
+ // Node hierarchy and its visitor are yours to design: see the task description.
++class Visitor {
++public:
++    virtual ~Visitor() = default;
++    virtual void visit(const Num& n) = 0;
++    virtual void visit(const Var& n) = 0;
++    virtual void visit(const Add& n) = 0;
++    virtual void visit(const Sub& n) = 0;
++    virtual void visit(const Mul& n) = 0;
++    virtual void visit(const Neg& n) = 0;
++    virtual void visit(const Pow& n) = 0;
++    virtual void visit(const Exp& n) = 0;
++    virtual void visit(const Log& n) = 0;
++    virtual void visit(const Div& n) = 0;
++};
++
+ class Node {
+ public:
+     virtual ~Node() = default;
++    virtual void accept(Visitor& v) const = 0;
++    virtual std::unique_ptr<Node> clone() const = 0;
++};
++
++class Num : public Node {
++public:
++    double value;
++    Num(double v) : value(v) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Num>(value);
++    }
++};
++
++class Var : public Node {
++public:
++    std::string name;
++    Var(std::string n) : name(std::move(n)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Var>(name);
++    }
++};
++
++class Add : public Node {
++public:
++    std::unique_ptr<Node> a, b;
++    Add(std::unique_ptr<Node> aa, std::unique_ptr<Node> bb) : a(std::move(aa)), b(std::move(bb)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Add>(a->clone(), b->clone());
++    }
++};
++
++class Sub : public Node {
++public:
++    std::unique_ptr<Node> a, b;
++    Sub(std::unique_ptr<Node> aa, std::unique_ptr<Node> bb) : a(std::move(aa)), b(std::move(bb)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Sub>(a->clone(), b->clone());
++    }
++};
++
++class Mul : public Node {
++public:
++    std::unique_ptr<Node> a, b;
++    Mul(std::unique_ptr<Node> aa, std::unique_ptr<Node> bb) : a(std::move(aa)), b(std::move(bb)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Mul>(a->clone(), b->clone());
++    }
++};
++
++class Neg : public Node {
++public:
++    std::unique_ptr<Node> a;
++    Neg(std::unique_ptr<Node> aa) : a(std::move(aa)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Neg>(a->clone());
++    }
++};
++
++class Pow : public Node {
++public:
++    std::unique_ptr<Node> base;
++    double exponent;
++    Pow(std::unique_ptr<Node> bb, double exp) : base(std::move(bb)), exponent(exp) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Pow>(base->clone(), exponent);
++    }
++};
++
++class Exp : public Node {
++public:
++    std::unique_ptr<Node> a;
++    Exp(std::unique_ptr<Node> aa) : a(std::move(aa)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Exp>(a->clone());
++    }
++};
++
++class Log : public Node {
++public:
++    std::unique_ptr<Node> a;
++    Log(std::unique_ptr<Node> aa) : a(std::move(aa)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Log>(a->clone());
++    }
++};
++
++class Div : public Node {
++public:
++    std::unique_ptr<Node> a, b;
++    Div(std::unique_ptr<Node> aa, std::unique_ptr<Node> bb) : a(std::move(aa)), b(std::move(bb)) {}
++    void accept(Visitor& v) const override { v.visit(*this); }
++    std::unique_ptr<Node> clone() const override {
++        return std::make_unique<Div>(a->clone(), b->clone());
++    }
+ };
+ 
+-Ptr num(double v);
+-Ptr var(std::string name);
+-Ptr add(Ptr a, Ptr b);
+-Ptr sub(Ptr a, Ptr b);
+-Ptr mul(Ptr a, Ptr b);
+-Ptr neg(Ptr a);
+-Ptr pow_(Ptr base, double exponent);
+-Ptr exp_(Ptr a);
+-Ptr log_(Ptr a);
++std::unique_ptr<Node> num(double v);
++std::unique_ptr<Node> var(std::string name);
++std::unique_ptr<Node> add(std::unique_ptr<Node> a, std::unique_ptr<Node> b);
++std::unique_ptr<Node> sub(std::unique_ptr<Node> a, std::unique_ptr<Node> b);
++std::unique_ptr<Node> mul(std::unique_ptr<Node> a, std::unique_ptr<Node> b);
++std::unique_ptr<Node> div(std::unique_ptr<Node> a, std::unique_ptr<Node> b);
++std::unique_ptr<Node> neg(std::unique_ptr<Node> a);
++std::unique_ptr<Node> pow_(std::unique_ptr<Node> base, double exponent);
++std::unique_ptr<Node> exp_(std::unique_ptr<Node> a);
++std::unique_ptr<Node> log_(std::unique_ptr<Node> a);
+ 
+-double eval(const Node& n, const Env& env);   // std::out_of_range on an unknown variable
++double eval(const Node& n, const std::map<std::string, double>& env);   // std::out_of_range on an unknown variable
+ std::string print(const Node& n);
+ std::set<std::string> vars(const Node& n);
+-Ptr clone(const Node& n);
+-Ptr fold(const Node& n);                      // new tree, input untouched
+-Ptr diff(const Node& n, const std::string& x);// new tree, input untouched
++std::unique_ptr<Node> clone(const Node& n);
++std::unique_ptr<Node> fold(const Node& n);                      // new tree, input untouched
++std::unique_ptr<Node> diff(const Node& n, const std::string& x);// new tree, input untouched
+ }  // namespace ast
+diff --git a/src/ast.cpp b/src/ast.cpp
+index bce524c..4dd5527 100644
+--- a/src/ast.cpp
++++ b/src/ast.cpp
+@@ -1,20 +1,710 @@
+ #include "ast.hpp"
+ #include <stdexcept>
++#include <memory>
++#include <string>
++#include <map>
++#include <set>
++#include <stack>
++#include <algorithm>
++#include <sstream>
++#include <cmath>
++
+ namespace ast {
+-#define TODO throw std::logic_error("not implemented")
+-Ptr num(double) { TODO; }
+-Ptr var(std::string) { TODO; }
+-Ptr add(Ptr, Ptr) { TODO; }
+-Ptr sub(Ptr, Ptr) { TODO; }
+-Ptr mul(Ptr, Ptr) { TODO; }
+-Ptr neg(Ptr) { TODO; }
+-Ptr pow_(Ptr, double) { TODO; }
+-Ptr exp_(Ptr) { TODO; }
+-Ptr log_(Ptr) { TODO; }
+-double eval(const Node&, const Env&) { TODO; }
+-std::string print(const Node&) { TODO; }
+-std::set<std::string> vars(const Node&) { TODO; }
+-Ptr clone(const Node&) { TODO; }
+-Ptr fold(const Node&) { TODO; }
+-Ptr diff(const Node&, const std::string&) { TODO; }
++// Eval visitor
++class EvalVisitor : public Visitor {
++public:
++    const Env& env;
++    double result;
++    
++    EvalVisitor(const Env& e) : env(e) {}
++    
++    void visit(const Num& n) override {
++        result = n.value;
++    }
++    
++    void visit(const Var& n) override {
++        auto it = env.find(n.name);
++        if (it == env.end()) {
++            throw std::out_of_range("Unknown variable: " + n.name);
++        }
++        result = it->second;
++    }
++    
++    void visit(const Add& n) override {
++        EvalVisitor v1(env);
++        EvalVisitor v2(env);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = v1.result + v2.result;
++    }
++    
++    void visit(const Sub& n) override {
++        EvalVisitor v1(env);
++        EvalVisitor v2(env);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = v1.result - v2.result;
++    }
++    
++    void visit(const Mul& n) override {
++        EvalVisitor v1(env);
++        EvalVisitor v2(env);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = v1.result * v2.result;
++    }
++    
++    void visit(const Neg& n) override {
++        EvalVisitor v1(env);
++        n.a->accept(v1);
++        result = -v1.result;
++    }
++    
++    void visit(const Pow& n) override {
++        EvalVisitor v1(env);
++        n.base->accept(v1);
++        result = std::pow(v1.result, n.exponent);
++    }
++    
++    void visit(const Exp& n) override {
++        EvalVisitor v1(env);
++        n.a->accept(v1);
++        result = std::exp(v1.result);
++    }
++    
++    void visit(const Log& n) override {
++        EvalVisitor v1(env);
++        n.a->accept(v1);
++        result = std::log(v1.result);
++    }
++    
++    void visit(const Div& n) override {
++        EvalVisitor v1(env);
++        EvalVisitor v2(env);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = v1.result / v2.result;
++    }
++};
++
++// Print visitor
++class PrintVisitor : public Visitor {
++public:
++    std::string result;
++    int precedence;
++    
++    PrintVisitor() : precedence(0) {}
++    
++    void visit(const Num& n) override {
++        std::ostringstream oss;
++        oss.precision(17);
++        oss << n.value;
++        result = oss.str();
++        precedence = 0;
++    }
++    
++    void visit(const Var& n) override {
++        result = n.name;
++        precedence = 0;
++    }
++    
++    void visit(const Add& n) override {
++        PrintVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        if (v1.precedence > 2 || (v1.precedence == 2 && v2.precedence >= 2)) {
++            result = "(" + v1.result + ") + " + v2.result;
++        } else {
++            result = v1.result + " + " + v2.result;
++        }
++        precedence = 2;
++    }
++    
++    void visit(const Sub& n) override {
++        PrintVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        if (v1.precedence > 2 || (v1.precedence == 2 && v2.precedence >= 2)) {
++            result = "(" + v1.result + ") - " + v2.result;
++        } else {
++            result = v1.result + " - " + v2.result;
++        }
++        precedence = 2;
++    }
++    
++    void visit(const Mul& n) override {
++        PrintVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        if (v1.precedence > 3 || (v1.precedence == 3 && v2.precedence >= 3)) {
++            result = "(" + v1.result + ") * " + v2.result;
++        } else {
++            result = v1.result + " * " + v2.result;
++        }
++        precedence = 3;
++    }
++    
++    void visit(const Neg& n) override {
++        PrintVisitor v1;
++        n.a->accept(v1);
++        if (v1.precedence > 1) {
++            result = "-(" + v1.result + ")";
++        } else {
++            result = "-" + v1.result;
++        }
++        precedence = 1;
++    }
++    
++    void visit(const Pow& n) override {
++        PrintVisitor v1;
++        n.base->accept(v1);
++        std::ostringstream oss;
++        oss.precision(17);
++        oss << n.exponent;
++        result = v1.result + "^" + oss.str();
++        precedence = 4;
++    }
++    
++    void visit(const Exp& n) override {
++        PrintVisitor v1;
++        n.a->accept(v1);
++        result = "exp(" + v1.result + ")";
++        precedence = 0;
++    }
++    
++    void visit(const Log& n) override {
++        PrintVisitor v1;
++        n.a->accept(v1);
++        result = "log(" + v1.result + ")";
++        precedence = 0;
++    }
++    
++    void visit(const Div& n) override {
++        PrintVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = v1.result + " / " + v2.result;
++        precedence = 3; // Division has same precedence as multiplication
++    }
++};
++
++// Vars visitor
++class VarsVisitor : public Visitor {
++public:
++    std::set<std::string> result;
++    
++    void visit(const Num& n) override {
++        // Nothing to do for numbers
++    }
++    
++    void visit(const Var& n) override {
++        result.insert(n.name);
++    }
++    
++    void visit(const Add& n) override {
++        VarsVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result.insert(v1.result.begin(), v1.result.end());
++        result.insert(v2.result.begin(), v2.result.end());
++    }
++    
++    void visit(const Sub& n) override {
++        VarsVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result.insert(v1.result.begin(), v1.result.end());
++        result.insert(v2.result.begin(), v2.result.end());
++    }
++    
++    void visit(const Mul& n) override {
++        VarsVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result.insert(v1.result.begin(), v1.result.end());
++        result.insert(v2.result.begin(), v2.result.end());
++    }
++    
++    void visit(const Neg& n) override {
++        VarsVisitor v1;
++        n.a->accept(v1);
++        result.insert(v1.result.begin(), v1.result.end());
++    }
++    
++    void visit(const Pow& n) override {
++        VarsVisitor v1;
++        n.base->accept(v1);
++        result.insert(v1.result.begin(), v1.result.end());
++    }
++    
++    void visit(const Exp& n) override {
++        VarsVisitor v1;
++        n.a->accept(v1);
++        result.insert(v1.result.begin(), v1.result.end());
++    }
++    
++    void visit(const Log& n) override {
++        VarsVisitor v1;
++        n.a->accept(v1);
++        result.insert(v1.result.begin(), v1.result.end());
++    }
++    
++    void visit(const Div& n) override {
++        VarsVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result.insert(v1.result.begin(), v1.result.end());
++        result.insert(v2.result.begin(), v2.result.end());
++    }
++};
++
++// Clone visitor
++class CloneVisitor : public Visitor {
++public:
++    Ptr result;
++    
++    void visit(const Num& n) override {
++        result = num(n.value);
++    }
++    
++    void visit(const Var& n) override {
++        result = var(n.name);
++    }
++    
++    void visit(const Add& n) override {
++        CloneVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = add(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Sub& n) override {
++        CloneVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = sub(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Mul& n) override {
++        CloneVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = mul(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Neg& n) override {
++        CloneVisitor v1;
++        n.a->accept(v1);
++        result = neg(std::move(v1.result));
++    }
++    
++    void visit(const Pow& n) override {
++        CloneVisitor v1;
++        n.base->accept(v1);
++        result = pow_(std::move(v1.result), n.exponent);
++    }
++    
++    void visit(const Exp& n) override {
++        CloneVisitor v1;
++        n.a->accept(v1);
++        result = exp_(std::move(v1.result));
++    }
++    
++    void visit(const Log& n) override {
++        CloneVisitor v1;
++        n.a->accept(v1);
++        result = log_(std::move(v1.result));
++    }
++    
++    void visit(const Div& n) override {
++        CloneVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = div(std::move(v1.result), std::move(v2.result));
++    }
++};
++
++// Fold visitor
++class FoldVisitor : public Visitor {
++public:
++    Ptr result;
++    
++    void visit(const Num& n) override {
++        result = num(n.value);
++    }
++    
++    void visit(const Var& n) override {
++        result = var(n.name);
++    }
++    
++    void visit(const Add& n) override {
++        FoldVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        
++        // Try to evaluate if both are numbers
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++                result = num(num1->value + num2->value);
++                return;
++            }
++        }
++        
++        // Simplify: x + 0, 0 + x
++        if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++            if (num2->value == 0.0) {
++                result = std::move(v1.result);
++                return;
++            }
++        }
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (num1->value == 0.0) {
++                result = std::move(v2.result);
++                return;
++            }
++        }
++        
++        result = add(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Sub& n) override {
++        FoldVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        
++        // Try to evaluate if both are numbers
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++                result = num(num1->value - num2->value);
++                return;
++            }
++        }
++        
++        // Simplify: x - 0
++        if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++            if (num2->value == 0.0) {
++                result = std::move(v1.result);
++                return;
++            }
++        }
++        
++        // Simplify: 0 - x to -x
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (num1->value == 0.0) {
++                result = neg(std::move(v2.result));
++                return;
++            }
++        }
++        
++        result = sub(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Mul& n) override {
++        FoldVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        
++        // Try to evaluate if both are numbers
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++                result = num(num1->value * num2->value);
++                return;
++            }
++        }
++        
++        // Simplify: x * 1, 1 * x
++        if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++            if (num2->value == 1.0) {
++                result = std::move(v1.result);
++                return;
++            }
++        }
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (num1->value == 1.0) {
++                result = std::move(v2.result);
++                return;
++            }
++        }
++        
++        // Simplify: x * 0, 0 * x
++        if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++            if (num2->value == 0.0) {
++                result = num(0.0);
++                return;
++            }
++        }
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (num1->value == 0.0) {
++                result = num(0.0);
++                return;
++            }
++        }
++        
++        result = mul(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Neg& n) override {
++        FoldVisitor v1;
++        n.a->accept(v1);
++        
++        // Try to evaluate if it's a number
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            result = num(-num1->value);
++            return;
++        }
++        
++        // Simplify: -(-x) to x
++        if (auto* neg1 = dynamic_cast<Neg*>(v1.result.get())) {
++            result = std::move(neg1->a);
++            return;
++        }
++        
++        result = neg(std::move(v1.result));
++    }
++    
++    void visit(const Pow& n) override {
++        FoldVisitor v1;
++        n.base->accept(v1);
++        
++        // Try to evaluate if base is a number
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            result = num(std::pow(num1->value, n.exponent));
++            return;
++        }
++        
++        // Simplify: x^1, x^0
++        if (n.exponent == 1.0) {
++            result = std::move(v1.result);
++            return;
++        }
++        if (n.exponent == 0.0) {
++            result = num(1.0);
++            return;
++        }
++        
++        result = pow_(std::move(v1.result), n.exponent);
++    }
++    
++    void visit(const Exp& n) override {
++        FoldVisitor v1;
++        n.a->accept(v1);
++        
++        // Try to evaluate if it's a number
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            result = num(std::exp(num1->value));
++            return;
++        }
++        
++        result = exp_(std::move(v1.result));
++    }
++    
++    void visit(const Log& n) override {
++        FoldVisitor v1;
++        n.a->accept(v1);
++        
++        // Try to evaluate if it's a number
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            result = num(std::log(num1->value));
++            return;
++        }
++        
++        result = log_(std::move(v1.result));
++    }
++    
++    void visit(const Div& n) override {
++        FoldVisitor v1, v2;
++        n.a->accept(v1);
++        n.b->accept(v2);
++        
++        // Try to evaluate if both are numbers
++        if (auto* num1 = dynamic_cast<Num*>(v1.result.get())) {
++            if (auto* num2 = dynamic_cast<Num*>(v2.result.get())) {
++                result = num(num1->value / num2->value);
++                return;
++            }
++        }
++        
++        result = div(std::move(v1.result), std::move(v2.result));
++    }
++};
++
++// Diff visitor
++class DiffVisitor : public Visitor {
++public:
++    const std::string& var;
++    Ptr result;
++    
++    DiffVisitor(const std::string& v) : var(v) {}
++    
++    void visit(const Num& n) override {
++        result = num(0.0);
++    }
++    
++    void visit(const Var& n) override {
++        if (n.name == var) {
++            result = num(1.0);
++        } else {
++            result = num(0.0);
++        }
++    }
++    
++    void visit(const Add& n) override {
++        DiffVisitor v1(var);
++        DiffVisitor v2(var);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = add(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Sub& n) override {
++        DiffVisitor v1(var);
++        DiffVisitor v2(var);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = sub(std::move(v1.result), std::move(v2.result));
++    }
++    
++    void visit(const Mul& n) override {
++        DiffVisitor v1(var);
++        DiffVisitor v2(var);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        result = add(mul(std::move(v1.result), n.b->clone()), mul(n.a->clone(), std::move(v2.result)));
++    }
++    
++    void visit(const Neg& n) override {
++        DiffVisitor v1(var);
++        n.a->accept(v1);
++        result = neg(std::move(v1.result));
++    }
++    
++    void visit(const Pow& n) override {
++        if (n.exponent == 0.0) {
++            result = num(0.0);
++        } else if (n.exponent == 1.0) {
++            DiffVisitor v1(var);
++            n.base->accept(v1);
++            result = std::move(v1.result);
++        } else {
++            // For u^n, derivative is n*u^(n-1)*u'
++            DiffVisitor v1(var);
++            n.base->accept(v1);
++            result = mul(num(n.exponent), mul(pow_(n.base->clone(), n.exponent - 1), std::move(v1.result)));
++        }
++    }
++    
++    void visit(const Exp& n) override {
++        DiffVisitor v1(var);
++        n.a->accept(v1);
++        // Derivative of exp(u) is exp(u)*u'
++        result = mul(exp_(n.a->clone()), std::move(v1.result));
++    }
++    
++    void visit(const Log& n) override {
++        DiffVisitor v1(var);
++        n.a->accept(v1);
++        // Derivative of log(u) is 1/u*u'
++        result = div(v1.result, n.a->clone());
++    }
++    
++    void visit(const Div& n) override {
++        DiffVisitor v1(var);
++        DiffVisitor v2(var);
++        n.a->accept(v1);
++        n.b->accept(v2);
++        // Derivative of (u/v) is (u'*v - u*v')/(v^2)
++        result = div(sub(mul(std::move(v1.result), n.b->clone()), mul(n.a->clone(), std::move(v2.result))), 
++                    pow_(n.b->clone(), 2.0));
++    }
++};
++
++// Free functions implementation
++Ptr num(double v) {
++    return Ptr(new Num(v));
+ }
++
++Ptr var(std::string name) {
++    return Ptr(new Var(std::move(name)));
++}
++
++Ptr add(Ptr a, Ptr b) {
++    return Ptr(new Add(std::move(a), std::move(b)));
++}
++
++Ptr sub(Ptr a, Ptr b) {
++    return Ptr(new Sub(std::move(a), std::move(b)));
++}
++
++Ptr mul(Ptr a, Ptr b) {
++    return Ptr(new Mul(std::move(a), std::move(b)));
++}
++
++Ptr div(Ptr a, Ptr b) {
++    return Ptr(new Div(std::move(a), std::move(b)));
++}
++
++Ptr neg(Ptr a) {
++    return Ptr(new Neg(std::move(a)));
++}
++
++Ptr pow_(Ptr base, double exponent) {
++    return Ptr(new Pow(std::move(base), exponent));
++}
++
++Ptr exp_(Ptr a) {
++    return Ptr(new Exp(std::move(a)));
++}
++
++Ptr log_(Ptr a) {
++    return Ptr(new Log(std::move(a)));
++}
++
++double eval(const Node& n, const Env& env) {
++    EvalVisitor v(env);
++    n.accept(v);
++    return v.result;
++}
++
++std::string print(const Node& n) {
++    PrintVisitor v;
++    n.accept(v);
++    return v.result;
++}
++
++std::set<std::string> vars(const Node& n) {
++    VarsVisitor v;
++    n.accept(v);
++    return v.result;
++}
++
++Ptr clone(const Node& n) {
++    CloneVisitor v;
++    n.accept(v);
++    return std::move(v.result);
++}
++
++Ptr fold(const Node& n) {
++    // Apply fold until no more changes
++    Ptr current = clone(n);
++    Ptr next;
++    bool changed = true;
++    while (changed) {
++        changed = false;
++        FoldVisitor v;
++        current->accept(v);
++        next = std::move(v.result);
++        // Check if there's a change
++        if (next.get() != current.get()) {
++            changed = true;
++            current = std::move(next);
++        }
++    }
++    return current;
++}
++
++Ptr diff(const Node& n, const std::string& x) {
++    DiffVisitor v(x);
++    n.accept(v);
++    return std::move(v.result);
++}
++} // namespace ast
+\ No newline at end of file
