@@ -1019,9 +1019,10 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
         if prompt != message.text:
             conn.relay.user_display = UserDisplay(text=message.text, loaded=loaded)
         await asyncio.to_thread(_fire_run, session, prompt)
-        reason = _reason_for(conn, await _await_turn_terminal(conn, session))
+        status = await _await_turn_terminal(conn, session)
+        reason = _reason_for(conn, status)
         if reason == "error":
-            await _fall_back_to_green(conn, session)
+            await _fall_back_to_green(conn, session, timed_out=status == "timeout")
     except AppError as exc:
         await conn.send(_error_from(exc))
     except Exception as exc:  # noqa: BLE001 - `turn_finished` must always follow
@@ -1049,14 +1050,15 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
         conversations.note_turn(conn.state.conversation_id, message.text, conn._seq)
 
 
-async def _fall_back_to_green(conn: _Connection, session: AgentSession) -> None:
-    restored = await asyncio.to_thread(session.fall_back_to_green)
+async def _fall_back_to_green(conn: _Connection, session: AgentSession, *, timed_out: bool) -> None:
+    restored = await asyncio.to_thread(session.fall_back_to_green, timed_out=timed_out)
     if restored:
+        limit = "time" if timed_out else "iterations"
         await conn.send(
             ErrorMessage(
-                code="ITERATION_LIMIT",
+                code="TIME_LIMIT" if timed_out else "ITERATION_LIMIT",
                 message=(
-                    "The agent ran out of iterations mid-edit. Its work goes back to its last "
+                    f"The agent ran out of {limit} mid-edit. Its work goes back to its last "
                     f"successful build, without its later changes to {len(restored)} file(s)."
                 ),
                 details={"paths": restored},
