@@ -220,3 +220,61 @@ def test_is_executable(repo: Path) -> None:
 
     assert wc.is_executable("run.sh") is True
     assert wc.is_executable("app.py") is False
+
+
+def _mark_green(repo: Path) -> None:
+    subprocess.run(
+        "T=$(git add -A && git write-tree) && git reset -q && "
+        'C=$(git -c user.email=t@t -c user.name=t commit-tree "$T" -m green) && '
+        'git update-ref refs/agenticenv/green "$C"',
+        shell=True,
+        cwd=repo,
+        check=True,
+    )
+
+
+def test_restore_green_undoes_what_came_after_the_build(repo: Path) -> None:
+    wc = _wc(repo)
+    (repo / "app.py").write_text("print('built')\n")
+    _mark_green(repo)
+    (repo / "app.py").write_text("print('broken'\n")
+    (repo / "half.py").write_text("x =\n")
+
+    assert sorted(wc.restore_green()) == ["app.py", "half.py"]
+
+    assert (repo / "app.py").read_text() == "print('built')\n"
+    assert not (repo / "half.py").exists()
+
+
+def test_restore_green_keeps_what_it_sets_aside(repo: Path) -> None:
+    wc = _wc(repo)
+    _mark_green(repo)
+    (repo / "app.py").write_text("print('later')\n")
+
+    wc.restore_green()
+
+    kept = subprocess.run(
+        ["git", "show", "refs/agenticenv/abandoned:app.py"],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert kept.stdout == "print('later')\n"
+
+
+def test_restore_green_without_a_build_changes_nothing(repo: Path) -> None:
+    wc = _wc(repo)
+    (repo / "app.py").write_text("print('edited')\n")
+
+    assert wc.restore_green() == []
+    assert (repo / "app.py").read_text() == "print('edited')\n"
+
+
+def test_a_new_turn_forgets_the_last_build(repo: Path) -> None:
+    wc = _wc(repo)
+    _mark_green(repo)
+    wc.checkpoint()
+    (repo / "app.py").write_text("print('this turn')\n")
+
+    assert wc.restore_green() == []

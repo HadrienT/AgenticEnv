@@ -1020,6 +1020,8 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
             conn.relay.user_display = UserDisplay(text=message.text, loaded=loaded)
         await asyncio.to_thread(_fire_run, session, prompt)
         reason = _reason_for(conn, await _await_turn_terminal(conn, session))
+        if reason == "error":
+            await _fall_back_to_green(conn, session)
     except AppError as exc:
         await conn.send(_error_from(exc))
     except Exception as exc:  # noqa: BLE001 - `turn_finished` must always follow
@@ -1045,6 +1047,21 @@ async def _handle_user_message(conn: _Connection, message: UserMessage) -> None:
     await conn.send(TurnFinished(turn_id=turn_id, reason=reason))
     if conn.state is not None:
         conversations.note_turn(conn.state.conversation_id, message.text, conn._seq)
+
+
+async def _fall_back_to_green(conn: _Connection, session: AgentSession) -> None:
+    restored = await asyncio.to_thread(session.fall_back_to_green)
+    if restored:
+        await conn.send(
+            ErrorMessage(
+                code="ITERATION_LIMIT",
+                message=(
+                    "The agent ran out of iterations mid-edit. Its work goes back to its last "
+                    f"successful build, without its later changes to {len(restored)} file(s)."
+                ),
+                details={"paths": restored},
+            )
+        )
 
 
 async def _handle_cancel(conn: _Connection, message: CancelTurn) -> None:

@@ -1,0 +1,54 @@
+{
+ "status": "timeout_or_error",
+ "error": "DependencyError: agent-server run failed: Conversation run failed for id=7d1cf126-7fe2-4e49-b9bc-d07045009b02: Remote conversation ended with error",
+ "final_text": "",
+ "duration_s": 1430.9,
+ "tool_calls": {
+  "file_editor": 80,
+  "terminal": 15
+ },
+ "mcp_unavailable": [],
+ "container": "agent-server-9a297360-2e44-4963-b6cc-ab23700c1e0a",
+ "llm_stats": {
+  "usage_to_metrics": {
+   "agent": {
+    "model_name": "openai/Qwen3-Coder-30B-A3B-Instruct",
+    "accumulated_cost": 0.0,
+    "max_budget_per_task": null,
+    "accumulated_token_usage": {
+     "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+     "prompt_tokens": 3913482,
+     "completion_tokens": 67856,
+     "cache_read_tokens": 3710701,
+     "cache_write_tokens": 0,
+     "reasoning_tokens": 0,
+     "context_window": 0,
+     "per_turn_token": 50110,
+     "response_id": ""
+    },
+    "costs": [],
+    "response_latencies": [],
+    "token_usages": []
+   },
+   "condenser": {
+    "model_name": "openai/Qwen3-Coder-30B-A3B-Instruct",
+    "accumulated_cost": 0.0,
+    "max_budget_per_task": null,
+    "accumulated_token_usage": {
+     "model": "openai/Qwen3-Coder-30B-A3B-Instruct",
+     "prompt_tokens": 21063,
+     "completion_tokens": 723,
+     "cache_read_tokens": 0,
+     "cache_write_tokens": 0,
+     "reasoning_tokens": 0,
+     "context_window": 0,
+     "per_turn_token": 8989,
+     "response_id": ""
+    },
+    "costs": [],
+    "response_latencies": [],
+    "token_usages": []
+   }
+  }
+ }
+}

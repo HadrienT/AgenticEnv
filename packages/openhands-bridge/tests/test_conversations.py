@@ -70,6 +70,9 @@ def _session_type(fake: _Fake) -> type:
         def final_text(self) -> str:
             return ""
 
+        def fall_back_to_green(self) -> list[str]:
+            return []
+
         def __enter__(self) -> Any:
             self.open_conversation(self.first_id)
             return self

@@ -15,5 +15,7 @@ You are not done because the code compiles or a program runs. Before you finish:
 - Test each requirement of the task, including its edge cases, and not only the common path.
   Check values against something independent of your code: a closed form, a limit case, a
   published reference or a second method. A test that only prints values proves nothing.
+- End with the build of the whole project and its tests, in one command without a pipe, after
+  your last edit. Compiling one file is not enough. You cannot finish until this has passed.
 - If a tool is missing, install it with `sudo apt-get`, `pip` or `npm`. Report that you could not
   check something only after trying, and never claim success for what you did not run.

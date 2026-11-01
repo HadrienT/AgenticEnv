@@ -38,6 +38,8 @@ class _Fake:
         self.calls: list[str] = []
         self.steps_reported: list[int] = []
         self.echo_user = False
+        self.green_paths: list[str] = []
+        self.status: Any = None
 
 
 def _session_type(fake: _Fake) -> type:
@@ -54,6 +56,13 @@ def _session_type(fake: _Fake) -> type:
             self.callbacks = callbacks
             self.on_step = kwargs.get("on_step", lambda _: None)
             fake.sessions += 1
+
+            def status(value: str) -> None:
+                event = ConversationStateUpdateEvent(key="execution_status", value=value)
+                for callback in callbacks:
+                    callback(event)
+
+            fake.status = status
 
             def pause() -> None:
                 fake.paused.set()
@@ -84,6 +93,9 @@ def _session_type(fake: _Fake) -> type:
 
         def final_text(self) -> str:
             return ""
+
+        def fall_back_to_green(self) -> list[str]:
+            return fake.green_paths
 
         def __enter__(self) -> Any:
             for step in fake.steps_reported:
@@ -355,3 +367,20 @@ def test_a_message_that_was_not_streamed_has_no_stream_id() -> None:
     relay.on_event(_agent_message("hello"))
 
     assert sent[0].stream_id is None
+
+
+async def test_the_iteration_cap_is_reported_with_what_was_set_aside(
+    url: str, fake: _Fake, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake.green_paths = ["a.cpp"]
+    async with connect(url) as ws:
+        await _start(ws)
+        await _begin_turn(ws)
+        await asyncio.to_thread(fake.status, "error")
+
+        error = await _until(ws, "error")
+        finished = await _until(ws, "turn_finished")
+
+    assert error["code"] == "ITERATION_LIMIT"
+    assert error["details"]["paths"] == ["a.cpp"]
+    assert finished["reason"] == "error"
