@@ -38,9 +38,12 @@ if [[ "$command" =~ git[[:space:]]+reset[[:space:]]+--hard ]] || [[ "$command" =
   deny "Destructive git operations (reset --hard / clean -f) are blocked by policy."
 fi
 
-# mass deletion outside a scratch dir
-if [[ "$command" =~ rm[[:space:]]+-[a-z]*r[a-z]*f|rm[[:space:]]+-[a-z]*f[a-z]*r ]]; then
-  deny "Recursive force-delete (rm -rf) is blocked by policy."
+# mass deletion: build outputs can be regenerated, anything else may be real work, and
+# what the copy loses, the repository loses at the end of the turn
+rebuildable='(\./)?(build(-[[:alnum:]_.-]+)?|cmake-build-[[:alnum:]_.-]+|dist|target|node_modules|__pycache__|\.pytest_cache|\.mypy_cache|\.ruff_cache)(/\*?)?'
+remaining="$(printf '%s' "$command" | sed -E "s#(^|[;&|[:space:]])rm[[:space:]]+-[[:alpha:]]+([[:space:]]+$rebuildable)+[[:space:]]*($|[;&|])#\\1 \\7#g")"
+if [[ "$remaining" =~ rm[[:space:]]+-[[:alpha:]]*[rR][[:alpha:]]*f|rm[[:space:]]+-[[:alpha:]]*f[[:alpha:]]*[rR] ]]; then
+  deny "Recursive force-delete (rm -rf) is blocked by policy, except on build outputs such as build/ or dist/."
 fi
 
 # secret/credential files

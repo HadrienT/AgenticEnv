@@ -56,11 +56,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: AgenticEnv
+      # Both repos move together: compare with the twin branch, if there is one.
+      - id: twin
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git ls-remote --exit-code --heads \
+              https://github.com/HadrienT/agenticenv-chat "$BRANCH"; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
         with:
           repository: HadrienT/agenticenv-chat
-          # Both repos move together: compare with the twin branch, if there is one.
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ steps.twin.outputs.ref }}
           path: agenticenv-chat
       - uses: actions/setup-node@v4
         with:

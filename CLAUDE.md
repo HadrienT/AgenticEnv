@@ -51,19 +51,14 @@ The project's "JIRA" is the **GitHub Issues of both repositories**. `gh` is auth
 
 ## OpenHands sandbox (the agent running in the container)
 
-Image `ghcr.io/openhands/agent-server:1.21.0-python` (Debian 13), **new at each session, discarded
-at the end**. Provided: Python 3.13 + `uv`/pip/poetry, Node 20 + npm, `gcc`/`g++`/`make`, git,
-`curl`/`wget`/`jq`, tmux, **passwordless `sudo`**, outbound Internet. Not provided: `cmake`, `rg`/`fd`,
-`vim`, rust/go/java, or **CUDA**.
+Image `agenticenv/agent:latest` (13.8 GB), built by `just build-agent-image` from
+`ghcr.io/openhands/agent-server:1.21.0-python` (Debian 13). The container is **new at each session,
+discarded at the end**. Provided: Python 3.13 + `uv`/pip/poetry, Node 20 + npm, `gcc`/`g++`/`make`,
+`cmake`/`ninja`, `rg`/`fd`, `clangd`, **`nvcc`**, git, `curl`/`wget`/`jq`, tmux, **passwordless
+`sudo`**, outbound Internet. Not provided: `vim`, rust/go/java.
 
-The agent installs what is missing by itself (it disappears at the end of the session):
+The agent installs what is missing by itself (it disappears at the end of the session).
 
-- **nvcc / CUDA**: the `contrib non-free` component is not enabled by default.
-  ```sh
-  sudo sed -i 's/Components: main/Components: main contrib non-free/' \
-    /etc/apt/sources.list.d/debian.sources
-  sudo apt-get update && sudo apt-get install -y --no-install-recommends nvidia-cuda-toolkit
-  ```
-  ⚠️ ~2 GB, downloaded again at each session. nvcc **compiles** without a GPU; running CUDA code
-  requires `enable_gpu: true` in `configs/openhands.yaml` (VRAM contention with `llama-server`).
+- **CUDA**: nvcc **compiles** without a GPU; running CUDA code requires `enable_gpu: true` in
+  `configs/openhands.yaml` (VRAM contention with `llama-server`).
 - **Web**: no browsing tool (`enable_browser=False`); use `curl`/`wget`/`pip` in the terminal.

@@ -31,6 +31,8 @@ def main() -> None:
 
     config = load_openhands_config()
     config.sandbox.enable_gpu = args.gpu
+    # Dozens of containers in a row: a veth teardown on docker0 has frozen this host (#8).
+    config.sandbox.host_network = True
     mcp_config, unavailable = ({}, []) if args.no_mcp else build_mcp_config([], config)
 
     tools: Counter[str] = Counter()

@@ -5,9 +5,12 @@
 FROM ghcr.io/openhands/agent-server:1.21.0-python@sha256:9853a9eb75dfe42837b64d3b61a05f3c1f25549ecde39a89f703dbf92c87dca9
 
 USER root
-RUN apt-get update \
+RUN sed -i 's/Components: main/Components: main contrib non-free/' \
+        /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         cmake ninja-build ripgrep fd-find clangd clang-format clang-tidy gcovr \
+        nvidia-cuda-toolkit \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/agenticenv

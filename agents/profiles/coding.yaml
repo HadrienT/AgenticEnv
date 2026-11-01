@@ -27,7 +27,7 @@ permissions:
   git:        {commit: true, push: false}
 
 limits:
-  max_iterations: 50
+  max_iterations: 100
   max_tool_calls: 200
   timeout_seconds: 1800
 
