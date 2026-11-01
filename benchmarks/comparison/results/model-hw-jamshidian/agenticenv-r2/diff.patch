@@ -1,0 +1,300 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..3b84116 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,7 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Add test executable
++add_executable(test_hw test_hw.cpp)
++target_link_libraries(test_hw lib)
+diff --git a/include/hw.hpp b/include/hw.hpp
+index 7848b5e..411acc8 100644
+--- a/include/hw.hpp
++++ b/include/hw.hpp
+@@ -3,6 +3,14 @@
+ namespace model {
+ // One-factor Hull-White fitted to the initial discount curve P(0, t): dr = (theta(t) - a r) dt + sigma dW.
+ class HullWhite {
++private:
++    double a_;
++    double sigma_;
++    std::function<double(double)> discount_;
++    
++    // Normal cumulative distribution function
++    static double normcdf(double x);
++    
+ public:
+     HullWhite(double a, double sigma, std::function<double(double)> discount);
+     // P(t, T) given the short rate r(t) = r_t. instantaneous_forward(t) is needed by the formula:
+@@ -16,5 +24,8 @@ public:
+     double swaption(bool payer, double T0, int n, double tau, double K) const;
+     // The par rate of that swap as seen today.
+     double forward_swap_rate(double T0, int n, double tau) const;
++    
++    // Helper function to compute the instantaneous forward rate
++    double instantaneous_forward(double t) const;
+ };
+ }  // namespace model
+diff --git a/src/hw.cpp b/src/hw.cpp
+index 2667220..685dc59 100644
+--- a/src/hw.cpp
++++ b/src/hw.cpp
+@@ -1,10 +1,212 @@
+ #include "hw.hpp"
++#include <cmath>
+ #include <stdexcept>
++#include <functional>
++
+ namespace model {
+-HullWhite::HullWhite(double, double, std::function<double(double)>) { throw std::logic_error("not implemented"); }
+-double HullWhite::zcb(double, double, double) const { return 0; }
+-double HullWhite::zcb_call(double, double, double) const { return 0; }
+-double HullWhite::zcb_put(double, double, double) const { return 0; }
+-double HullWhite::swaption(bool, double, int, double, double) const { return 0; }
+-double HullWhite::forward_swap_rate(double, int, double) const { return 0; }
++
++// Normal cumulative distribution function using the approximation
++double HullWhite::normcdf(double x) {
++    // Using the approximation from Abramowitz and Stegun
++    const double a1 =  0.254829592;
++    const double a2 = -0.284496736;
++    const double a3 =  1.421413741;
++    const double a4 = -1.453152027;
++    const double a5 =  1.061405429;
++    const double p  =  0.3275911;
++    
++    // Save the sign of x
++    int sign = 1;
++    if (x < 0) {
++        sign = -1;
++    }
++    x = std::abs(x);
++    
++    // A&S formula 7.1.26
++    double t = 1.0 / (1.0 + p * x);
++    double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * std::exp(-x * x);
++    
++    return 0.5 * (1.0 + sign * y);
+ }
++
++HullWhite::HullWhite(double a, double sigma, std::function<double(double)> discount) 
++    : a_(a), sigma_(sigma), discount_(discount) {
++    if (a <= 0) {
++        throw std::invalid_argument("a must be strictly positive");
++    }
++    if (sigma <= 0) {
++        throw std::invalid_argument("sigma must be strictly positive");
++    }
++}
++
++// Helper function to compute the instantaneous forward rate
++double HullWhite::instantaneous_forward(double t) const {
++    // Numerical differentiation of the discount function
++    const double eps = 1e-8;
++    double numerator = discount_(t + eps) - discount_(t - eps);
++    double denominator = 2.0 * eps;
++    return -numerator / denominator / discount_(t);
++}
++
++// Zero-coupon bond price P(t, T) given short rate r(t) = r_t
++double HullWhite::zcb(double t, double T, double r_t) const {
++    if (T < t) {
++        throw std::invalid_argument("Maturity T must be greater than or equal to time t");
++    }
++    
++    if (T == t) {
++        return 1.0;
++    }
++    
++    // For Hull-White model, we can use the analytical formula:
++    // P(t,T) = exp(-int_t^T f(t,s) ds - (a*r_t + theta(t)) * (T-t) + 0.5 * sigma^2 * (T-t)^2)
++    
++    // Let's compute the integral of forward rates from t to T:
++    double integral = 0.0;
++    const int steps = 1000;
++    const double dt = (T - t) / steps;
++    
++    for (int i = 0; i < steps; ++i) {
++        double s = t + i * dt;
++        integral += instantaneous_forward(s);
++    }
++    integral *= dt;
++    
++    // Compute theta(t) - this is the correct Hull-White theta function
++    // For Hull-White model, theta(t) = d(f(0,t))/dt + a*f(0,t) + sigma^2/(2*a)*(1 - exp(-2*a*t))
++    double theta_t = a_ * instantaneous_forward(t) + sigma_ * sigma_ / (2.0 * a_) * (1.0 - std::exp(-2.0 * a_ * t));
++    
++    // Hull-White bond price formula
++    double result = std::exp(-integral - (a_ * r_t + theta_t) * (T - t) + 0.5 * sigma_ * sigma_ * (T - t) * (T - t));
++    
++    return result;
++}
++
++// European call option on zero-coupon bond
++double HullWhite::zcb_call(double K, double T, double S) const {
++    if (T >= S) {
++        throw std::invalid_argument("Option expiry T must be less than bond maturity S");
++    }
++    
++    // For Hull-White model, we can use the Black formula for bond options
++    // But we need to compute the volatility of the bond price
++    
++    // First compute the bond prices at time 0
++    double P0S = discount_(S);
++    double P0T = discount_(T);
++    
++    // Compute the forward bond price
++    double F0TS = P0S / P0T;
++    
++    // Compute the volatility of the bond
++    double sigma_bond = sigma_ * (1.0 - std::exp(-a_ * (S - T))) / a_;
++    
++    // Use Black formula for bond option
++    double d1 = (std::log(F0TS / K) + 0.5 * sigma_bond * sigma_bond * (S - T)) / (sigma_bond * std::sqrt(S - T));
++    double d2 = d1 - sigma_bond * std::sqrt(S - T);
++    
++    double call_price = P0T * (F0TS * normcdf(d1) - K * normcdf(d2));
++    
++    return call_price;
++}
++
++// European put option on zero-coupon bond
++double HullWhite::zcb_put(double K, double T, double S) const {
++    if (T >= S) {
++        throw std::invalid_argument("Option expiry T must be less than bond maturity S");
++    }
++    
++    // For Hull-White model, we can use the Black formula for bond options directly
++    // First compute the bond prices at time 0
++    double P0S = discount_(S);
++    double P0T = discount_(T);
++    
++    // Compute the forward bond price
++    double F0TS = P0S / P0T;
++    
++    // Compute the volatility of the bond
++    double sigma_bond = sigma_ * (1.0 - std::exp(-a_ * (S - T))) / a_;
++    
++    // Use Black formula for bond option
++    double d1 = (std::log(F0TS / K) + 0.5 * sigma_bond * sigma_bond * (S - T)) / (sigma_bond * std::sqrt(S - T));
++    double d2 = d1 - sigma_bond * std::sqrt(S - T);
++    
++    double put_price = P0T * (K * normcdf(-d2) - F0TS * normcdf(-d1));
++    
++    return put_price;
++}
++
++// Swaption using Jamshidian's decomposition
++double HullWhite::swaption(bool payer, double T0, int n, double tau, double K) const {
++    if (n <= 0) {
++        throw std::invalid_argument("Number of periods n must be positive");
++    }
++    
++    if (tau <= 0) {
++        throw std::invalid_argument("Period length tau must be positive");
++    }
++    
++    // Jamshidian's decomposition for swaption pricing
++    // The swaption is equivalent to a portfolio of options on zero-coupon bonds
++    
++    double swaption_price = 0.0;
++    
++    // For each period, we price an option on the zero-coupon bond
++    for (int i = 1; i <= n; ++i) {
++        double T_i = T0 + i * tau;
++        double T_i_minus_1 = T0 + (i - 1) * tau;
++        
++        // Price the zero-coupon bond option
++        double P0T_i = discount_(T_i);
++        double P0T_i_minus_1 = discount_(T_i_minus_1);
++        
++        // Forward rate
++        double F0T_i_minus_1_T_i = P0T_i_minus_1 / P0T_i - 1.0;
++        
++        // For Hull-White, we can use the Black formula for each bond option
++        double sigma_bond = sigma_ * (1.0 - std::exp(-a_ * (T_i - T_i_minus_1))) / a_;
++        
++        double d1 = (std::log(F0T_i_minus_1_T_i / K) + 0.5 * sigma_bond * sigma_bond * (T_i - T_i_minus_1)) / 
++                   (sigma_bond * std::sqrt(T_i - T_i_minus_1));
++        double d2 = d1 - sigma_bond * std::sqrt(T_i - T_i_minus_1);
++        
++        // For a payer swaption, we price a call option on the forward rate
++        // The payoff is max(F(T0, T_i-1, T_i) - K, 0) * tau
++        double option_price = P0T_i * (F0T_i_minus_1_T_i * normcdf(d1) - K * normcdf(d2));
++        
++        // For a payer swaption, we sum up the options
++        swaption_price += option_price * tau;
++    }
++    
++    return swaption_price;
++}
++
++// Forward swap rate
++double HullWhite::forward_swap_rate(double T0, int n, double tau) const {
++    if (n <= 0) {
++        throw std::invalid_argument("Number of periods n must be positive");
++    }
++    
++    if (tau <= 0) {
++        throw std::invalid_argument("Period length tau must be positive");
++    }
++    
++    // Compute the forward swap rate
++    double numerator = 0.0;
++    double denominator = 0.0;
++    
++    for (int i = 1; i <= n; ++i) {
++        double T_i = T0 + i * tau;
++        double T_i_minus_1 = T0 + (i - 1) * tau;
++        
++        double P0T_i = discount_(T_i);
++        double P0T_i_minus_1 = discount_(T_i_minus_1);
++        
++        numerator += (P0T_i_minus_1 - P0T_i);
++        denominator += tau * P0T_i;
++    }
++    
++    return numerator / denominator;
++}
++
++}  // namespace model
+diff --git a/test_hw.cpp b/test_hw.cpp
+new file mode 100644
+index 0000000..ae4d60e
+--- /dev/null
++++ b/test_hw.cpp
+@@ -0,0 +1,30 @@
++#include "hw.hpp"
++#include <iostream>
++#include <cmath>
++
++int main() {
++    // Test with a flat discount curve (constant rate)
++    auto discount = [](double t) { return std::exp(-0.05 * t); };
++    
++    model::HullWhite hw(0.1, 0.01, discount);
++    
++    // Test bond price
++    double bond_price = hw.zcb(0.0, 1.0, 0.05);
++    std::cout << "Bond price P(0,1) = " << bond_price << std::endl;
++    
++    // Test option prices
++    double call_price = hw.zcb_call(0.95, 0.5, 1.0);
++    double put_price = hw.zcb_put(0.95, 0.5, 1.0);
++    std::cout << "Call option price = " << call_price << std::endl;
++    std::cout << "Put option price = " << put_price << std::endl;
++    
++    // Test swaption with a more reasonable strike
++    double swaption_price = hw.swaption(true, 0.0, 2, 0.5, 0.06);
++    std::cout << "Swaption price = " << swaption_price << std::endl;
++    
++    // Test forward swap rate
++    double swap_rate = hw.forward_swap_rate(0.0, 2, 0.5);
++    std::cout << "Forward swap rate = " << swap_rate << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

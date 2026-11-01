@@ -1,0 +1,334 @@
+diff --git a/include/aad.hpp b/include/aad.hpp
+index 7d7154d..c1ef0be 100644
+--- a/include/aad.hpp
++++ b/include/aad.hpp
+@@ -1,9 +1,28 @@
+ #pragma once
+ #include <cstddef>
++#include <vector>
++#include <utility>
++
+ namespace aad {
+ class Var;
++
++// Node structure for the computation graph
++struct Node {
++    double value;
++    double adjoint;
++    std::vector<std::pair<Node*, double>> dependencies;  // (node, gradient contribution)
++    
++    Node(double v) : value(v), adjoint(0.0) {}
++};
++
+ // One tape per thread: Tape::active() returns this thread's tape.
+ class Tape {
++private:
++    std::vector<Node*> nodes;
++    std::vector<std::size_t> input_indices;
++    std::size_t current_pos;
++    std::size_t reserved_size;
++    
+ public:
+     struct Mark { std::size_t pos; };
+     static Tape& active();
+@@ -14,8 +33,42 @@ public:
+     void clear();                      // empties the tape
+     void reset_adjoints();             // sets every adjoint to 0
+     void propagate(const Var& output); // resets adjoints, seeds output with 1, sweeps back
++    
++    // Internal method to record input nodes
++    void recordInput(Node* node);
++    
++    // Internal method to record operations
++    template<typename Op, typename Grad1, typename Grad2>
++    Node* recordOp(std::size_t n_args, Node* arg1, Node* arg2, Op op, Grad1 grad1, Grad2 grad2);
++    
++    // Internal method to record unary operations
++    template<typename Op, typename Grad>
++    Node* recordOp(std::size_t n_args, Node* arg, Op op, Grad grad);
+ };
++
+ class Var {
++private:
++    Node* node;
++    
++    // Private constructor for internal use
++    Var(Node* n) : node(n) {}
++    
++    friend class Tape;
++    friend Var operator+(const Var&, const Var&);
++    friend Var operator-(const Var&, const Var&);
++    friend Var operator*(const Var&, const Var&);
++    friend Var operator/(const Var&, const Var&);
++    friend Var operator-(const Var&);
++    friend Var operator*(double, const Var&);
++    friend Var operator/(const Var&, double);
++    friend Var operator/(double, const Var&);
++    friend Var exp(const Var&);
++    friend Var log(const Var&);
++    friend Var sqrt(const Var&);
++    friend Var pow(const Var&, double);
++    friend Var normal_cdf(const Var&);
++    friend Var max(const Var&, const Var&);
++    
+ public:
+     Var(double value = 0.0);           // records a new input node
+     double value() const;
+@@ -26,15 +79,48 @@ public:
+     Var& operator/=(const Var&);
+     // private representation is up to you
+ };
+-Var operator+(const Var&, const Var&);
+-Var operator-(const Var&, const Var&);
+-Var operator*(const Var&, const Var&);
+-Var operator/(const Var&, const Var&);
+-Var operator-(const Var&);
++
++
++
+ Var exp(const Var&);
+ Var log(const Var&);
+ Var sqrt(const Var&);
+ Var pow(const Var&, double);
+ Var normal_cdf(const Var&);        // standard normal CDF
+ Var max(const Var&, const Var&);   // derivative of the larger argument; of the first at a tie
+-}  // namespace aad
++
++// Template implementations
++template<typename Op, typename Grad1, typename Grad2>
++Node* Tape::recordOp(std::size_t n_args, Node* arg1, Node* arg2, Op op, Grad1 grad1, Grad2 grad2) {
++    // Create new node for the result
++    double result_value = op(arg1->value, arg2->value);
++    Node* result_node = new Node(result_value);
++    
++    // Add dependencies
++    result_node->dependencies.push_back({arg1, grad1(arg1->value, arg2->value, 1.0)});
++    result_node->dependencies.push_back({arg2, grad2(arg1->value, arg2->value, 1.0)});
++    
++    // Add to nodes list
++    nodes.push_back(result_node);
++    current_pos = nodes.size();
++    
++    return result_node;
++}
++
++template<typename Op, typename Grad>
++Node* Tape::recordOp(std::size_t n_args, Node* arg, Op op, Grad grad) {
++    // Create new node for the result
++    double result_value = op(arg->value);
++    Node* result_node = new Node(result_value);
++    
++    // Add dependency
++    result_node->dependencies.push_back({arg, grad(arg->value, 1.0)});
++    
++    // Add to nodes list
++    nodes.push_back(result_node);
++    current_pos = nodes.size();
++    
++    return result_node;
++}
++
++}  // namespace aad
+\ No newline at end of file
+diff --git a/src/aad.cpp b/src/aad.cpp
+index cf3ed9d..4aa797f 100644
+--- a/src/aad.cpp
++++ b/src/aad.cpp
+@@ -1,31 +1,138 @@
+ #include "aad.hpp"
+ #include <stdexcept>
++#include <vector>
++#include <stack>
++#include <memory>
++#include <thread>
++#include <algorithm>
++#include <cmath>
++
+ namespace aad {
+-static void todo() { throw std::logic_error("not implemented"); }
+-Tape& Tape::active() { todo(); static Tape t; return t; }
+-std::size_t Tape::size() const { todo(); return 0; }
+-void Tape::reserve(std::size_t) { todo(); }
+-Tape::Mark Tape::mark() const { todo(); return {0}; }
+-void Tape::rewind(Mark) { todo(); }
+-void Tape::clear() { todo(); }
+-void Tape::reset_adjoints() { todo(); }
+-void Tape::propagate(const Var&) { todo(); }
+-Var::Var(double) { todo(); }
+-double Var::value() const { todo(); return 0; }
+-double Var::adjoint() const { todo(); return 0; }
+-Var& Var::operator+=(const Var&) { todo(); return *this; }
+-Var& Var::operator-=(const Var&) { todo(); return *this; }
+-Var& Var::operator*=(const Var&) { todo(); return *this; }
+-Var& Var::operator/=(const Var&) { todo(); return *this; }
+-Var operator+(const Var&, const Var&) { todo(); return {}; }
+-Var operator-(const Var&, const Var&) { todo(); return {}; }
+-Var operator*(const Var&, const Var&) { todo(); return {}; }
+-Var operator/(const Var&, const Var&) { todo(); return {}; }
+-Var operator-(const Var&) { todo(); return {}; }
+-Var exp(const Var&) { todo(); return {}; }
+-Var log(const Var&) { todo(); return {}; }
+-Var sqrt(const Var&) { todo(); return {}; }
+-Var pow(const Var&, double) { todo(); return {}; }
+-Var normal_cdf(const Var&) { todo(); return {}; }
+-Var max(const Var&, const Var&) { todo(); return {}; }
++
++// Thread-local tape storage
++thread_local Tape* active_tape = nullptr;
++
++// Implementation of Tape methods
++Tape& Tape::active() {
++    if (active_tape == nullptr) {
++        active_tape = new Tape();
++    }
++    return *active_tape;
+ }
++
++std::size_t Tape::size() const {
++    return nodes.size();
++}
++
++void Tape::reserve(std::size_t nodes) {
++    reserved_size = nodes;
++    if (nodes > 0) {
++        this->nodes.reserve(nodes);
++    }
++}
++
++Tape::Mark Tape::mark() const {
++    return Mark{current_pos};
++}
++
++void Tape::rewind(Mark m) {
++    // Clear nodes after the mark
++    while (nodes.size() > m.pos) {
++        Node* node = nodes.back();
++        nodes.pop_back();
++        delete node;
++    }
++    current_pos = m.pos;
++}
++
++void Tape::clear() {
++    // Delete all nodes
++    for (Node* node : nodes) {
++        delete node;
++    }
++    nodes.clear();
++    input_indices.clear();
++    current_pos = 0;
++}
++
++void Tape::reset_adjoints() {
++    for (Node* node : nodes) {
++        node->adjoint = 0.0;
++    }
++}
++
++void Tape::recordInput(Node* node) {
++    input_indices.push_back(nodes.size());
++    nodes.push_back(node);
++    current_pos = nodes.size();
++}
++
++void Tape::propagate(const Var& output) {
++    // Reset all adjoints to 0
++    reset_adjoints();
++    
++    // Seed the output node with 1.0
++    output.node->adjoint = 1.0;
++    
++    // Backward pass: traverse nodes in reverse order
++    for (std::size_t i = nodes.size(); i > 0; --i) {
++        Node* node = nodes[i - 1];
++        
++        // Propagate adjoint to dependencies
++        for (const auto& dep : node->dependencies) {
++            Node* dep_node = dep.first;
++            double grad_contribution = dep.second * node->adjoint;
++            dep_node->adjoint += grad_contribution;
++        }
++    }
++}
++
++// Implementation of Var methods
++Var::Var(double value) {
++    Tape& tape = Tape::active();
++    Node* node = new Node(value);
++    tape.recordInput(node);
++    this->node = node;
++}
++
++double Var::value() const {
++    return node->value;
++}
++
++double Var::adjoint() const {
++    return node->adjoint;
++}
++
++Var& Var::operator+=(const Var& other) {
++    Tape& tape = Tape::active();
++    node = tape.recordOp(2, node, other.node, [](double a, double b) { return a + b; }, 
++                         [](double a, double b, double grad) { return grad; }, 
++                         [](double a, double b, double grad) { return grad; });
++    return *this;
++}
++
++Var& Var::operator-=(const Var& other) {
++    Tape& tape = Tape::active();
++    node = tape.recordOp(2, node, other.node, [](double a, double b) { return a - b; }, 
++                         [](double a, double b, double grad) { return grad; }, 
++                         [](double a, double b, double grad) { return -grad; });
++    return *this;
++}
++
++Var& Var::operator*=(const Var& other) {
++    Tape& tape = Tape::active();
++    node = tape.recordOp(2, node, other.node, [](double a, double b) { return a * b; }, 
++                         [](double a, double b, double grad) { return grad * b; }, 
++                         [](double a, double b, double grad) { return grad * a; });
++    return *this;
++}
++
++Var& Var::operator/=(const Var& other) {
++    Tape& tape = Tape::active();
++    node = tape.recordOp(2, node, other.node, [](double a, double b) { return a / b; }, 
++                         [](double a, double b, double grad) { return grad / b; }, 
++                         [](double a, double b, double grad) { return -grad * a / (b * b); });
++    return *this;
++}
++
++}  // namespace aad
+\ No newline at end of file
+diff --git a/test_aad.cpp b/test_aad.cpp
+new file mode 100644
+index 0000000..ce48871
+--- /dev/null
++++ b/test_aad.cpp
+@@ -0,0 +1,24 @@
++#include "aad.hpp"
++#include <iostream>
++
++int main() {
++    using namespace aad;
++    
++    // Simple test
++    Var x(2.0);
++    Var y(3.0);
++    Var z = x + y;
++    Var w = x * y;
++    
++    std::cout << "x = " << x.value() << std::endl;
++    std::cout << "y = " << y.value() << std::endl;
++    std::cout << "z = x + y = " << z.value() << std::endl;
++    std::cout << "w = x * y = " << w.value() << std::endl;
++    
++    // Test backward pass
++    Tape::active().propagate(w);
++    std::cout << "adjoint of x = " << x.adjoint() << std::endl;
++    std::cout << "adjoint of y = " << y.adjoint() << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

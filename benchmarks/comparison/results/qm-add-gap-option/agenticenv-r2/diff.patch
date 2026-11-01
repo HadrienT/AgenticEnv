@@ -1,0 +1,492 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f94e74e..bef6729 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -378,6 +378,7 @@ if(QM_BUILD_TESTS)
+     tests/testMultiControl.cpp
+     tests/testVarianceReduction.cpp
+     tests/testScriptAdjoint.cpp
++    tests/testGap.cpp
+     tests/testSobolAndImportance.cpp
+     tests/testSobolOwen.cpp
+   )
+diff --git a/include/quantModeling/engines/analytic/gap.hpp b/include/quantModeling/engines/analytic/gap.hpp
+new file mode 100644
+index 0000000..ac07d6e
+--- /dev/null
++++ b/include/quantModeling/engines/analytic/gap.hpp
+@@ -0,0 +1,22 @@
++#ifndef ENGINE_ANALYTIC_GAP_HPP
++#define ENGINE_ANALYTIC_GAP_HPP
++
++#include "quantModeling/engines/base.hpp"
++#include "quantModeling/instruments/base.hpp"
++#include "quantModeling/instruments/equity/gap.hpp"
++#include "quantModeling/models/equity/local_vol_model.hpp"
++#include "quantModeling/utils/stats.hpp"
++#include <cmath>
++
++namespace quantModeling
++{
++    class BSGapAnalyticEngine final : public EngineBase
++    {
++      public:
++        using EngineBase::EngineBase;
++
++        void visit(const GapOption &opt) override;
++    };
++} // namespace quantModeling
++
++#endif
+\ No newline at end of file
+diff --git a/include/quantModeling/instruments/base.hpp b/include/quantModeling/instruments/base.hpp
+index 5013e6e..9b64096 100644
+--- a/include/quantModeling/instruments/base.hpp
++++ b/include/quantModeling/instruments/base.hpp
+@@ -34,6 +34,7 @@ namespace quantModeling
+     struct InterestRateSwap;
+     struct Swaption;
+     struct BermudanSwaption;
++    struct GapOption;
+ 
+     enum class ExerciseType
+     {
+@@ -96,6 +97,7 @@ namespace quantModeling
+         virtual void visit(const InterestRateSwap &) { throw UnsupportedInstrument("Interest-rate swap is not supported by this engine."); }
+         virtual void visit(const Swaption &) { throw UnsupportedInstrument("Swaption is not supported by this engine."); }
+         virtual void visit(const BermudanSwaption &) { throw UnsupportedInstrument("Bermudan swaption is not supported by this engine."); }
++        virtual void visit(const GapOption &) = 0;
+         virtual void visit(const EquityFuture &) = 0;
+         virtual void visit(const ZeroCouponBond &) = 0;
+         virtual void visit(const FixedRateBond &) = 0;
+diff --git a/include/quantModeling/instruments/equity/gap.hpp b/include/quantModeling/instruments/equity/gap.hpp
+new file mode 100644
+index 0000000..bc1692d
+--- /dev/null
++++ b/include/quantModeling/instruments/equity/gap.hpp
+@@ -0,0 +1,53 @@
++#ifndef INSTRUMENT_EQUITY_GAP_HPP
++#define INSTRUMENT_EQUITY_GAP_HPP
++
++#include <memory>
++#include "quantModeling/instruments/base.hpp"
++
++namespace quantModeling
++{
++    struct GapOption final : Instrument
++    {
++        std::shared_ptr<const IPayoff> payoff;
++        std::shared_ptr<const IExercise> exercise;
++        Real trigger;
++        Real notional = 1.0;
++
++        GapOption(std::shared_ptr<const IPayoff> payoff,
++                  std::shared_ptr<const IExercise> exercise,
++                  Real trigger, Real notional = 1.0)
++            : payoff(std::move(payoff)), exercise(std::move(exercise)), trigger(trigger), notional(notional) {}
++
++        void accept(IInstrumentVisitor &v) const override { v.visit(*this); }
++    };
++
++    struct GapPayoff final : IPayoff
++    {
++        OptionType t_;
++        Real K_;
++        Real trigger_;
++
++        GapPayoff(OptionType t, Real K, Real trigger)
++            : t_(t), K_(K), trigger_(trigger) {}
++
++        OptionType type() const override { return t_; }
++        Real strike() const override { return K_; }
++        Real trigger() const { return trigger_; }
++
++        Real operator()(Real spot) const override
++        {
++            if (t_ == OptionType::Call)
++            {
++                // Gap call pays (S_T - strike) if S_T > trigger, and 0 otherwise
++                return (spot > trigger_) ? (spot - K_) : 0.0;
++            }
++            else
++            {
++                // Gap put pays (strike - S_T) if S_T < trigger, and 0 otherwise
++                return (spot < trigger_) ? (K_ - spot) : 0.0;
++            }
++        }
++    };
++} // namespace quantModeling
++
++#endif
+\ No newline at end of file
+diff --git a/include/quantModeling/pricers/adapters/equity_gap.hpp b/include/quantModeling/pricers/adapters/equity_gap.hpp
+new file mode 100644
+index 0000000..595e352
+--- /dev/null
++++ b/include/quantModeling/pricers/adapters/equity_gap.hpp
+@@ -0,0 +1,13 @@
++#ifndef PRICERS_ADAPTERS_EQUITY_GAP_HPP
++#define PRICERS_ADAPTERS_EQUITY_GAP_HPP
++
++#include "quantModeling/pricers/registry.hpp"
++
++namespace quantModeling
++{
++
++    PricingResult price_equity_gap_bs_analytic(const GapBSInput &in);
++
++} // namespace quantModeling
++
++#endif
+\ No newline at end of file
+diff --git a/include/quantModeling/pricers/inputs.hpp b/include/quantModeling/pricers/inputs.hpp
+index 2b7f5a6..09866ce 100644
+--- a/include/quantModeling/pricers/inputs.hpp
++++ b/include/quantModeling/pricers/inputs.hpp
+@@ -607,6 +607,19 @@ namespace quantModeling
+         int seed = 1;
+     };
+ 
++    struct GapBSInput
++    {
++        Real spot;
++        Real strike;
++        Real trigger;
++        Time maturity;
++        Real rate;
++        Real dividend;
++        Real vol;
++        bool is_call;
++        Real notional = 1.0;
++    };
++
+ } // namespace quantModeling
+ 
+ #endif
+diff --git a/include/quantModeling/pricers/registry.hpp b/include/quantModeling/pricers/registry.hpp
+index ad1c644..d3397d0 100644
+--- a/include/quantModeling/pricers/registry.hpp
++++ b/include/quantModeling/pricers/registry.hpp
+@@ -37,7 +37,8 @@ namespace quantModeling
+         CommodityForward,
+         CommodityOption,
+         WorstOfOption,
+-        BestOfOption
++        BestOfOption,
++        EquityGapOption
+     };
+ 
+     enum class ModelKind
+@@ -92,7 +93,8 @@ namespace quantModeling
+         FXOptionInput,
+         CommodityForwardInput,
+         CommodityOptionInput,
+-        RainbowBSInput>;
++        RainbowBSInput,
++        GapBSInput>;
+ 
+     struct PricingRequest
+     {
+diff --git a/src/engines/analytic/gap.cpp b/src/engines/analytic/gap.cpp
+new file mode 100644
+index 0000000..2e4098b
+--- /dev/null
++++ b/src/engines/analytic/gap.cpp
+@@ -0,0 +1,97 @@
++#include "quantModeling/engines/analytic/gap.hpp"
++#include "quantModeling/instruments/equity/gap.hpp"
++#include "quantModeling/models/equity/black_scholes.hpp"
++#include "quantModeling/utils/stats.hpp"
++#include <cmath>
++
++namespace quantModeling
++{
++    void BSGapAnalyticEngine::visit(const GapOption &opt)
++    {
++        const auto &m = require_model<ILocalVolModel>("BSGapAnalyticEngine");
++        const Real S0 = m.spot0();
++        const Real r = m.rate_r();
++        const Real q = m.yield_q();
++        const Real v = m.vol_sigma();
++
++        const Real T = opt.exercise->dates().front();
++        const Real K = opt.payoff->strike();
++        const Real trigger = opt.trigger;
++        const Real notional = opt.notional;
++
++        // Forward and discount factors
++        const Real df_r = m.discount_curve().discount(T);
++        const Real df_q = std::exp(-q * T);
++        const Real F = S0 * df_q / df_r; // forward under continuous carry
++
++        const Real stddev = v * std::sqrt(T);
++        const Real lnFK = std::log(F / K);
++
++        const Real d1 = (lnFK + 0.5 * stddev * stddev) / stddev;
++        const Real d2 = d1 - stddev;
++
++        PricingResult out;
++        out.diagnostics = "BS analytic gap option (flat r,q,sigma)";
++
++        // For gap options, we compute the expected payoff directly
++        // Gap call: (S_T - K) if S_T > trigger, 0 otherwise
++        // Gap put: (K - S_T) if S_T < trigger, 0 otherwise
++        
++        if (opt.payoff->type() == OptionType::Call)
++        {
++            // Gap call: (S_T - K) if S_T > trigger, 0 otherwise
++            // This is equivalent to: E[(S_T - K) * 1_{S_T > trigger}]
++            // = E[S_T * 1_{S_T > trigger}] - K * P(S_T > trigger)
++            
++            // Probability that S_T > trigger
++            Real d_trigger = (std::log(F / trigger) + 0.5 * v * v * T) / (v * std::sqrt(T));
++            Real prob_above_trigger = norm_cdf(d_trigger);
++            
++            // E[S_T * 1_{S_T > trigger}] = F * N(d1') - trigger * N(d2')
++            // where d1' = (ln(F/trigger) + v^2*T/2) / (v*sqrt(T)) and d2' = d1' - v*sqrt(T)
++            Real d1_trigger = (std::log(F / trigger) + 0.5 * v * v * T) / (v * std::sqrt(T));
++            Real d2_trigger = d1_trigger - v * std::sqrt(T);
++            
++            Real conditional_expectation = F * norm_cdf(d1_trigger) - trigger * norm_cdf(d2_trigger);
++            
++            // The expected payoff is:
++            // E[(S_T - K) * 1_{S_T > trigger}] = E[S_T * 1_{S_T > trigger}] - K * P(S_T > trigger)
++            Real expected_payoff = conditional_expectation - K * prob_above_trigger;
++            
++            out.npv = notional * df_r * expected_payoff;
++            
++            // For delta, we compute the derivative of the NPV with respect to S0
++            // This is the probability that S_T > trigger for a call
++            out.greeks.delta = notional * df_q * prob_above_trigger;
++        }
++        else
++        {
++            // Gap put: (K - S_T) if S_T < trigger, 0 otherwise
++            // This is equivalent to: E[(K - S_T) * 1_{S_T < trigger}]
++            // = K * P(S_T < trigger) - E[S_T * 1_{S_T < trigger}]
++            
++            // Probability that S_T < trigger
++            Real d_trigger = (std::log(F / trigger) - 0.5 * v * v * T) / (v * std::sqrt(T));
++            Real prob_below_trigger = norm_cdf(d_trigger);
++            
++            // E[S_T * 1_{S_T < trigger}] = F * N(-d1') - trigger * N(-d2')
++            // where d1' = (ln(F/trigger) - v^2*T/2) / (v*sqrt(T)) and d2' = d1' - v*sqrt(T)
++            Real d1_trigger = (std::log(F / trigger) - 0.5 * v * v * T) / (v * std::sqrt(T));
++            Real d2_trigger = d1_trigger - v * std::sqrt(T);
++            
++            Real conditional_expectation = F * norm_cdf(-d1_trigger) - trigger * norm_cdf(-d2_trigger);
++            
++            // The expected payoff is:
++            // E[(K - S_T) * 1_{S_T < trigger}] = K * P(S_T < trigger) - E[S_T * 1_{S_T < trigger}]
++            Real expected_payoff = K * prob_below_trigger - conditional_expectation;
++            
++            out.npv = notional * df_r * expected_payoff;
++            
++            // For delta, we compute the derivative of the NPV with respect to S0
++            // This is the negative probability that S_T < trigger for a put
++            out.greeks.delta = notional * df_q * (-prob_below_trigger);
++        }
++
++        res_ = out;
++    }
++} // namespace quantModeling
+\ No newline at end of file
+diff --git a/src/pricers/adapters/equity_gap.cpp b/src/pricers/adapters/equity_gap.cpp
+new file mode 100644
+index 0000000..df3ea96
+--- /dev/null
++++ b/src/pricers/adapters/equity_gap.cpp
+@@ -0,0 +1,34 @@
++#include "quantModeling/pricers/adapters/equity_gap.hpp"
++#include "quantModeling/pricers/registry.hpp"
++#include "quantModeling/engines/analytic/gap.hpp"
++#include "quantModeling/instruments/equity/gap.hpp"
++#include "quantModeling/instruments/equity/vanilla.hpp"
++#include "quantModeling/models/equity/black_scholes.hpp"
++#include "quantModeling/utils/stats.hpp"
++#include <cmath>
++
++namespace quantModeling
++{
++    PricingResult price_equity_gap_bs_analytic(const GapBSInput &in)
++    {
++        // Create the payoff
++        auto payoff = std::make_shared<GapPayoff>(in.is_call ? OptionType::Call : OptionType::Put, in.strike, in.trigger);
++        
++        // Create the exercise
++        auto exercise = std::make_shared<EuropeanExercise>(in.maturity);
++        
++        // Create the GapOption instrument
++        GapOption option(payoff, exercise, in.trigger, in.notional);
++        
++        // Create the model
++        BlackScholesModel model(in.spot, in.rate, in.dividend, in.vol);
++        
++        // Create the engine
++        BSGapAnalyticEngine engine(model);
++        
++        // Visit the instrument
++        engine.visit(option);
++        
++        return engine.result();
++    }
++} // namespace quantModeling
+\ No newline at end of file
+diff --git a/src/pricers/registry.cpp b/src/pricers/registry.cpp
+index 2ca71f9..f8386a7 100644
+--- a/src/pricers/registry.cpp
++++ b/src/pricers/registry.cpp
+@@ -21,6 +21,7 @@
+ #include "quantModeling/pricers/adapters/fx.hpp"
+ #include "quantModeling/pricers/adapters/commodity.hpp"
+ #include "quantModeling/pricers/adapters/equity_rainbow.hpp"
++#include "quantModeling/pricers/adapters/equity_gap.hpp"
+ 
+ namespace quantModeling
+ {
+@@ -457,6 +458,16 @@ namespace quantModeling
+                     return price_best_of_bs_mc(in);
+                 });
+ 
++            // ── Equity: Gap Option — Analytic ──────────────────────────
++
++            r.register_pricer(
++                {InstrumentKind::EquityGapOption, ModelKind::BlackScholes, EngineKind::Analytic},
++                [](const PricingRequest &request)
++                {
++                    const auto &in = std::get<GapBSInput>(request.input);
++                    return price_equity_gap_bs_analytic(in);
++                });
++
+             return r;
+         }();
+ 
+diff --git a/tests/testGap.cpp b/tests/testGap.cpp
+new file mode 100644
+index 0000000..e44ef9c
+--- /dev/null
++++ b/tests/testGap.cpp
+@@ -0,0 +1,122 @@
++#include <gtest/gtest.h>
++#include "quantModeling/pricers/registry.hpp"
++#include "quantModeling/pricers/adapters/equity_gap.hpp"
++#include "quantModeling/instruments/equity/gap.hpp"
++#include "quantModeling/instruments/equity/vanilla.hpp"
++#include "quantModeling/models/equity/black_scholes.hpp"
++#include "quantModeling/engines/analytic/gap.hpp"
++
++using namespace quantModeling;
++
++TEST(GapOptionTest, GapCall)
++{
++    // Test gap call option
++    GapBSInput input;
++    input.spot = 100.0;
++    input.strike = 100.0;
++    input.trigger = 110.0;
++    input.maturity = 1.0;
++    input.rate = 0.05;
++    input.dividend = 0.02;
++    input.vol = 0.2;
++    input.is_call = true;
++    input.notional = 1000.0;
++
++    auto result = price_equity_gap_bs_analytic(input);
++    
++    // Basic sanity check - should be positive but less than vanilla call
++    EXPECT_GT(result.npv, 0.0);
++    EXPECT_GT(result.greeks.delta, 0.0);
++    EXPECT_TRUE(std::isfinite(result.npv));
++    EXPECT_TRUE(std::isfinite(result.greeks.delta));
++}
++
++TEST(GapOptionTest, GapPut)
++{
++    // Test gap put option
++    GapBSInput input;
++    input.spot = 100.0;
++    input.strike = 100.0;
++    input.trigger = 90.0;
++    input.maturity = 1.0;
++    input.rate = 0.05;
++    input.dividend = 0.02;
++    input.vol = 0.2;
++    input.is_call = false;
++    input.notional = 1000.0;
++
++    auto result = price_equity_gap_bs_analytic(input);
++    
++    // Basic sanity check - should be positive but less than vanilla put
++    EXPECT_GT(result.npv, 0.0);
++    EXPECT_LT(result.greeks.delta, 0.0);
++    EXPECT_TRUE(std::isfinite(result.npv));
++    EXPECT_TRUE(std::isfinite(result.greeks.delta));
++}
++
++TEST(GapOptionTest, GapOptionVsVanilla)
++{
++    // Compare gap option with vanilla option for same parameters
++    GapBSInput gap_input;
++    gap_input.spot = 100.0;
++    gap_input.strike = 100.0;
++    gap_input.trigger = 100.0;  // Trigger at strike
++    gap_input.maturity = 1.0;
++    gap_input.rate = 0.05;
++    gap_input.dividend = 0.02;
++    gap_input.vol = 0.2;
++    gap_input.is_call = true;
++    gap_input.notional = 1000.0;
++
++    auto gap_result = price_equity_gap_bs_analytic(gap_input);
++    
++    // Vanilla option with same parameters
++    VanillaBSInput vanilla_input;
++    vanilla_input.spot = 100.0;
++    vanilla_input.strike = 100.0;
++    vanilla_input.maturity = 1.0;
++    vanilla_input.rate = 0.05;
++    vanilla_input.dividend = 0.02;
++    vanilla_input.vol = 0.2;
++    vanilla_input.is_call = true;
++    
++    auto vanilla_result = price_equity_vanilla_bs(vanilla_input, EngineKind::Analytic);
++    
++    // Gap option should be less than or equal to vanilla option
++    EXPECT_LE(gap_result.npv, vanilla_result.npv);
++    EXPECT_TRUE(std::isfinite(gap_result.npv));
++}
++
++TEST(GapOptionTest, TriggerEffect)
++{
++    // Test that trigger affects the price
++    GapBSInput input1;
++    input1.spot = 100.0;
++    input1.strike = 100.0;
++    input1.trigger = 90.0;
++    input1.maturity = 1.0;
++    input1.rate = 0.05;
++    input1.dividend = 0.02;
++    input1.vol = 0.2;
++    input1.is_call = true;
++    input1.notional = 1000.0;
++
++    GapBSInput input2;
++    input2.spot = 100.0;
++    input2.strike = 100.0;
++    input2.trigger = 110.0;
++    input2.maturity = 1.0;
++    input2.rate = 0.05;
++    input2.dividend = 0.02;
++    input2.vol = 0.2;
++    input2.is_call = true;
++    input2.notional = 1000.0;
++
++    auto result1 = price_equity_gap_bs_analytic(input1);
++    auto result2 = price_equity_gap_bs_analytic(input2);
++    
++    // Higher trigger should generally result in lower price
++    EXPECT_LE(result2.npv, result1.npv);
++    EXPECT_TRUE(std::isfinite(result1.npv));
++    EXPECT_TRUE(std::isfinite(result2.npv));
++}
+\ No newline at end of file

@@ -1,0 +1,73 @@
+diff --git a/src/engines/mc/barrier.cpp b/src/engines/mc/barrier.cpp
+index b65081b..ee0d305 100644
+--- a/src/engines/mc/barrier.cpp
++++ b/src/engines/mc/barrier.cpp
+@@ -129,7 +129,7 @@ namespace quantModeling
+                         // the exponent is negative.
+                         const Real log_Ha = std::log(H / S_prev);
+                         const Real log_Hb = std::log(H / S);
+-                        const Real exponent = -1.0 * log_Ha * log_Hb / (sig * sig * dt_v);
++                        const Real exponent = -2.0 * log_Ha * log_Hb / (sig * sig * dt_v);
+                         if (exponent < 0.0)
+                         {
+                             if (use_cmc)
+diff --git a/test_barrier_issue.cpp b/test_barrier_issue.cpp
+new file mode 100644
+index 0000000..0ee52f9
+--- /dev/null
++++ b/test_barrier_issue.cpp
+@@ -0,0 +1,53 @@
++#include <iostream>
++#include <iomanip>
++#include "quantModeling/pricers/registry.hpp"
++
++using namespace quantModeling;
++
++int main()
++{
++    // Test case from the issue:
++    // Down-and-out call with spot 100, strike 100, barrier 90, rate 5%, dividend 2%, vol 20%, 1 year
++    BarrierBSInput in{};
++    in.spot = 100.0;
++    in.strike = 100.0;
++    in.maturity = 1.0;
++    in.rate = 0.05;
++    in.dividend = 0.02;
++    in.vol = 0.20;
++    in.is_call = true;
++    in.barrier_type = BarrierType::DownAndOut;
++    in.barrier_level = 90.0;
++    in.rebate = 0.0;
++    in.n_paths = 1000000;  // Large number of paths to see convergence
++    in.seed = 42;
++    in.brownian_bridge = true;
++
++    PricingRequest request{
++        InstrumentKind::EquityBarrierOption,
++        ModelKind::BlackScholes,
++        EngineKind::MonteCarlo,
++        PricingInput{in}};
++    
++    auto result = default_registry().price(request);
++    
++    std::cout << "Monte Carlo with Brownian Bridge correction: " << std::fixed << std::setprecision(6) << result.npv << std::endl;
++    std::cout << "Diagnostics: " << result.diagnostics << std::endl;
++    
++    // Also test with discrete monitoring for comparison
++    in.brownian_bridge = false;
++    request.input = PricingInput{in};
++    auto result_discrete = default_registry().price(request);
++    
++    std::cout << "Monte Carlo with discrete monitoring: " << std::fixed << std::setprecision(6) << result_discrete.npv << std::endl;
++    
++    // Test with CMC (Conditional Monte Carlo) for comparison
++    in.brownian_bridge = true;
++    in.cmc = true;
++    request.input = PricingInput{in};
++    auto result_cmc = default_registry().price(request);
++    
++    std::cout << "Monte Carlo with CMC: " << std::fixed << std::setprecision(6) << result_cmc.npv << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

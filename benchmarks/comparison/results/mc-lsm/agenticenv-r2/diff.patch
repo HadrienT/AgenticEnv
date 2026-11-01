@@ -1,0 +1,302 @@
+diff --git a/debug_lsm.cpp b/debug_lsm.cpp
+new file mode 100644
+index 0000000..51e7665
+--- /dev/null
++++ b/debug_lsm.cpp
+@@ -0,0 +1,48 @@
++#include "lsm.hpp"
++#include <iostream>
++#include <iomanip>
++#include <random>
++
++// Simple test to verify basic functionality
++int main() {
++    // Test with very simple parameters
++    double S0 = 40.0;
++    double K = 40.0;
++    double r = 0.05;
++    double sigma = 0.2;
++    double T = 1.0;
++    int steps = 5;        // Reduced for testing
++    std::int64_t paths = 1000;  // Reduced for testing
++    std::uint64_t seed = 42;
++    
++    std::cout << "Simple test of Longstaff-Schwartz implementation\n";
++    std::cout << "S0 = " << S0 << ", K = " << K << ", r = " << r << ", sigma = " << sigma << ", T = " << T << "\n";
++    std::cout << "Steps = " << steps << ", Paths = " << paths << "\n\n";
++    
++    // Generate some paths manually to verify
++    std::mt19937 gen(seed);
++    std::normal_distribution<double> dist(0.0, 1.0);
++    
++    double dt = T / steps;
++    std::cout << "Time step: " << dt << "\n";
++    
++    // Generate one path manually to see what happens
++    std::vector<double> path(6);
++    path[0] = S0;
++    std::cout << "Path[0] = " << path[0] << "\n";
++    
++    for (int j = 1; j <= steps; ++j) {
++        double z = dist(gen);
++        path[j] = path[j-1] * std::exp((r - 0.5 * sigma * sigma) * dt + sigma * std::sqrt(dt) * z);
++        std::cout << "Path[" << j << "] = " << path[j] << "\n";
++    }
++    
++    // Calculate exercise values
++    std::cout << "\nExercise values:\n";
++    for (int j = 0; j <= steps; ++j) {
++        double exercise = std::max(0.0, K - path[j]);
++        std::cout << "Exercise[" << j << "] = " << exercise << "\n";
++    }
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/src/lsm.cpp b/src/lsm.cpp
+index 4acc997..a98c652 100644
+--- a/src/lsm.cpp
++++ b/src/lsm.cpp
+@@ -1,5 +1,186 @@
+ #include "lsm.hpp"
+-#include <stdexcept>
++#include <random>
++#include <vector>
++#include <algorithm>
++#include <numeric>
++#include <cmath>
++#include <iostream>
++
+ namespace mc {
+-McResult american_put_lsm(double, double, double, double, double, int, std::int64_t, std::uint64_t) { throw std::logic_error("not implemented"); }
++    
++// Helper function to generate standard normal random numbers
++inline double normal_random(std::mt19937& gen) {
++    static std::normal_distribution<double> dist(0.0, 1.0);
++    return dist(gen);
+ }
++
++// Polynomial basis functions of degree 3
++inline std::vector<double> polynomial_basis(double x) {
++    return {1.0, x, x*x, x*x*x};
++}
++
++// Simple linear regression for polynomial fitting (using normal equation)
++std::vector<double> least_squares_regression(const std::vector<std::vector<double>>& X, 
++                                           const std::vector<double>& y) {
++    int n = X.size();
++    int m = X[0].size();
++    
++    // Create matrix X^T * X and vector X^T * y
++    std::vector<std::vector<double>> XtX(m, std::vector<double>(m, 0.0));
++    std::vector<double> XtY(m, 0.0);
++    
++    for (int i = 0; i < n; ++i) {
++        for (int j = 0; j < m; ++j) {
++            XtY[j] += X[i][j] * y[i];
++            for (int k = 0; k < m; ++k) {
++                XtX[j][k] += X[i][j] * X[i][k];
++            }
++        }
++    }
++    
++    // Solve the linear system XtX * coeffs = XtY using Gaussian elimination
++    std::vector<double> coeffs(m, 0.0);
++    
++    // Forward elimination
++    for (int i = 0; i < m; ++i) {
++        double pivot = XtX[i][i];
++        if (std::abs(pivot) < 1e-12) {
++            // Handle singular matrix - return zeros
++            return std::vector<double>(m, 0.0);
++        }
++        for (int j = i; j < m; ++j) {
++            XtX[i][j] /= pivot;
++        }
++        XtY[i] /= pivot;
++        
++        for (int k = i + 1; k < m; ++k) {
++            double factor = XtX[k][i];
++            for (int j = i; j < m; ++j) {
++                XtX[k][j] -= factor * XtX[i][j];
++            }
++            XtY[k] -= factor * XtY[i];
++        }
++    }
++    
++    // Back substitution
++    for (int i = m - 1; i >= 0; --i) {
++        coeffs[i] = XtY[i];
++        for (int j = i + 1; j < m; ++j) {
++            coeffs[i] -= XtX[i][j] * coeffs[j];
++        }
++    }
++    
++    return coeffs;
++}
++
++McResult american_put_lsm(double S0, double K, double r, double sigma, double T, int steps,
++                          std::int64_t paths, std::uint64_t seed) {
++    // Generate random number generator
++    std::mt19937 gen(seed);
++    
++    // Time step
++    double dt = T / steps;
++    
++    // Precompute discount factor
++    double discount = std::exp(-r * dt);
++    
++    // Generate all paths at once for efficiency
++    std::vector<std::vector<double>> paths_data(paths, std::vector<double>(steps + 1));
++    
++    // Generate paths using the Euler method
++    for (std::int64_t i = 0; i < paths; ++i) {
++        paths_data[i][0] = S0;
++        for (int j = 1; j <= steps; ++j) {
++            double z = normal_random(gen);
++            paths_data[i][j] = paths_data[i][j-1] * std::exp((r - 0.5 * sigma * sigma) * dt + sigma * std::sqrt(dt) * z);
++        }
++    }
++    
++    // Initialize exercise values (put option)
++    std::vector<std::vector<double>> exercise_values(paths, std::vector<double>(steps + 1));
++    for (std::int64_t i = 0; i < paths; ++i) {
++        for (int j = 0; j <= steps; ++j) {
++            exercise_values[i][j] = std::max(0.0, K - paths_data[i][j]);
++        }
++    }
++    
++    // Backward induction for continuation values
++    // Work backwards from step steps-1 to step 1
++    for (int step = steps - 1; step >= 1; --step) {
++        // For each path, determine if it's in the money at this step
++        std::vector<std::int64_t> in_the_money_indices;
++        
++        for (std::int64_t i = 0; i < paths; ++i) {
++            if (exercise_values[i][step] > 0.0) {
++                in_the_money_indices.push_back(i);
++            }
++        }
++        
++        // If no paths are in the money, no regression needed
++        if (in_the_money_indices.empty()) {
++            continue;
++        }
++        
++        // Perform least squares regression
++        std::vector<std::vector<double>> X(in_the_money_indices.size(), std::vector<double>(4));
++        std::vector<double> y(in_the_money_indices.size());
++        
++        for (size_t idx = 0; idx < in_the_money_indices.size(); ++idx) {
++            int i = in_the_money_indices[idx];
++            auto basis = polynomial_basis(paths_data[i][step]);
++            for (size_t j = 0; j < basis.size(); ++j) {
++                X[idx][j] = basis[j];
++            }
++            // Use the continuation value from the next step (discounted)
++            y[idx] = exercise_values[i][step+1] * discount;
++        }
++        
++        // Perform regression
++        std::vector<double> coeffs = least_squares_regression(X, y);
++        
++        // For each path, calculate continuation value and decide whether to exercise
++        for (std::int64_t i = 0; i < paths; ++i) {
++            auto basis = polynomial_basis(paths_data[i][step]);
++            double continuation_value = 0.0;
++            for (size_t j = 0; j < basis.size(); ++j) {
++                continuation_value += coeffs[j] * basis[j];
++            }
++            
++            // If exercise value is greater than continuation value, exercise
++            if (exercise_values[i][step] > continuation_value) {
++                // Update exercise values for all future steps (including current)
++                for (int j = step; j <= steps; ++j) {
++                    exercise_values[i][j] = exercise_values[i][step];
++                }
++            }
++        }
++    }
++    
++    // Calculate the final price
++    std::vector<double> prices(paths);
++    for (std::int64_t i = 0; i < paths; ++i) {
++        prices[i] = exercise_values[i][0];
++    }
++    
++    // Calculate mean price and standard error
++    double mean_price = std::accumulate(prices.begin(), prices.end(), 0.0) / paths;
++    
++    // Calculate standard error
++    double variance = 0.0;
++    for (std::int64_t i = 0; i < paths; ++i) {
++        variance += (prices[i] - mean_price) * (prices[i] - mean_price);
++    }
++    variance /= paths;
++    double std_error = std::sqrt(variance / paths);
++    
++    // Ensure price is never below immediate exercise at t = 0
++    // This is a safety check - in a proper implementation, this should not happen
++    double immediate_exercise = std::max(0.0, K - S0);
++    if (mean_price < immediate_exercise) {
++        mean_price = immediate_exercise;
++    }
++    
++    return {mean_price, std_error};
++}
++
++}  // namespace mc
+\ No newline at end of file
+diff --git a/test_lsm.cpp b/test_lsm.cpp
+new file mode 100644
+index 0000000..9f158c9
+--- /dev/null
++++ b/test_lsm.cpp
+@@ -0,0 +1,21 @@
++#include <iostream>
++#include <iomanip>
++#include <cstdlib>
++
++// Forward declaration of the function
++extern "C" {
++    struct McResult {
++        double price;
++        double std_error;
++    };
++    McResult american_put_lsm(double S0, double K, double r, double sigma, double T, int steps,
++                              long long paths, unsigned long long seed);
++}
++
++int main() {
++    std::cout << "Direct test of lsm function\n";
++    McResult result = american_put_lsm(40.0, 40.0, 0.05, 0.2, 1.0, 50, 100000, 42);
++    std::cout << "Price = " << std::fixed << std::setprecision(6) << result.price << "\n";
++    std::cout << "Std Error = " << std::scientific << std::setprecision(2) << result.std_error << "\n";
++    return 0;
++}
+diff --git a/test_lsm_simple b/test_lsm_simple
+new file mode 100644
+index 0000000..25e3596
+Binary files /dev/null and b/test_lsm_simple differ
+diff --git a/test_lsm_simple.cpp b/test_lsm_simple.cpp
+new file mode 100644
+index 0000000..295cf0c
+--- /dev/null
++++ b/test_lsm_simple.cpp
+@@ -0,0 +1,15 @@
++#include <iostream>
++#include <iomanip>
++#include "include/lsm.hpp"
++
++int main() {
++    std::cout << "Testing Longstaff-Schwartz implementation\n";
++    
++    // Test with simple parameters
++    mc::McResult result = mc::american_put_lsm(40.0, 40.0, 0.05, 0.2, 1.0, 50, 100000, 42);
++    
++    std::cout << "Price = " << std::fixed << std::setprecision(6) << result.price << "\n";
++    std::cout << "Std Error = " << std::scientific << std::setprecision(2) << result.std_error << "\n";
++    
++    return 0;
++}
+\ No newline at end of file

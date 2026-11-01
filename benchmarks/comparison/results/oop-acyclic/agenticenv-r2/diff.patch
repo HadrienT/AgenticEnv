@@ -1,0 +1,127 @@
+diff --git a/include/acyclic.hpp b/include/acyclic.hpp
+index 6f70f09..c907a6b 100644
+--- a/include/acyclic.hpp
++++ b/include/acyclic.hpp
+@@ -1 +1,56 @@
+ #pragma once
++#include <string>
++#include <stdexcept>
++
++namespace trade {
++
++struct VisitorBase {
++    virtual ~VisitorBase() = default;
++};
++
++template <class T>
++struct Visitor : VisitorBase {
++    virtual void visit(const T&) = 0;
++    virtual ~Visitor() = default;
++};
++
++struct Trade {
++    virtual ~Trade() = default;
++    virtual void accept(VisitorBase&) const = 0;
++    virtual bool try_accept(VisitorBase&) const = 0;
++    virtual std::string type_name() const = 0;
++};
++
++class UnsupportedTrade : public std::runtime_error {
++public:
++    UnsupportedTrade(const std::string& type_name) 
++        : std::runtime_error("Unsupported trade type: " + type_name) {}
++};
++
++template <class Derived>
++struct VisitableTrade : Trade {
++    void accept(VisitorBase& v) const override {
++        if (auto* visitor = dynamic_cast<Visitor<Derived>*>(&v)) {
++            visitor->visit(static_cast<const Derived&>(*this));
++        } else {
++            throw UnsupportedTrade{type_name()};
++        }
++    }
++
++    bool try_accept(VisitorBase& v) const override {
++        if (auto* visitor = dynamic_cast<Visitor<Derived>*>(&v)) {
++            visitor->visit(static_cast<const Derived&>(*this));
++            return true;
++        } else {
++            return false;
++        }
++    }
++
++    // This will be overridden by the derived class
++    std::string type_name() const override {
++        // This should be overridden by the derived class
++        return "Unknown";
++    }
++};
++
++} // namespace trade
+diff --git a/include/trades.hpp b/include/trades.hpp
+index 6f70f09..bf38ac8 100644
+--- a/include/trades.hpp
++++ b/include/trades.hpp
+@@ -1 +1,34 @@
+ #pragma once
++#include "acyclic.hpp"
++
++namespace trade {
++
++struct Swap : VisitableTrade<Swap> {
++    Swap(double notional, double rate);
++    double notional, rate;
++    std::string type_name() const override;
++};
++
++struct Bond : VisitableTrade<Bond> {
++    Bond(double face);
++    double face;
++    std::string type_name() const override;
++};
++
++class NotionalVisitor : public virtual VisitorBase, public Visitor<Swap>, public Visitor<Bond> {
++public:
++    double total() const { return total_notional_; }
++    
++    void visit(const Swap& swap) override {
++        total_notional_ += swap.notional;
++    }
++    
++    void visit(const Bond& bond) override {
++        total_notional_ += bond.face;
++    }
++
++private:
++    double total_notional_ = 0.0;
++};
++
++} // namespace trade
+diff --git a/src/trades.cpp b/src/trades.cpp
+index 9180d28..70f3d29 100644
+--- a/src/trades.cpp
++++ b/src/trades.cpp
+@@ -1 +1,18 @@
+ #include "trades.hpp"
++#include <string>
++
++namespace trade {
++
++Swap::Swap(double notional, double rate) : notional(notional), rate(rate) {}
++
++std::string Swap::type_name() const {
++    return "Swap";
++}
++
++Bond::Bond(double face) : face(face) {}
++
++std::string Bond::type_name() const {
++    return "Bond";
++}
++
++} // namespace trade
+diff --git a/trades.o b/trades.o
+new file mode 100644
+index 0000000..5efa79d
+Binary files /dev/null and b/trades.o differ

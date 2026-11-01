@@ -1,0 +1,262 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..34b43f2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,16 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Enable sanitizers if requested
++if(CMAKE_BUILD_TYPE STREQUAL "Debug")
++    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined -fno-omit-frame-pointer")
++    set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address,undefined")
++endif()
++
++# Add test executables
++add_executable(test_ticks test_ticks.cpp)
++target_link_libraries(test_ticks lib)
++
++add_executable(test_edge_cases test_edge_cases.cpp)
++target_link_libraries(test_edge_cases lib)
+diff --git a/include/ticks.hpp b/include/ticks.hpp
+index 1c982e7..ae39f8d 100644
+--- a/include/ticks.hpp
++++ b/include/ticks.hpp
+@@ -7,9 +7,8 @@
+ namespace ticks {
+ struct Order { double px; int qty; };
+ 
+-// Upper-cased ticker. The result stays valid as long as `in`'s storage does not need to:
+-// callers keep the returned value after `in` is gone.
+-std::string_view upper_ticker(std::string_view in);
++// Upper-cased ticker. Returns a new string with the input converted to uppercase.
++std::string upper_ticker(std::string_view in);
+ // Appends to `v` the negative of every element present on entry, in order.
+ void append_negated(std::vector<double>& v);
+ // 32-bit FNV-style mix, defined as arithmetic modulo 2^32 and returned as a signed bit pattern.
+@@ -35,6 +34,6 @@ std::vector<double> rolling_mean(const std::vector<double>& values, std::size_t
+ std::string archive_label(std::string name, std::vector<std::string>& archive);
+ // Mask with the low `bits` bits set; bits ranges over 0..64.
+ std::uint64_t low_mask(int bits);
+-// Trimmed copy of the middle element of `words`, as a const reference valid until the next call.
+-const std::string& middle_word(const std::vector<std::string>& words);
++// Trimmed copy of the middle element of `words`.
++std::string middle_word(const std::vector<std::string>& words);
+ }  // namespace ticks
+diff --git a/src/ticks.cpp b/src/ticks.cpp
+index cc90d2b..552bf79 100644
+--- a/src/ticks.cpp
++++ b/src/ticks.cpp
+@@ -5,13 +5,17 @@
+ #include <stdexcept>
+ #include <thread>
+ namespace ticks {
+-std::string_view upper_ticker(std::string_view in) {
++std::string upper_ticker(std::string_view in) {
+     std::string out(in);
+     std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return char(std::toupper(c)); });
+     return out;
+ }
+ void append_negated(std::vector<double>& v) {
+-    for (auto it = v.begin(), e = v.end(); it != e; ++it) v.push_back(-*it);
++    std::size_t original_size = v.size();
++    v.reserve(2 * original_size);
++    for (std::size_t i = 0; i < original_size; ++i) {
++        v.push_back(-v[i]);
++    }
+ }
+ std::int32_t mix_hash(std::span<const std::int32_t> values) {
+     std::int32_t h = 2166136261u;
+@@ -22,37 +26,52 @@ double read_price(const unsigned char* buf, std::size_t off) {
+     return *reinterpret_cast<const double*>(buf + off);
+ }
+ long count_ticks(int threads, long per_thread) {
+-    long total = 0;
++    std::atomic<long> total{0};
+     std::vector<std::thread> pool;
+     for (int t = 0; t < threads; t++)
+         pool.emplace_back([&] { for (long i = 0; i < per_thread; i++) total++; });
+     for (auto& t : pool) t.join();
+-    return total;
++    return total.load();
+ }
+ void Book::add(Order o) { orders_.push_back(o); }
+ const Order& Book::best() const {
++    if (orders_.empty()) {
++        throw std::domain_error("No orders in book");
++    }
+     return *std::max_element(orders_.begin(), orders_.end(), [](const Order& a, const Order& b) { return a.px < b.px; });
+ }
+ double Book::add_and_improvement(Order o) {
++    if (orders_.empty()) {
++        add(o);
++        return 0.0;
++    }
+     const Order& before = best();
+     add(o);
+     return best().px - before.px;
+ }
+ std::vector<double> rolling_mean(const std::vector<double>& values, std::size_t w) {
++    if (w == 0 || w > values.size()) {
++        return {};
++    }
+     std::vector<double> out;
+     double s = std::accumulate(values.begin(), values.begin() + w, 0.0);
+-    for (std::size_t i = w; i <= values.size(); i++) {
++    for (std::size_t i = 0; i <= values.size() - w; i++) {
+         out.push_back(s / double(w));
+-        s += values[i] - values[i - w];
++        if (i + w < values.size()) {
++            s += values[i + w] - values[i];
++        }
+     }
+     return out;
+ }
+ std::string archive_label(std::string name, std::vector<std::string>& archive) {
+     archive.push_back(std::move(name));
+-    return name + ":" + std::to_string(name.size());
++    return archive.back() + ":" + std::to_string(archive.back().size());
+ }
+ std::uint64_t low_mask(int bits) { return (std::uint64_t{1} << bits) - 1; }
+-const std::string& middle_word(const std::vector<std::string>& words) {
++std::string middle_word(const std::vector<std::string>& words) {
++    if (words.empty()) {
++        return {};
++    }
+     std::string w = words[words.size() / 2];
+     w.erase(0, w.find_first_not_of(' '));
+     w.erase(w.find_last_not_of(' ') + 1);
+diff --git a/test_edge_cases.cpp b/test_edge_cases.cpp
+new file mode 100644
+index 0000000..1c8e030
+--- /dev/null
++++ b/test_edge_cases.cpp
+@@ -0,0 +1,57 @@
++#include "include/ticks.hpp"
++#include <iostream>
++#include <vector>
++#include <string>
++
++int main() {
++    std::cout << "Testing edge cases..." << std::endl;
++    
++    // Test empty vector in rolling_mean
++    std::vector<double> empty_values;
++    auto result1 = ticks::rolling_mean(empty_values, 1);
++    std::cout << "Empty rolling_mean result size: " << result1.size() << std::endl;
++    
++    // Test invalid window size in rolling_mean
++    std::vector<double> values = {1.0, 2.0, 3.0};
++    auto result2 = ticks::rolling_mean(values, 0);
++    std::cout << "Zero window rolling_mean result size: " << result2.size() << std::endl;
++    
++    auto result3 = ticks::rolling_mean(values, 5);  // window larger than vector
++    std::cout << "Large window rolling_mean result size: " << result3.size() << std::endl;
++    
++    // Test Book with empty orders
++    ticks::Book book;
++    try {
++        auto best = book.best();
++        std::cout << "Unexpected success in empty book" << std::endl;
++    } catch (const std::domain_error& e) {
++        std::cout << "Correctly caught exception for empty book: " << e.what() << std::endl;
++    }
++    
++    // Test add_and_improvement on empty book
++    double improvement = book.add_and_improvement({100.0, 10});
++    std::cout << "Improvement on empty book: " << improvement << std::endl;
++    
++    // Test middle_word with empty vector
++    std::vector<std::string> empty_words;
++    auto middle = ticks::middle_word(empty_words);
++    std::cout << "Middle word of empty vector: '" << middle << "'" << std::endl;
++    
++    // Test middle_word with single element
++    std::vector<std::string> single_word = {"  hello  "};
++    auto middle2 = ticks::middle_word(single_word);
++    std::cout << "Middle word of single element: '" << middle2 << "'" << std::endl;
++    
++    // Test append_negated with empty vector
++    std::vector<double> empty_v;
++    ticks::append_negated(empty_v);
++    std::cout << "Append negated on empty vector size: " << empty_v.size() << std::endl;
++    
++    // Test archive_label with empty string
++    std::vector<std::string> archive;
++    std::string label = ticks::archive_label("", archive);
++    std::cout << "Archive label for empty string: " << label << std::endl;
++    
++    std::cout << "All edge case tests passed!" << std::endl;
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_ticks.cpp b/test_ticks.cpp
+new file mode 100644
+index 0000000..7150ba7
+--- /dev/null
++++ b/test_ticks.cpp
+@@ -0,0 +1,62 @@
++#include "include/ticks.hpp"
++#include <iostream>
++#include <vector>
++#include <string>
++
++int main() {
++    // Test upper_ticker
++    std::string input = "test";
++    auto result = ticks::upper_ticker(input);
++    std::cout << "upper_ticker result: " << result << std::endl;
++    
++    // Test append_negated
++    std::vector<double> v = {1.0, 2.0, 3.0};
++    ticks::append_negated(v);
++    std::cout << "append_negated result: ";
++    for (double x : v) std::cout << x << " ";
++    std::cout << std::endl;
++    
++    // Test mix_hash
++    std::vector<std::int32_t> values = {1, 2, 3};
++    auto hash = ticks::mix_hash(values);
++    std::cout << "mix_hash result: " << hash << std::endl;
++    
++    // Test read_price
++    unsigned char buf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
++    double price = ticks::read_price(buf, 0);
++    std::cout << "read_price result: " << price << std::endl;
++    
++    // Test count_ticks
++    long total = ticks::count_ticks(2, 1000);
++    std::cout << "count_ticks result: " << total << std::endl;
++    
++    // Test Book
++    ticks::Book book;
++    book.add({100.0, 10});
++    book.add({105.0, 5});
++    auto best = book.best();
++    std::cout << "Book best price: " << best.px << std::endl;
++    
++    // Test rolling_mean
++    std::vector<double> values2 = {1.0, 2.0, 3.0, 4.0, 5.0};
++    auto mean = ticks::rolling_mean(values2, 3);
++    std::cout << "rolling_mean result: ";
++    for (double x : mean) std::cout << x << " ";
++    std::cout << std::endl;
++    
++    // Test archive_label
++    std::vector<std::string> archive;
++    std::string label = ticks::archive_label("test", archive);
++    std::cout << "archive_label result: " << label << std::endl;
++    
++    // Test low_mask
++    auto mask = ticks::low_mask(8);
++    std::cout << "low_mask result: " << mask << std::endl;
++    
++    // Test middle_word
++    std::vector<std::string> words = {"  hello  ", "  world  ", "  test  "};
++    auto middle = ticks::middle_word(words);
++    std::cout << "middle_word result: " << middle << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

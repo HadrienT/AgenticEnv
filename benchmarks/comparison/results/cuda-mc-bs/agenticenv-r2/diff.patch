@@ -1,0 +1,308 @@
+diff --git a/debug_test b/debug_test
+new file mode 100644
+index 0000000..1a75a2c
+Binary files /dev/null and b/debug_test differ
+diff --git a/debug_test.cu b/debug_test.cu
+new file mode 100644
+index 0000000..259efad
+--- /dev/null
++++ b/debug_test.cu
+@@ -0,0 +1,35 @@
++#include <iostream>
++#include <cuda_runtime.h>
++#include "include/gpu_mc.h"
++
++// Simple test to check if CUDA is working
++int main() {
++    int deviceCount;
++    cudaGetDeviceCount(&deviceCount);
++    std::cout << "Number of CUDA devices: " << deviceCount << std::endl;
++    
++    if (deviceCount > 0) {
++        cudaDeviceProp prop;
++        cudaGetDeviceProperties(&prop, 0);
++        std::cout << "Device 0 name: " << prop.name << std::endl;
++        std::cout << "Device 0 memory: " << prop.totalGlobalMem / (1024*1024) << " MB" << std::endl;
++    }
++    
++    // Test with a small number of paths
++    double S = 100.0;
++    double K = 100.0;
++    double r = 0.05;
++    double q = 0.02;
++    double sigma = 0.2;
++    double T = 1.0;
++    unsigned long long nPaths = 10000; // 10k paths
++    unsigned long long seed = 12345;
++    int device = 0;
++    
++    McResult result = gpu_bs_call(S, K, r, q, sigma, T, nPaths, seed, device);
++    
++    std::cout << "Price: " << result.price << std::endl;
++    std::cout << "Std Error: " << result.std_error << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/simple_test b/simple_test
+new file mode 100644
+index 0000000..93975a7
+Binary files /dev/null and b/simple_test differ
+diff --git a/simple_test.cu b/simple_test.cu
+new file mode 100644
+index 0000000..81bc6fe
+--- /dev/null
++++ b/simple_test.cu
+@@ -0,0 +1,39 @@
++#include <iostream>
++#include <cuda_runtime.h>
++
++// Simple kernel to test if CUDA works
++__global__ void simple_kernel(int* data, int size) {
++    int idx = blockIdx.x * blockDim.x + threadIdx.x;
++    if (idx < size) {
++        data[idx] = idx;
++    }
++}
++
++int main() {
++    // Test basic CUDA functionality
++    int deviceCount;
++    cudaGetDeviceCount(&deviceCount);
++    std::cout << "CUDA devices: " << deviceCount << std::endl;
++    
++    if (deviceCount > 0) {
++        int* d_data;
++        int* h_data = new int[10];
++        
++        cudaMalloc(&d_data, 10 * sizeof(int));
++        cudaMemset(d_data, 0, 10 * sizeof(int));
++        
++        simple_kernel<<<1, 10>>>(d_data, 10);
++        cudaMemcpy(h_data, d_data, 10 * sizeof(int), cudaMemcpyDeviceToHost);
++        
++        std::cout << "First few values: ";
++        for (int i = 0; i < 5; i++) {
++            std::cout << h_data[i] << " ";
++        }
++        std::cout << std::endl;
++        
++        cudaFree(d_data);
++        delete[] h_data;
++    }
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/src/gpu_mc.cu b/src/gpu_mc.cu
+index 320dc70..743b441 100644
+--- a/src/gpu_mc.cu
++++ b/src/gpu_mc.cu
+@@ -1,2 +1,172 @@
+ #include "gpu_mc.h"
+-McResult gpu_bs_call(double, double, double, double, double, double, unsigned long long, unsigned long long, int) { return {0, 0}; }
++#include <cuda_runtime.h>
++#include <cmath>
++#include <algorithm>
++#include <limits>
++
++// Custom XORWOW random number generator (based on CUDA's curand)
++__device__ __forceinline__ unsigned int xorwow_rng(unsigned int* state) {
++    unsigned int t = state[0];
++    state[0] = state[1];
++    state[1] = state[2];
++    state[2] = state[3];
++    state[3] = state[4];
++    state[4] = state[5];
++    state[5] = (state[5] ^ (state[5] >> 2));
++    state[5] = (state[5] ^ (state[5] << 1)) + t;
++    return state[5];
++}
++
++// Generate a normal random variable using Box-Muller transform
++__device__ __forceinline__ double normal_rng(unsigned int* state) {
++    // Generate two uniform random numbers
++    unsigned int r1 = xorwow_rng(state);
++    unsigned int r2 = xorwow_rng(state);
++    
++    // Convert to uniform [0,1) range
++    double u1 = (r1 >> 8) * (1.0 / 16777216.0);
++    double u2 = (r2 >> 8) * (1.0 / 16777216.0);
++    
++    // Box-Muller transform
++    double z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
++    return z0;
++}
++
++// For atomic operations on doubles, we'll use a simple approach with a single accumulator
++// and reduce on the host side to avoid atomicAdd issues with doubles
++
++// Kernel for Monte Carlo pricing - each thread computes partial sums
++__global__ void mc_call_kernel(double S, double K, double r, double q, double sigma, double T,
++                               unsigned long long nPaths, unsigned long long seed,
++                               double* partial_sums, double* partial_sum_squares) {
++    unsigned long long idx = blockIdx.x * blockDim.x + threadIdx.x;
++    unsigned long long stride = gridDim.x * blockDim.x;
++    
++    // Initialize random number generator state
++    unsigned int rng_state[6];
++    rng_state[0] = (unsigned int)(seed & 0xFFFFFFFF);
++    rng_state[1] = (unsigned int)((seed >> 32) & 0xFFFFFFFF);
++    rng_state[2] = (unsigned int)(idx & 0xFFFFFFFF);
++    rng_state[3] = (unsigned int)((idx >> 32) & 0xFFFFFFFF);
++    rng_state[4] = 0x9E3779B9;
++    rng_state[5] = 0x9E3779B9;
++    
++    // Each thread processes multiple paths if needed
++    double local_sum = 0.0;
++    double local_sum_squares = 0.0;
++    
++    for (unsigned long long i = idx; i < nPaths; i += stride) {
++        // Initialize random number generator with path-specific seed
++        unsigned int path_seed = (unsigned int)(i ^ seed);
++        rng_state[0] = path_seed;
++        rng_state[1] = path_seed;
++        rng_state[2] = path_seed;
++        rng_state[3] = path_seed;
++        rng_state[4] = 0x9E3779B9;
++        rng_state[5] = 0x9E3779B9;
++        
++        // Generate standard normal random variable
++        double z = normal_rng(rng_state);
++        
++        // Calculate stock price at maturity
++        double ST = S * exp((r - q - 0.5 * sigma * sigma) * T + sigma * sqrt(T) * z);
++        
++        // Calculate payoff
++        double payoff = fmax(ST - K, 0.0);
++        
++        // Accumulate results locally
++        local_sum += payoff;
++        local_sum_squares += payoff * payoff;
++    }
++    
++    // Store partial results
++    partial_sums[idx] = local_sum;
++    partial_sum_squares[idx] = local_sum_squares;
++}
++
++McResult gpu_bs_call(double S, double K, double r, double q, double sigma, double T,
++                     unsigned long long nPaths, unsigned long long seed, int device) {
++    // Set device
++    cudaSetDevice(device);
++    
++    // Check for CUDA errors
++    cudaError_t err = cudaGetLastError();
++    if (err != cudaSuccess) {
++        return {0.0, 0.0};
++    }
++    
++    // Calculate maximum number of paths we can handle with 256 MiB memory
++    const size_t max_memory = 256 * 1024 * 1024; // 256 MiB
++    const size_t max_paths = max_memory / (sizeof(double) * 2); // 2 doubles per path (sum and sum_squares)
++    unsigned long long effective_nPaths = std::min(nPaths, (unsigned long long)max_paths);
++    
++    // Allocate device memory for partial results
++    double *d_partial_sums, *d_partial_sum_squares;
++    double h_sum = 0.0, h_sum_squares = 0.0;
++    
++    // Allocate memory for partial sums (one per thread)
++    const int block_size = 256;
++    const int grid_size = std::min((int)((effective_nPaths + block_size - 1) / block_size), 65535);
++    size_t partial_sum_size = grid_size * sizeof(double);
++    
++    cudaMalloc(&d_partial_sums, partial_sum_size);
++    cudaMalloc(&d_partial_sum_squares, partial_sum_size);
++    
++    // Check for allocation errors
++    if (d_partial_sums == nullptr || d_partial_sum_squares == nullptr) {
++        return {0.0, 0.0};
++    }
++    
++    // Configure kernel launch parameters
++    mc_call_kernel<<<grid_size, block_size>>>(
++        S, K, r, q, sigma, T, effective_nPaths, seed, d_partial_sums, d_partial_sum_squares);
++    
++    // Check for kernel launch errors
++    err = cudaGetLastError();
++    if (err != cudaSuccess) {
++        // Cleanup and return error
++        cudaFree(d_partial_sums);
++        cudaFree(d_partial_sum_squares);
++        return {0.0, 0.0};
++    }
++    
++    // Wait for kernel to complete
++    cudaDeviceSynchronize();
++    
++    // Copy results back to host
++    double* h_partial_sums = new double[grid_size];
++    double* h_partial_sum_squares = new double[grid_size];
++    
++    cudaMemcpy(h_partial_sums, d_partial_sums, partial_sum_size, cudaMemcpyDeviceToHost);
++    cudaMemcpy(h_partial_sum_squares, d_partial_sum_squares, partial_sum_size, cudaMemcpyDeviceToHost);
++    
++    // Reduce partial sums on host
++    for (int i = 0; i < grid_size; i++) {
++        h_sum += h_partial_sums[i];
++        h_sum_squares += h_partial_sum_squares[i];
++    }
++    
++    // Cleanup
++    delete[] h_partial_sums;
++    delete[] h_partial_sum_squares;
++    
++    // Check for copy errors
++    err = cudaGetLastError();
++    if (err != cudaSuccess) {
++        cudaFree(d_partial_sums);
++        cudaFree(d_partial_sum_squares);
++        return {0.0, 0.0};
++    }
++    
++    // Calculate price and standard error
++    double price = h_sum / effective_nPaths * exp(-r * T);
++    double mean = price;
++    double variance = (h_sum_squares / effective_nPaths) - (mean * mean);
++    double std_error = sqrt(variance / effective_nPaths);
++    
++    // Cleanup
++    cudaFree(d_partial_sums);
++    cudaFree(d_partial_sum_squares);
++    
++    return {price, std_error};
++}
+diff --git a/test_gpu_mc b/test_gpu_mc
+new file mode 100644
+index 0000000..42c2f6c
+Binary files /dev/null and b/test_gpu_mc differ
+diff --git a/test_gpu_mc.cu b/test_gpu_mc.cu
+new file mode 100644
+index 0000000..bd1eba6
+--- /dev/null
++++ b/test_gpu_mc.cu
+@@ -0,0 +1,23 @@
++#include <iostream>
++#include "include/gpu_mc.h"
++
++int main() {
++    // Test parameters for a European call option
++    double S = 100.0;  // Stock price
++    double K = 100.0;  // Strike price
++    double r = 0.05;   // Risk-free rate
++    double q = 0.02;   // Dividend yield
++    double sigma = 0.2; // Volatility
++    double T = 1.0;    // Time to maturity
++    unsigned long long nPaths = 1000000; // 1 million paths
++    unsigned long long seed = 12345; // Random seed
++    int device = 0; // Use device 0
++    
++    // Call the GPU Monte Carlo function
++    McResult result = gpu_bs_call(S, K, r, q, sigma, T, nPaths, seed, device);
++    
++    std::cout << "Price: " << result.price << std::endl;
++    std::cout << "Standard Error: " << result.std_error << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

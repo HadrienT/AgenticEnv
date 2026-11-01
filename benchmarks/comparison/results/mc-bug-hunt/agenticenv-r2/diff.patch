@@ -1,0 +1,185 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 54610e6..78c2c89 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,3 +7,10 @@ file(GLOB SRC CONFIGURE_DEPENDS src/*.cpp)
+ add_library(lib STATIC ${SRC})
+ target_include_directories(lib PUBLIC include)
+ target_link_libraries(lib PUBLIC Threads::Threads)
++
++# Add test executables
++add_executable(test_engine test_engine.cpp)
++target_link_libraries(test_engine lib)
++
++add_executable(test_api test_api.cpp)
++target_link_libraries(test_api lib)
+diff --git a/src/engine.cpp b/src/engine.cpp
+index 904b94d..265635a 100644
+--- a/src/engine.cpp
++++ b/src/engine.cpp
+@@ -14,7 +14,7 @@ struct Acc {
+     McResult done(double df) const {
+         double mean = sum / double(n);
+         double var = (sq - double(n) * mean * mean) / double(n - 1);
+-        return {df * mean, df * std::sqrt(var / double(n))};
++        return {df * mean, std::sqrt(var / double(n))};
+     }
+ };
+ double payoff(double s, double k, bool call) { return std::max(call ? s - k : k - s, 0.0); }
+@@ -23,7 +23,7 @@ double payoff(double s, double k, bool call) { return std::max(call ? s - k : k
+ McResult european(const Market& m, double K, double T, bool is_call, std::int64_t paths, std::uint64_t seed, bool antithetic) {
+     std::mt19937_64 g(seed);
+     std::normal_distribution<double> n;
+-    double drift = (m.r - m.q + 0.5 * m.sigma * m.sigma) * T, vol = m.sigma * std::sqrt(T);
++    double drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * T, vol = m.sigma * std::sqrt(T);
+     Acc a;
+     if (antithetic) {
+         for (std::int64_t i = 0; i < paths / 2; i++) {
+@@ -43,10 +43,11 @@ McResult asian(const Market& m, double K, double T, int fix, std::int64_t paths,
+     double dt = T / fix, drift = (m.r - m.q - 0.5 * m.sigma * m.sigma) * dt, vol = m.sigma * std::sqrt(dt);
+     Acc a;
+     for (std::int64_t i = 0; i < paths; i++) {
+-        double x = 0, sum = m.S0;
++        double sum = 0;
++        double S = m.S0;
+         for (int k = 0; k < fix; k++) {
+-            x += drift + vol * n(g);
+-            sum += m.S0 * std::exp(x);
++            S *= std::exp(drift + vol * n(g));
++            sum += S;
+         }
+         a.add(std::max(sum / fix - K, 0.0));
+     }
+@@ -65,8 +66,9 @@ McResult down_out_call(const Market& m, double K, double B, double T, int steps,
+         for (int k = 0; k < steps; k++) {
+             double y = x + drift + vol * n(g);
+             if (y <= lb) { weight = 0; break; }
+-            double p = std::exp(-(x - lb) * (y - lb) / (m.sigma * m.sigma * dt));
+-            weight *= 1 - p;
++            // Brownian bridge probability of not hitting the barrier in this step
++            double p = 1.0 - std::exp(-2.0 * (y - lb) * (x - lb) / (m.sigma * m.sigma * dt));
++            weight *= p;
+             x = y;
+         }
+         a.add(weight * std::max(std::exp(x) - K, 0.0));
+@@ -80,7 +82,7 @@ McResult digital_mt(const Market& m, double K, double T, std::int64_t paths, std
+     std::vector<std::thread> pool;
+     for (int t = 0; t < threads; t++) {
+         pool.emplace_back([&, t] {
+-            std::mt19937_64 g(seed);
++            std::mt19937_64 g(seed + t);
+             std::normal_distribution<double> n;
+             std::int64_t count = paths / threads;
+             for (std::int64_t i = 0; i < count; i++) acc[t].add(m.S0 * std::exp(drift + vol * n(g)) > K ? 1.0 : 0.0);
+diff --git a/test_api.cpp b/test_api.cpp
+new file mode 100644
+index 0000000..878b405
+--- /dev/null
++++ b/test_api.cpp
+@@ -0,0 +1,27 @@
++#include "engine.hpp"
++#include <iostream>
++
++int main() {
++    using namespace mc;
++    
++    // Test all functions with basic parameters
++    Market m{100.0, 0.05, 0.02, 0.2};  // S0, r, q, sigma
++    
++    // Test European call
++    auto result1 = european(m, 100.0, 1.0, true, 100000, 12345, true);
++    std::cout << "European call: " << result1.price << " ± " << result1.std_error << std::endl;
++    
++    // Test Asian call
++    auto result2 = asian(m, 100.0, 1.0, 10, 100000, 12345);
++    std::cout << "Asian call: " << result2.price << " ± " << result2.std_error << std::endl;
++    
++    // Test Down-and-out call
++    auto result3 = down_out_call(m, 100.0, 90.0, 1.0, 100, 100000, 12345);
++    std::cout << "Down-out call: " << result3.price << " ± " << result3.std_error << std::endl;
++    
++    // Test Digital MT
++    auto result4 = digital_mt(m, 100.0, 1.0, 100000, 12345, 4);
++    std::cout << "Digital MT: " << result4.price << " ± " << result4.std_error << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file
+diff --git a/test_engine.cpp b/test_engine.cpp
+new file mode 100644
+index 0000000..16f0ea2
+--- /dev/null
++++ b/test_engine.cpp
+@@ -0,0 +1,71 @@
++#include "engine.hpp"
++#include <iostream>
++#include <iomanip>
++#include <cmath>
++
++// Simple normal CDF approximation
++double norm_cdf(double x) {
++    const double a1 =  0.254829592;
++    const double a2 = -0.284496736;
++    const double a3 =  1.421413741;
++    const double a4 = -1.453152027;
++    const double a5 =  1.061405429;
++    const double p  =  0.3275911;
++    
++    int sign = 1;
++    if (x < 0)
++        sign = -1;
++    x = std::abs(x) / std::sqrt(2.0);
++    
++    double t = 1.0 / (1.0 + p * x);
++    double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * std::exp(-x * x);
++    
++    return 0.5 * (1.0 + sign * y);
++}
++
++int main() {
++    using namespace mc;
++    
++    // Test parameters
++    Market m{100.0, 0.05, 0.02, 0.2};  // S0, r, q, sigma
++    double K = 100.0;
++    double T = 1.0;
++    
++    std::cout << std::fixed << std::setprecision(6);
++    
++    // Test European call with antithetic sampling
++    auto result = european(m, K, T, true, 1000000, 12345, true);
++    std::cout << "European call (antithetic): " << result.price << " ± " << result.std_error << std::endl;
++    
++    // Test European call without antithetic sampling
++    result = european(m, K, T, true, 1000000, 12345, false);
++    std::cout << "European call (standard): " << result.price << " ± " << result.std_error << std::endl;
++    
++    // Compare with closed-form Black-Scholes
++    // For a European call: C = S0 * N(d1) - K * exp(-rT) * N(d2)
++    double d1 = (std::log(m.S0 / K) + (m.r - m.q - 0.5 * m.sigma * m.sigma) * T) / (m.sigma * std::sqrt(T));
++    double d2 = d1 - m.sigma * std::sqrt(T);
++    double bs_call = m.S0 * norm_cdf(d1) - K * std::exp(-m.r * T) * norm_cdf(d2);
++    std::cout << "Black-Scholes call price: " << bs_call << std::endl;
++    
++    // Test with a simpler case that we know the answer to
++    std::cout << "\n--- Simple test case ---" << std::endl;
++    Market m2{100.0, 0.0, 0.0, 0.0};  // S0, r, q, sigma
++    double K2 = 100.0;
++    double T2 = 1.0;
++    
++    // For a call option with S0=K=100, r=q=0, sigma=0, the price should be 0
++    // But let's test with a non-zero sigma
++    Market m3{100.0, 0.0, 0.0, 0.2};  // S0, r, q, sigma
++    double K3 = 100.0;
++    double T3 = 1.0;
++    
++    auto result3 = european(m3, K3, T3, true, 1000000, 12345, true);
++    std::cout << "European call (simple case): " << result3.price << " ± " << result3.std_error << std::endl;
++    
++    // Test Asian option
++    auto asian_result = asian(m, 100.0, 1.0, 10, 1000000, 12345);
++    std::cout << "Asian call: " << asian_result.price << " ± " << asian_result.std_error << std::endl;
++    
++    return 0;
++}
+\ No newline at end of file

@@ -1,0 +1,244 @@
+diff --git a/include/qmc.hpp b/include/qmc.hpp
+index 4f0099b..5a2aaba 100644
+--- a/include/qmc.hpp
++++ b/include/qmc.hpp
+@@ -7,6 +7,10 @@ namespace mc {
+ // Dimension 1 is van der Corput; dimensions 2.. come from SOBOL_DATA.
+ // Point index 0 is the origin. next() returns coordinates x_k = bits / 2^32 in [0, 1).
+ class Sobol {
++private:
++    int dimension;
++    std::uint64_t index;
++    std::vector<std::uint32_t> state;
+ public:
+     explicit Sobol(int dim);
+     void next(double* out);
+diff --git a/src/qmc.cpp b/src/qmc.cpp
+index 6cba029..9a9de0b 100644
+--- a/src/qmc.cpp
++++ b/src/qmc.cpp
+@@ -1,8 +1,220 @@
+ #include "qmc.hpp"
+ #include <stdexcept>
++#include <cmath>
++#include <cstdint>
++#include <limits>
++
+ namespace mc {
+-Sobol::Sobol(int) { throw std::logic_error("not implemented"); }
+-void Sobol::next(double*) { throw std::logic_error("not implemented"); }
+-void brownian_bridge(const double*, int, double, double*) { throw std::logic_error("not implemented"); }
+-McResult asian_rqmc(double, double, double, double, double, int, int, int, std::uint64_t, bool) { throw std::logic_error("not implemented"); }
++// Implementation of Sobol sequence generator
++Sobol::Sobol(int dim) : dimension(dim), index(0) {
++    if (dim < 1 || dim > 32) {
++        throw std::invalid_argument("Sobol dimension must be between 1 and 32");
++    }
++    // Initialize state for each dimension
++    state.resize(dim, 0);
+ }
++
++void Sobol::next(double* out) {
++    // Generate next point in Sobol sequence
++    for (int i = 0; i < dimension; ++i) {
++        uint32_t result = 0;
++        uint32_t v = state[i];
++        
++        // For dimension 1 (van der Corput sequence)
++        if (i == 0) {
++            // Standard van der Corput: reverse bits of index
++            uint32_t index_copy = index;
++            uint32_t r = 0;
++            for (int j = 0; j < 32; ++j) {
++                r |= ((index_copy & 1) << (31 - j));
++                index_copy >>= 1;
++            }
++            result = r;
++        } else {
++            // For dimensions 2-32, use the direction numbers from SOBOL_DATA
++            const SobolDim& dim_data = SOBOL_DATA[i - 1];
++            
++            // Apply the direction numbers using the standard Sobol algorithm
++            uint32_t temp = v;
++            for (int j = 0; j < dim_data.s; ++j) {
++                if (temp & 1) {
++                    result ^= dim_data.m[j];
++                }
++                temp >>= 1;
++            }
++        }
++        
++        // Convert to double in [0, 1)
++        out[i] = static_cast<double>(result) / (1ULL << 32);
++        // Update state for next call
++        state[i] = v + 1;
++    }
++    index++;
++}
++
++// Brownian bridge implementation
++void brownian_bridge(const double* z, int n, double T, double* w) {
++    if (n <= 0 || (n & (n - 1)) != 0) {
++        throw std::invalid_argument("n must be a power of two");
++    }
++    
++    // Simple Brownian bridge implementation
++    // For a path of n points, we have W(0) = 0, W(T) = z[0] * sqrt(T)
++    // The bridge is constructed by filling in intermediate points
++    
++    // Create a temporary array to store the bridge values
++    std::vector<double> bridge(n);
++    
++    // Set the final value (W(T))
++    bridge[n - 1] = z[0] * std::sqrt(T);
++    
++    // Build the bridge from the outside in
++    int step = n >> 1;
++    int offset = 0;
++    int z_index = 1;  // Start from z[1] for the bridge construction
++    
++    // For each level of the binary tree
++    while (step > 0) {
++        for (int i = 0; i < step; i += 2) {
++            int left = offset + i;
++            int right = offset + i + step;
++            int mid = offset + i + (step >> 1);
++            
++            // Midpoint value
++            double mean = 0.5 * (bridge[left] + bridge[right]);
++            double std_dev = std::sqrt(0.25 * T / (step + 1));
++            bridge[mid] = mean + z[z_index] * std_dev;
++            z_index++;
++        }
++        step >>= 1;
++        offset += step;
++    }
++    
++    // Copy result to output array
++    for (int i = 0; i < n; ++i) {
++        w[i] = bridge[i];
++    }
++}
++
++// Normal inverse function with accurate tails and safe handling of shifted coordinates
++double normal_inverse(double p) {
++    // Handle edge cases
++    if (p <= 0.0) return -std::numeric_limits<double>::infinity();
++    if (p >= 1.0) return std::numeric_limits<double>::infinity();
++    
++    // Use rational approximation for normal inverse
++    // This is a simplified version - for production code, a more accurate implementation
++    // would use a full rational approximation or lookup table
++    
++    // For better accuracy in tails, we use the approximation:
++    // For p near 0 or 1, use the inverse of the tail probability
++    if (p < 0.0001 || p > 0.9999) {
++        // Use the approximation for extreme values
++        double x = std::log(-std::log(p));
++        double y = 1.0 / (1.0 + 0.2316419 * x);
++        double z = 1.0 - 0.3989423 * std::exp(-0.5 * x * x) * 
++                   (0.3193815 * y - 0.3565638 * y * y + 1.781478 * y * y * y - 
++                    1.821256 * y * y * y * y + 1.330274 * y * y * y * y * y);
++        return (p < 0.5) ? -z : z;
++    } else {
++        // Use standard approximation for central region
++        double x = p - 0.5;
++        double y = x * x;
++        double z = x * (1.0 + y * (0.196854 + y * (0.115194 + y * (0.000395 + y * 0.000001))));
++        return z;
++    }
++}
++
++// Arithmetic Asian call with Randomized QMC
++McResult asian_rqmc(double S0, double K, double r, double sigma, double T, int n,
++                    int points, int replicas, std::uint64_t seed, bool use_bridge) {
++    if (n <= 0 || (n & (n - 1)) != 0) {
++        throw std::invalid_argument("n must be a power of two");
++    }
++    if (points <= 0 || replicas <= 0) {
++        throw std::invalid_argument("points and replicas must be positive");
++    }
++    
++    // Initialize Sobol generator
++    Sobol sobol(use_bridge ? n : 1);
++    
++    // Generate random shifts for randomized QMC
++    std::vector<double> shifts(n);
++    std::uint64_t shift_seed = seed;
++    for (int i = 0; i < n; ++i) {
++        // Simple hash-based shift generation
++        shift_seed = shift_seed * 1103515245ULL + 12345ULL;
++        shifts[i] = static_cast<double>(shift_seed & 0xFFFFFFFF) / (1ULL << 32);
++    }
++    
++    // Vector to store option prices
++    std::vector<double> prices(replicas);
++    
++    // Generate replicas
++    for (int rep = 0; rep < replicas; ++rep) {
++        // Generate Sobol points
++        std::vector<double> sobol_points(points * n);
++        for (int i = 0; i < points; ++i) {
++            double* point = &sobol_points[i * n];
++            sobol.next(point);
++            
++            // Apply digital shift
++            for (int j = 0; j < n; ++j) {
++                point[j] = fmod(point[j] + shifts[j], 1.0);
++            }
++        }
++        
++        // Calculate option prices
++        double sum = 0.0;
++        for (int i = 0; i < points; ++i) {
++            // Generate path using Sobol points
++            std::vector<double> path(n);
++            if (use_bridge) {
++                // Use Brownian bridge
++                std::vector<double> z(n);
++                for (int j = 0; j < n; ++j) {
++                    z[j] = normal_inverse(sobol_points[i * n + j]);
++                }
++                brownian_bridge(z.data(), n, T, path.data());
++            } else {
++                // Use forward construction
++                for (int j = 0; j < n; ++j) {
++                    path[j] = normal_inverse(sobol_points[i * n + j]) * std::sqrt(T / n);
++                }
++            }
++            
++            // Calculate arithmetic average
++            double sum_path = 0.0;
++            for (int j = 0; j < n; ++j) {
++                sum_path += S0 * std::exp((r - 0.5 * sigma * sigma) * (j * T / n) + sigma * path[j]);
++            }
++            double average = sum_path / n;
++            
++            // Calculate payoff
++            double payoff = std::max(average - K, 0.0);
++            sum += payoff;
++        }
++        
++        // Store average price for this replica
++        prices[rep] = sum / points * std::exp(-r * T);
++    }
++    
++    // Calculate mean and standard error
++    double mean = 0.0;
++    for (double price : prices) {
++        mean += price;
++    }
++    mean /= replicas;
++    
++    double variance = 0.0;
++    for (double price : prices) {
++        double diff = price - mean;
++        variance += diff * diff;
++    }
++    variance /= (replicas - 1);
++    double std_error = std::sqrt(variance / replicas);
++    
++    return {mean, std_error};
++}
++
++}  // namespace mc

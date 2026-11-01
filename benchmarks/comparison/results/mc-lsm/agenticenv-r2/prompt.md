@@ -1,0 +1,1 @@
+Implement include/lsm.hpp in src/lsm.cpp, in C++20 with the standard library only: a correct Longstaff-Schwartz pricer. std_error is the standard error of the returned price. The price must stay accurate for spots of any scale (S0 = 40 or S0 = 40000) and must never be below immediate exercise at t = 0. It must handle 100000 paths and 50 steps in under 3 seconds on one thread.
