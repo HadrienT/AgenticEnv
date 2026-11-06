@@ -26,6 +26,7 @@ Cmnd_Alias AGENTICENV_STACK = \
     /usr/bin/systemctl start docker.service, \
     /usr/bin/systemctl is-active docker.service, \
     /usr/local/sbin/agx-llm-use code, \
-    /usr/local/sbin/agx-llm-use translate
+    /usr/local/sbin/agx-llm-use translate, \
+    /usr/local/sbin/agx-llm-use research
 
 hadriensuper ALL=(root) NOPASSWD: AGENTICENV_STACK
