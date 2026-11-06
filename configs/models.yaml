@@ -15,6 +15,7 @@ default_profile: code
 profiles:
   code: qwen3-coder-30b-a3b-q4
   translate: plamo-2-translate-q8
+  research: phi-4-q8
 
 defaults:
   host: 127.0.0.1
@@ -63,6 +64,20 @@ models:
     # first PLaMo 2 decode (issue #18): pinned build at its parent 77acca437.
     # Remove once upstream is fixed.
     llama_bin: /opt/llm/llama.cpp-plamo/build/bin/llama-server
+
+  # text-signals `research` profile: structured reading of English central-bank text.
+  # Microsoft's official GGUF, MIT licence; the model card states a training-data cutoff of
+  # June 2024 and English as its intended language. Source: microsoft/phi-4-gguf @ 6edc2ef6
+  # (phi-4-Q8_0.gguf). Phi-4's context is 16k; 16384 is in the global list but was not run
+  # through bench-context.sh for this model.
+  phi-4-q8:
+    path: /opt/llm/models/phi-4-Q8_0.gguf
+    sha256: f68df5d3a22a01ea9ec547741f42ee7fedbf949bf42ef526fb1944fa0cfaa110
+    served_name: phi-4
+    ctx_size: 16384
+    approx_weights_gib: 14.5
+    chat_template: null
+    extra_args: []
 
 limits:
   vram_budget_gib: 20             # locked decision, do not raise without validation
