@@ -104,6 +104,15 @@ Variants (passage R@5 / MRR, against 0.91 / 0.83 for the 50-candidate run):
 | Contextual embeddings, no reranker | 0.81 / 0.69 vs 0.83 / 0.71 raw | raw embeddings |
 | Contextual reranker over raw embeddings | 0.91 / 0.82, passage R@10 0.95, document MRR 0.85 | yes |
 
+Bigger models, tested with the main LLM stopped to free both V100s:
+
+| Test | Result |
+|---|---|
+| Passage recall of the first stage (bge-m3, before reranking) | 0.90 at 10, 0.96 at 30, 0.98 at 50, **0.986 at 100**: the right passage is almost always among the 100 candidates, so a better embedder can win at most ~1.4 points today; the reranker is the bottleneck |
+| Qwen3-Embedding-8B (1,383 tok/s on a V100) | not run on the corpus, given the ceiling above; worth re-measuring once thousands of papers make the first stage harder (`embeddings.truncate_dim` keeps its first 1024 dimensions) |
+| Qwen3-Reranker-0.6B (official llama.cpp conversion) | passage R@5 0.86 / MRR 0.77 vs 0.90 / 0.82 for bge-reranker, and 5.5 s per query: no |
+| Qwen3-Reranker-4B (community GGUF) | broken conversion (scores of 1e-27, wrong order); the local converter cannot rebuild it |
+
 The remaining passage misses are mostly generic questions several books answer (a
 Monte Carlo versus quasi-Monte Carlo question returns Glasserman before the paper the
 query was generated from). Ingesting the corpus takes 9.5 minutes on one V100 (vs ~7 h

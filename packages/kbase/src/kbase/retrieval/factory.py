@@ -26,6 +26,7 @@ def build_embedder(config: EmbeddingsConfig) -> Embedder:
             batch_size=config.batch_size,
             timeout_s=config.timeout_s,
             query_instruction=config.query_instruction,
+            truncate_dim=config.truncate_dim,
         )
     raise ConfigError(
         f"cannot build embedder {config.provider!r}: needs local, or http with a base_url",

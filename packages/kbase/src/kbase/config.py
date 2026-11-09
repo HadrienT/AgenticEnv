@@ -21,6 +21,8 @@ class EmbeddingsConfig(BaseModel):
     contextual: bool = False
     # Asymmetric models (Qwen3-Embedding) want queries as "Instruct: …\nQuery: …".
     query_instruction: str | None = None
+    # Keep the first `dim` dimensions of a larger Matryoshka model (needs normalize).
+    truncate_dim: bool = False
 
 
 class ChunkingConfig(BaseModel):
