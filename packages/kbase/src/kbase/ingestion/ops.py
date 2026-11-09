@@ -84,10 +84,13 @@ def verify(
         else 0
     )
 
+    # An equation belongs to its own `equation` chunk (structural chunking) or sits in
+    # the text of the chunk it points at (section chunking, WP19).
     equations_orphaned = session.execute(
         text(
             "SELECT count(*) FROM kb.equations eq "
-            "JOIN kb.chunks c ON c.id = eq.chunk_id WHERE c.kind <> 'equation'"
+            "JOIN kb.chunks c ON c.id = eq.chunk_id "
+            "WHERE c.kind <> 'equation' AND strpos(c.content, eq.latex) = 0"
         )
     ).scalar_one()
 

@@ -114,6 +114,12 @@ def test_section_chunks_keep_equations_inline_and_drop_curated_sections(tmp_path
     assert "Box-Muller method:\n\n$$ Z = " in contents and "$$ (2.24)" in contents
     assert "Prove it" not in contents and "Monte Carlo ...." not in contents
     assert number == "2.24"
+    with session_scope() as session:
+        report = ops.verify(
+            session, expected_dim=1024, model_name="hashing-bow", model_version="1",
+            require_section=True,
+        )  # fmt: skip
+    assert report.equations_orphaned == 0  # inline equations are not orphans
     assert any(i.startswith("A Book\n1.1 Normal variables\n\n") for i in embedder.inputs)
 
 
