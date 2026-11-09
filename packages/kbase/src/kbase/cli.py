@@ -1,16 +1,23 @@
-"""`kbase` CLI: `ingest`, `reindex`, `stats`, `verify`, `search` (WP04 §10, WP05 §10)."""
+"""`kbase` CLI: `ingest`, `reindex`, `stats`, `verify`, `search`, `eval`, `harvest`
+(WP04 §10, WP05 §10, WP13, WP18)."""
 
 from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
+import yaml
 from corelib.config import get_settings, repo_root
 from corelib.db import session_scope
 from corelib.errors import AppError
+from pydantic import ValidationError as PydanticValidationError
 
 from kbase.config import IngestionConfig, load_kbase_config
 from kbase.evaluation import evaluate, load_queries
+from kbase.harvest.http import PoliteClient
+from kbase.harvest.runner import HarvestSettings, harvest
+from kbase.harvest.schemas import HarvestProfile
 from kbase.ingestion import ops
 from kbase.ingestion import reindex as reindex_mod
 from kbase.ingestion.chunking import StructuralChunker
@@ -144,6 +151,46 @@ def _cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_harvest(args: argparse.Namespace) -> int:
+    root = repo_root()
+    config = load_kbase_config().harvest
+    profile_path = Path(args.profile)
+    if not profile_path.is_absolute():
+        profile_path = root / profile_path
+    try:
+        profile = HarvestProfile.model_validate(
+            yaml.safe_load(profile_path.read_text(encoding="utf-8"))
+        )
+    except (OSError, yaml.YAMLError, PydanticValidationError) as exc:
+        print(f"harvest failed: invalid profile {profile_path}: {exc}")
+        return 1
+    manifest = root / config.manifest
+    settings = HarvestSettings(
+        documents_dir=get_settings().paths.documents_dir,
+        manifest=manifest,
+        known_manifests=(manifest, *(root / m for m in config.known_manifests)),
+        html_dir=config.html_dir,
+        md_dir=config.md_dir,
+        page_size=config.page_size,
+        min_text_chars=config.min_text_chars,
+    )
+    client = PoliteClient(
+        user_agent=config.user_agent,
+        min_interval_s=config.min_interval_s,
+        max_attempts=config.max_attempts,
+        timeout_s=config.timeout_s,
+    )
+    try:
+        report = harvest(
+            profile, client=client, settings=settings, max_new=args.max_new, dry_run=args.dry_run
+        )
+    except AppError as exc:
+        print(f"harvest failed: {exc.code}: {exc.message}")
+        return 1
+    print(report.model_dump_json(indent=2, exclude={"papers"} if args.summary else None))
+    return 0 if report.failed == 0 or report.converted > 0 else 1
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kbase")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -182,6 +229,17 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     eval_parser.add_argument("--label", required=True)
     eval_parser.add_argument("--output", help="JSON report, relative to the repo root")
     eval_parser.set_defaults(func=_cmd_eval)
+
+    harvest_parser = subparsers.add_parser(
+        "harvest", help="Fetch arXiv papers into Markdown and a manifest for `ingest`"
+    )
+    harvest_parser.add_argument("--profile", required=True, help="configs/harvest/<name>.yaml")
+    harvest_parser.add_argument("--max-new", type=int, default=None, help="Cap on new papers")
+    harvest_parser.add_argument(
+        "--dry-run", action="store_true", help="Query arXiv only: no HTML fetch, no file written"
+    )
+    harvest_parser.add_argument("--summary", action="store_true", help="Omit per-paper results")
+    harvest_parser.set_defaults(func=_cmd_harvest)
 
     return parser
 

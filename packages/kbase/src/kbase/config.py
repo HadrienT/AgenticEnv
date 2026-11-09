@@ -67,6 +67,22 @@ class IngestionConfig(BaseModel):
     mineru_cache_dir: str = "documents/parsed"
 
 
+class HarvestConfig(BaseModel):
+    """arXiv harvest (WP18). Paths are relative to AGX_PATHS_DOCUMENTS_DIR, except the
+    manifest, which is versioned in the repo like `documents/manifest.yaml`."""
+
+    user_agent: str = "AgenticEnv-kbase-harvest/0.1 (+https://github.com/HadrienT/AgenticEnv)"
+    min_interval_s: float = 3.0  # arXiv API terms: one request every 3 seconds
+    max_attempts: int = 4
+    timeout_s: float = 60.0
+    page_size: int = 100
+    min_text_chars: int = 1500
+    html_dir: str = "arxiv/html"
+    md_dir: str = "arxiv/md"
+    manifest: str = "documents/manifest-arxiv.yaml"
+    known_manifests: list[str] = ["documents/manifest.yaml"]
+
+
 class KbaseConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -75,6 +91,7 @@ class KbaseConfig(BaseModel):
     retrieval: RetrievalConfig
     provenance: ProvenanceConfig
     ingestion: IngestionConfig
+    harvest: HarvestConfig = HarvestConfig()
 
 
 def load_kbase_config() -> KbaseConfig:

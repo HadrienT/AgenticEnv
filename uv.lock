@@ -2308,6 +2308,7 @@ name = "kbase"
 version = "0.1.0"
 source = { editable = "packages/kbase" }
 dependencies = [
+    { name = "beautifulsoup4" },
     { name = "corelib" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -2321,6 +2322,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "beautifulsoup4", specifier = ">=4.13" },
     { name = "corelib", editable = "packages/corelib" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
