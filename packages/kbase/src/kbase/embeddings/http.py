@@ -35,8 +35,10 @@ class HttpEmbedder:
         normalize: bool,
         batch_size: int,
         timeout_s: float,
+        query_instruction: str | None = None,
     ) -> None:
         self.model_name = model_name
+        self._query_instruction = query_instruction
         self.model_version = model_version
         self.dim = dim
         self._url = f"{base_url.rstrip('/')}/embeddings"
@@ -70,4 +72,6 @@ class HttpEmbedder:
         return vectors
 
     def embed_query(self, text: str) -> Sequence[float]:
+        if self._query_instruction:
+            text = f"Instruct: {self._query_instruction}\nQuery: {text}"
         return self._embed([text])[0]

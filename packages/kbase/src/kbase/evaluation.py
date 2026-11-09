@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from kbase.retrieval.hybrid import HybridRetriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
+from kbase.schemas import RetrievedChunk
 
 _K_RECALL = (5, 10)
 _K_NDCG = 10
@@ -21,6 +22,10 @@ class ReferenceQuery(BaseModel):
     category: str
     text: str
     expected: list[str]
+    # Section titles that answer the query (inside an `expected` document): scores the
+    # passage, not only the document. A hit is a chunk of an expected document whose
+    # section path or content carries one of these titles.
+    expected_sections: list[str] = []
 
 
 class Metrics(BaseModel):
@@ -31,12 +36,26 @@ class Metrics(BaseModel):
     ndcg_at_10: float
     latency_p50_ms: float
     latency_p95_ms: float
+    # Over the queries that name `expected_sections`; ranks are chunk ranks.
+    section_queries: int = 0
+    section_recall_at_5: float | None = None
+    section_recall_at_10: float | None = None
+    section_mrr: float | None = None
+
+
+class QueryDetail(BaseModel):
+    text: str
+    category: str
+    hit_rank: int | None
+    section_hit_rank: int | None
+    top_documents: list[str]
 
 
 class EvalReport(BaseModel):
     label: str
     overall: Metrics
     by_category: dict[str, Metrics]
+    details: list[QueryDetail] = []
 
 
 class _Scored(BaseModel):
@@ -44,6 +63,8 @@ class _Scored(BaseModel):
     hit_rank: int | None
     ndcg: float
     latency_ms: float
+    section_hit_rank: int | None = None
+    has_sections: bool = False
 
 
 def load_queries(path: Path) -> list[ReferenceQuery]:
@@ -61,14 +82,29 @@ def _ndcg(ranked: list[str], expected: set[str]) -> float:
     return sum(gains) / sum(ideal) if ideal else 0.0
 
 
-def _score(query: ReferenceQuery, ranked: list[str], latency_ms: float) -> _Scored:
+def _section_hit(query: ReferenceQuery, chunk: RetrievedChunk) -> bool:
+    if chunk.citation.doc_key not in query.expected:
+        return False
+    haystack = f"{chunk.citation.section_path or ''}\n{chunk.chunk.content}".lower()
+    return any(title.lower() in haystack for title in query.expected_sections)
+
+
+def _score(query: ReferenceQuery, chunks: list[RetrievedChunk], latency_ms: float) -> _Scored:
     expected = set(query.expected)
+    ranked = _dedup([chunk.citation.doc_key for chunk in chunks])
     hit_rank = next((i for i, doc in enumerate(ranked, start=1) if doc in expected), None)
+    section_hit_rank = (
+        next((i for i, c in enumerate(chunks, start=1) if _section_hit(query, c)), None)
+        if query.expected_sections
+        else None
+    )
     return _Scored(
         category=query.category,
         hit_rank=hit_rank,
         ndcg=_ndcg(ranked, expected),
         latency_ms=latency_ms,
+        section_hit_rank=section_hit_rank,
+        has_sections=bool(query.expected_sections),
     )
 
 
@@ -82,6 +118,15 @@ def _aggregate(scored: list[_Scored]) -> Metrics:
         return statistics.fmean(s.hit_rank is not None and s.hit_rank <= k for s in scored)
 
     latencies = [s.latency_ms for s in scored]
+    with_sections = [s for s in scored if s.has_sections]
+
+    def section_recall(k: int) -> float | None:
+        if not with_sections:
+            return None
+        return statistics.fmean(
+            s.section_hit_rank is not None and s.section_hit_rank <= k for s in with_sections
+        )
+
     return Metrics(
         queries=len(scored),
         recall_at_5=recall(_K_RECALL[0]),
@@ -90,20 +135,42 @@ def _aggregate(scored: list[_Scored]) -> Metrics:
         ndcg_at_10=statistics.fmean(s.ndcg for s in scored),
         latency_p50_ms=_percentile(latencies, 0.5),
         latency_p95_ms=_percentile(latencies, 0.95),
+        section_queries=len(with_sections),
+        section_recall_at_5=section_recall(_K_RECALL[0]),
+        section_recall_at_10=section_recall(_K_RECALL[1]),
+        section_mrr=statistics.fmean(
+            1.0 / s.section_hit_rank if s.section_hit_rank else 0.0 for s in with_sections
+        )
+        if with_sections
+        else None,
     )
 
 
-def evaluate(retriever: HybridRetriever, queries: list[ReferenceQuery], label: str) -> EvalReport:
+def evaluate(
+    retriever: HybridRetriever, queries: list[ReferenceQuery], label: str, *, details: bool = False
+) -> EvalReport:
     scored: list[_Scored] = []
+    rows: list[QueryDetail] = []
     for query in queries:
         result = retriever.retrieve(
             RetrievalQuery(text=query.text, k=20, filters=RetrievalFilters(), strategy="hybrid")
         )
-        ranked = _dedup([chunk.citation.doc_key for chunk in result.chunks])
-        scored.append(_score(query, ranked, float(result.latency_ms)))
+        item = _score(query, result.chunks, float(result.latency_ms))
+        scored.append(item)
+        if details:
+            rows.append(
+                QueryDetail(
+                    text=query.text,
+                    category=query.category,
+                    hit_rank=item.hit_rank,
+                    section_hit_rank=item.section_hit_rank,
+                    top_documents=_dedup([c.citation.doc_key for c in result.chunks])[:5],
+                )
+            )
     categories = sorted({s.category for s in scored})
     return EvalReport(
         label=label,
         overall=_aggregate(scored),
         by_category={c: _aggregate([s for s in scored if s.category == c]) for c in categories},
+        details=rows,
     )

@@ -36,6 +36,7 @@ The project's "JIRA" is the **GitHub Issues of both repositories**. `gh` is auth
 | `just bench-agent <label>` | agent benchmark (Docker + `llama-server`, several minutes per task) |
 | `uv run kbase eval --label <x>` | retrieval measurement on `benchmarks/retrieval/queries.yaml` |
 | `uv run kbase harvest --profile configs/harvest/<p>.yaml` | arXiv papers → Markdown + `documents/manifest-arxiv.yaml`, then `kbase ingest` on it (WP18) |
+| `uv run kbase delete --doc-key <k>` | removes a document and everything derived from it; re-ingesting a document replaces its previous version (WP19) |
 | `just test-e2e` | OpenHands smoke test (Docker + `llama-server` required, outside CI) |
 | `just run-bridge` | runs the WebSocket bridge on `127.0.0.1:8300` |
 

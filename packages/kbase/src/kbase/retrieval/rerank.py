@@ -9,6 +9,7 @@ import re
 from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
+from kbase.contextual import PATH_SEPARATOR, contextual_text
 from kbase.embeddings.http import post_json
 from kbase.schemas import RetrievedChunk
 
@@ -28,11 +29,21 @@ class Reranker(Protocol):
     ) -> list[RetrievedChunk]: ...
 
 
+def reranker_text(candidate: RetrievedChunk) -> str:
+    """What the cross-encoder reads: the chunk headed by its document and section."""
+    citation = candidate.citation
+    path = citation.section_path.split(PATH_SEPARATOR) if citation.section_path else []
+    return contextual_text(citation.document, path, candidate.chunk.content)
+
+
 class HttpReranker:
-    def __init__(self, *, base_url: str, model_name: str, timeout_s: float) -> None:
+    def __init__(
+        self, *, base_url: str, model_name: str, timeout_s: float, contextual: bool = False
+    ) -> None:
         self.model_name = model_name
         self._url = f"{base_url.rstrip('/')}/rerank"
         self._timeout_s = timeout_s
+        self._contextual = contextual
 
     def rerank(
         self, query: str, candidates: Sequence[RetrievedChunk], *, top_k: int
@@ -42,7 +53,9 @@ class HttpReranker:
             {
                 "model": self.model_name,
                 "query": query,
-                "documents": [c.chunk.content for c in candidates],
+                "documents": [
+                    reranker_text(c) if self._contextual else c.chunk.content for c in candidates
+                ],
             },
             timeout_s=self._timeout_s,
         )

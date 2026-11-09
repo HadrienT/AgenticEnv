@@ -97,3 +97,13 @@ def verify(
         chunks_missing_required_section=chunks_missing_required_section,
         equations_orphaned=equations_orphaned,
     )
+
+
+def delete_documents(session: Session, doc_keys: list[str]) -> list[str]:
+    """Removes documents and everything derived from them (cascade); returns the keys
+    that existed."""
+    rows = session.execute(
+        text("DELETE FROM kb.documents WHERE doc_key = ANY(:keys) RETURNING doc_key"),
+        {"keys": doc_keys},
+    ).all()
+    return sorted(str(r[0]) for r in rows)

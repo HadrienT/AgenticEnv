@@ -15,6 +15,7 @@ from pathlib import Path
 
 from corelib.hashing import sha256_file
 
+from kbase.ingestion.parsers.headings import plan_headings
 from kbase.schemas import ContentBlock, DocumentMeta, Equation, ParsedDocument, Section
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
@@ -49,13 +50,14 @@ class MarkdownParser:
     """`Parser` for `.md`/`.markdown`/`.txt` sources."""
 
     name = "markdown"
-    version = "1"
+    version = "2"  # 2: heading levels rebuilt from numbering, running headers dropped
 
     def can_parse(self, path: Path) -> bool:
         return path.suffix.lower() in {".md", ".markdown", ".txt"}
 
     def parse(self, path: Path, meta: DocumentMeta) -> ParsedDocument:
         lines = path.read_text(encoding="utf-8").splitlines()
+        heading_plan = plan_headings(lines)
         sections: list[Section] = []
         blocks: list[ContentBlock] = []
         counters: list[int] = []
@@ -95,9 +97,17 @@ class MarkdownParser:
                 continue
 
             heading_match = _HEADING_RE.match(line)
+            plan = heading_plan.get(i)
+            if heading_match and plan is not None and plan.action == "drop":
+                i += 1
+                continue
+            if heading_match and plan is not None and plan.action == "text":
+                paragraph_buf.append(heading_match.group(2))
+                i += 1
+                continue
             if heading_match:
                 flush_paragraph()
-                level = len(heading_match.group(1))
+                level = plan.level if plan is not None else len(heading_match.group(1))
                 title = heading_match.group(2).strip()
                 if level > len(counters):
                     counters.extend([0] * (level - len(counters)))

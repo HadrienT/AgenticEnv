@@ -11,7 +11,9 @@ from corelib.db import session_scope
 from corelib.errors import DependencyError
 from corelib.ids import new_id
 from corelib.logging import get_logger
+from sqlalchemy import text
 
+from kbase.contextual import PATH_SEPARATOR
 from kbase.embeddings.base import Embedder
 from kbase.provenance import assert_complete, build_citation
 from kbase.retrieval import fusion, lexical, logs, store, vector
@@ -38,7 +40,11 @@ class HybridRetriever:
         require_page: bool,
         require_section: bool,
         lexical_fallback: bool = False,
+        max_chunks_per_document: int | None = None,
+        hnsw_ef_search: int | None = None,
     ) -> None:
+        self._max_per_document = max_chunks_per_document
+        self._hnsw_ef_search = hnsw_ef_search
         self._embedder = embedder
         self._reranker = reranker
         self._candidates_vector = candidates_vector
@@ -68,6 +74,9 @@ class HybridRetriever:
                     raise DependencyError(
                         f"embedder unavailable: {exc}", details={"strategy": query.strategy}
                     ) from exc
+                if self._hnsw_ef_search:
+                    # SET cannot take a bind parameter; the value is a validated int.
+                    session.execute(text(f"SET LOCAL hnsw.ef_search = {int(self._hnsw_ef_search)}"))
                 vector_hits = vector.search(
                     session,
                     embedding=embedding,
@@ -119,12 +128,18 @@ class HybridRetriever:
             candidate_ids = ranked_ids[:pool_size]
 
             candidates = store.load_candidates(session, candidate_ids)
+            paths = store.load_section_paths(
+                session, [c.section_id for c, _ in candidates.values() if c.section_id]
+            )
             retrieved: list[RetrievedChunk] = []
             for rank, chunk_id in enumerate(candidate_ids, start=1):
                 if chunk_id not in candidates:
                     continue
                 chunk, meta = candidates[chunk_id]
                 citation = build_citation(chunk, meta)
+                path = paths.get(chunk.section_id or "")
+                if path:
+                    citation.section_path = PATH_SEPARATOR.join(path)
                 assert_complete(
                     citation,
                     require_page=self._require_page,
@@ -138,13 +153,11 @@ class HybridRetriever:
 
         if query.rerank and self._reranker is not None and retrieved:
             try:
-                retrieved = self._reranker.rerank(query.text, retrieved, top_k=query.k)
+                retrieved = self._reranker.rerank(query.text, retrieved, top_k=len(retrieved))
             except Exception as exc:
                 logger.warning("reranker %s unavailable: %s", self._reranker.model_name, exc)
                 warnings.append(f"reranker unavailable ({exc}); returning fused ranking")
-                retrieved = retrieved[: query.k]
-        else:
-            retrieved = retrieved[: query.k]
+        retrieved = self._diversify(retrieved, query.k)
 
         result = RetrievalResult(
             query=query,
@@ -160,3 +173,25 @@ class HybridRetriever:
             logs.record(session, result)
 
         return result
+
+    def _diversify(self, ranked: list[RetrievedChunk], k: int) -> list[RetrievedChunk]:
+        """The top `k`, with at most `max_chunks_per_document` from any one document;
+        chunks set aside by the cap only come back if too few others remain."""
+        if not self._max_per_document:
+            kept = ranked[:k]
+        else:
+            per_doc: dict[str, int] = {}
+            kept, overflow = [], []
+            for candidate in ranked:
+                count = per_doc.get(candidate.citation.doc_key, 0)
+                if count < self._max_per_document:
+                    per_doc[candidate.citation.doc_key] = count + 1
+                    kept.append(candidate)
+                else:
+                    overflow.append(candidate)
+                if len(kept) == k:
+                    break
+            kept += overflow[: k - len(kept)]
+        for rank, candidate in enumerate(kept, start=1):
+            candidate.rank = rank
+        return kept

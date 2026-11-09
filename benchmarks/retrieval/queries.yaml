@@ -28,7 +28,7 @@ queries:
   - {category: exact, text: "autocallable structured product pricing", expected: [bouzoubaa-osseiran-exotic-options-hybrids, bennett-trading-volatility]}
   - {category: exact, text: "OLS heteroskedasticity robust standard errors", expected: [wooldridge-introductory-econometrics]}
   - {category: exact, text: "template factory pattern payoff class C++", expected: [joshi-cpp-design-patterns-derivatives-pricing, savine-modern-computational-finance-aad]}
-  - {category: exact, text: "stochastic gradient descent convergence", expected: [stochastic-optimization-notes, boyd-vandenberghe-convex-optimization]}
+  - {category: exact, text: "stochastic gradient descent convergence", expected: [boyd-vandenberghe-convex-optimization, pham-continuous-time-stochastic-control]}
   - {category: paraphrase, text: "how does implied volatility change with the strike of an option", expected: [gatheral-volatility-surface, hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bergomi-stochastic-volatility-modeling, volatility-option-pricing-review]}
   - {category: paraphrase, text: "making random simulations of option values converge faster", expected: [glasserman-monte-carlo-methods-financial-engineering, mc-enhanced-derivative-pricing, mc-stacked-option-pricing]}
   - {category: paraphrase, text: "protecting a derivatives position against small moves in the underlying", expected: [hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bouzoubaa-osseiran-exotic-options-hybrids]}
@@ -39,7 +39,7 @@ queries:
   - {category: paraphrase, text: "fitting a volatility model quickly to market option prices", expected: [heston-fast-calibration, heston-analysis-calibration-matlab, sabr-libor-market-models, gatheral-volatility-surface]}
   - {category: paraphrase, text: "periods of calm and turbulence in stock returns cluster together", expected: [tsay-analysis-financial-time-series, volatility-option-pricing-review]}
   - {category: paraphrase, text: "the price of a contract that pays only if a level is touched before expiry", expected: [hull-options-futures-other-derivatives-11e, bouzoubaa-osseiran-exotic-options-hybrids, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering]}
-  - {category: paraphrase, text: "choosing the best action over time when the state evolves randomly", expected: [pham-continuous-time-stochastic-control, stochastic-optimization-notes]}
+  - {category: paraphrase, text: "choosing the best action over time when the state evolves randomly", expected: [pham-continuous-time-stochastic-control]}
   - {category: paraphrase, text: "the cost for a bank of borrowing cash to post collateral", expected: [xva-funding-valuation-adjustment, xva-unified-csa-initial-margin, xva-fixed-point-collateral, xva-ccp-central-clearing-faq]}
   - {category: paraphrase, text: "a discrete up or down stock model to teach no arbitrage pricing", expected: [shreve-stochastic-calculus-finance-1, hull-options-futures-other-derivatives-11e]}
   - {category: paraphrase, text: "brainteasers and probability questions for a trading job", expected: [zhou-quant-finance-interviews]}

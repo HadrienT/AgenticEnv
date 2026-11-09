@@ -68,6 +68,15 @@ class ParsedDocument(BaseModel):
     parser_version: str
 
 
+class ChunkEquation(BaseModel):
+    """An equation written inside a text chunk (`section` chunking): still recorded in
+    `kb.equations`, so `kb.get_equation` finds it by number."""
+
+    equation: Equation
+    context_before: str | None = None
+    context_after: str | None = None
+
+
 class Chunk(BaseModel):
     chunk_id: str
     document_version_id: str
@@ -87,6 +96,7 @@ class Chunk(BaseModel):
     table_content_md: str | None = None  # populated only when kind == "table"
     equation_context_before: str | None = None
     equation_context_after: str | None = None
+    equations: list[ChunkEquation] = Field(default_factory=list)
 
 
 class Citation(BaseModel):
@@ -100,6 +110,8 @@ class Citation(BaseModel):
     sha256: str
     doc_key: str
     ingested_at: datetime
+    # Readable section titles, outermost first (`section` holds the section's id).
+    section_path: str | None = None
 
 
 class RetrievedChunk(BaseModel):
@@ -110,10 +122,11 @@ class RetrievedChunk(BaseModel):
 
 
 class ChunkPolicy(BaseModel):
-    strategy: Literal["structural"] = "structural"
+    strategy: Literal["structural", "section"] = "structural"
     target_tokens: int
     max_tokens: int
     overlap_tokens: int
+    min_tokens: int = 0  # `section`: a chunk this small absorbs the next sibling section
     keep_equation_with_context: bool = True
     never_split_within: list[str] = Field(default_factory=lambda: ["equation", "table"])
 
@@ -123,6 +136,7 @@ class SourceItem(BaseModel):
 
     meta: DocumentMeta
     resolved_path: str
+    exclude_sections: list[str] = Field(default_factory=list)
     valid_from: date | None = None
     valid_until: date | None = None
 

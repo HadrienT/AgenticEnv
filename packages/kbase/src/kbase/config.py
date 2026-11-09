@@ -17,6 +17,10 @@ class EmbeddingsConfig(BaseModel):
     normalize: bool
     base_url: str | None = None
     timeout_s: float = 60.0
+    # Embed "document title / section path / content" instead of the content alone.
+    contextual: bool = False
+    # Asymmetric models (Qwen3-Embedding) want queries as "Instruct: …\nQuery: …".
+    query_instruction: str | None = None
 
 
 class ChunkingConfig(BaseModel):
@@ -26,6 +30,7 @@ class ChunkingConfig(BaseModel):
     overlap_tokens: int
     keep_equation_with_context: bool
     never_split_within: list[str]
+    min_tokens: int = 0
 
 
 class RerankConfig(BaseModel):
@@ -37,6 +42,9 @@ class RerankConfig(BaseModel):
     candidates: int
     base_url: str | None = None
     timeout_s: float = 30.0
+    # The cross-encoder reads "document title / section path / content" (WP19: +4 points
+    # of passage MRR over the content alone).
+    contextual: bool = False
 
 
 class RetrievalConfig(BaseModel):
@@ -49,6 +57,17 @@ class RetrievalConfig(BaseModel):
     fts_config: str
     lexical_fallback: bool = True
     min_score: float
+    # At most this many chunks of one document in a result: a long book otherwise
+    # fills the top-k with near-duplicates of one answer.
+    max_chunks_per_document: int | None = None
+    # pgvector's default (40) caps an HNSW scan below `candidates_vector`.
+    hnsw_ef_search: int | None = None
+
+
+class CurationConfig(BaseModel):
+    """Section titles (regexes, see `ingestion.curation`) never ingested."""
+
+    drop_sections: list[str] = []
 
 
 class ProvenanceConfig(BaseModel):
@@ -91,6 +110,7 @@ class KbaseConfig(BaseModel):
     retrieval: RetrievalConfig
     provenance: ProvenanceConfig
     ingestion: IngestionConfig
+    curation: CurationConfig = CurationConfig()
     harvest: HarvestConfig = HarvestConfig()
 
 

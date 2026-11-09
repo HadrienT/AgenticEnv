@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -10,11 +11,31 @@ def test_a_document_counts_once_at_its_best_rank() -> None:
     assert _dedup(["a", "a", "b", "a"]) == ["a", "b"]
 
 
+def _chunk(doc_key: str, path: str = "", content: str = "") -> Any:
+    return SimpleNamespace(
+        citation=SimpleNamespace(doc_key=doc_key, section_path=path),
+        chunk=SimpleNamespace(content=content),
+    )
+
+
 def test_score_finds_the_first_expected_document() -> None:
     query = ReferenceQuery(category="c", text="t", expected=["b", "z"])
 
-    assert _score(query, ["a", "b", "z"], 1.0).hit_rank == 2
-    assert _score(query, ["a"], 1.0).hit_rank is None
+    assert _score(query, [_chunk("a"), _chunk("b"), _chunk("z")], 1.0).hit_rank == 2
+    assert _score(query, [_chunk("a")], 1.0).hit_rank is None
+
+
+def test_section_hit_needs_the_document_and_the_section() -> None:
+    query = ReferenceQuery(
+        category="c", text="t", expected=["glasserman"], expected_sections=["Box-Muller Method"]
+    )
+    chunks = [
+        _chunk("other", path="2 Random › Box-Muller Method"),  # right section, wrong book
+        _chunk("glasserman", path="2 Random › 2.1 Generators"),
+        _chunk("glasserman", content="#### Box-Muller Method\n\nTwo uniforms..."),
+    ]
+    scored = _score(query, chunks, 1.0)
+    assert scored.hit_rank == 2 and scored.section_hit_rank == 3
 
 
 def test_ndcg_is_one_for_a_perfect_ranking_and_lower_when_late() -> None:
@@ -23,17 +44,9 @@ def test_ndcg_is_one_for_a_perfect_ranking_and_lower_when_late() -> None:
 
 
 def test_evaluate_aggregates_by_category() -> None:
-    class Citation:
-        def __init__(self, doc_key: str) -> None:
-            self.doc_key = doc_key
-
-    class Chunk:
-        def __init__(self, document: str) -> None:
-            self.citation = Citation(document)
-
     class Result:
         latency_ms = 10
-        chunks = [Chunk("hit")]
+        chunks = [_chunk("hit")]
 
     class Retriever:
         def retrieve(self, _query: Any) -> Result:

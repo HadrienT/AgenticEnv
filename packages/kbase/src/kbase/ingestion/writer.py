@@ -63,6 +63,25 @@ def _upsert_document_id(session: Session, doc: ParsedDocument) -> uuid.UUID:
         {"doc_key": doc.meta.doc_key},
     ).first()
     if row is not None:
+        # Re-ingestion: the manifest is the source of truth for metadata too.
+        session.execute(
+            text(
+                "UPDATE kb.documents SET title = :title, authors = :authors, year = :year, "
+                "doc_type = :doc_type, topic = :topic, asset_class = :asset_class, "
+                "source_url = :source_url, license = :license WHERE id = :id"
+            ),
+            {
+                "id": row[0],
+                "title": doc.meta.title,
+                "authors": doc.meta.authors,
+                "year": doc.meta.year,
+                "doc_type": doc.meta.doc_type,
+                "topic": doc.meta.topic,
+                "asset_class": doc.meta.asset_class,
+                "source_url": doc.meta.source_url,
+                "license": doc.meta.license,
+            },
+        )
         return uuid.UUID(str(row[0]))
     document_id = new_uuid7()
     session.execute(
@@ -106,6 +125,13 @@ def upsert(
     """Writes one document version, its sections, chunks, embeddings, equations and tables."""
     document_id = _upsert_document_id(session, doc)
 
+    # The new version replaces the previous ones (cascade: sections, chunks, embeddings,
+    # equations, tables). Same transaction: a failed write keeps the old version. Done
+    # first because `sha256` is unique: a re-parse of an unchanged file reuses it.
+    session.execute(
+        text("DELETE FROM kb.document_versions WHERE document_id = :document_id"),
+        {"document_id": document_id},
+    )
     document_version_id = new_uuid7()
     session.execute(
         text(
@@ -200,7 +226,10 @@ def upsert(
             },
         )
 
+        inline = [(e.equation, e.context_before, e.context_after) for e in chunk.equations]
         if chunk.kind == "equation" and chunk.equation is not None:
+            inline = [(chunk.equation, chunk.equation_context_before, chunk.equation_context_after)]
+        for equation, context_before, context_after in inline:
             session.execute(
                 text(
                     "INSERT INTO kb.equations "
@@ -213,16 +242,16 @@ def upsert(
                     "id": new_uuid7(),
                     "chunk_id": chunk_id,
                     "document_version_id": document_version_id,
-                    "latex": chunk.equation.latex,
-                    "equation_number": chunk.equation.equation_number,
-                    "page": chunk.equation.page,
-                    "symbols": chunk.equation.symbols,
-                    "context_before": chunk.equation_context_before,
-                    "context_after": chunk.equation_context_after,
+                    "latex": equation.latex,
+                    "equation_number": equation.equation_number,
+                    "page": equation.page,
+                    "symbols": equation.symbols,
+                    "context_before": context_before,
+                    "context_after": context_after,
                 },
             )
             equations_written += 1
-        elif chunk.kind == "table":
+        if chunk.kind == "table":
             session.execute(
                 text(
                     "INSERT INTO kb.tables (id, chunk_id, caption, content_md, page) "

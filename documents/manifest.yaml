@@ -301,15 +301,6 @@ documents:
     asset_class: multi-asset
     license: propriété personnelle - non redistribué
 
-  - doc_key: stochastic-optimization-notes
-    path: raw/stochastic-optimization-notes.md
-    title: Stochastic Optimization (notes)
-    authors: []
-    year: null
-    doc_type: notes
-    topic: numerical-optimization
-    asset_class: multi-asset
-    license: propriété personnelle - non redistribué
 
   # --- Calcul stochastique fondamental ---
   - doc_key: shreve-stochastic-calculus-finance-1

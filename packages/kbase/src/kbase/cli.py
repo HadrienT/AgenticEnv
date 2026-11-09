@@ -20,7 +20,7 @@ from kbase.harvest.runner import HarvestSettings, harvest
 from kbase.harvest.schemas import HarvestProfile
 from kbase.ingestion import ops
 from kbase.ingestion import reindex as reindex_mod
-from kbase.ingestion.chunking import StructuralChunker
+from kbase.ingestion.chunking import Chunker, SectionChunker, StructuralChunker
 from kbase.ingestion.parsers.base import Parser
 from kbase.ingestion.parsers.markdown import MarkdownParser
 from kbase.ingestion.parsers.pdf import PdfParser
@@ -43,6 +43,10 @@ def _build_parsers(config: IngestionConfig) -> list[Parser]:
     ]
 
 
+def _build_chunker(strategy: str) -> Chunker:
+    return SectionChunker() if strategy == "section" else StructuralChunker()
+
+
 def _cmd_ingest(args: argparse.Namespace) -> int:
     settings = get_settings()
     config = load_kbase_config()
@@ -53,6 +57,8 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
     )
     policy = ChunkPolicy(
+        strategy="section" if config.chunking.strategy == "section" else "structural",
+        min_tokens=config.chunking.min_tokens,
         target_tokens=config.chunking.target_tokens,
         max_tokens=config.chunking.max_tokens,
         overlap_tokens=config.chunking.overlap_tokens,
@@ -65,7 +71,7 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
             request,
             documents_dir=settings.paths.documents_dir,
             parsers=_build_parsers(config.ingestion),
-            chunker=StructuralChunker(),
+            chunker=_build_chunker(config.chunking.strategy),
             embedder=embedder,
             policy=policy,
             max_file_size_bytes=config.ingestion.max_file_size_mb * 1024 * 1024,
@@ -74,6 +80,8 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
             pdf_timeout_s=config.ingestion.pdf_timeout_s,
             require_page=config.provenance.require_page,
             require_section=config.provenance.require_section,
+            drop_section_patterns=config.curation.drop_sections,
+            contextual_embeddings=config.embeddings.contextual,
         )
     except AppError as exc:
         print(f"ingestion failed: {exc.code}: {exc.message}")
@@ -88,7 +96,11 @@ def _cmd_reindex(args: argparse.Namespace) -> int:
     try:
         with session_scope() as session:
             count = reindex_mod.reindex(
-                session, model_name=args.model, embedder=embedder, replace=args.replace
+                session,
+                model_name=args.model,
+                embedder=embedder,
+                replace=args.replace,
+                contextual=config.embeddings.contextual,
             )
     except AppError as exc:
         print(f"reindex failed: {exc.code}: {exc.message}")
@@ -100,7 +112,9 @@ def _cmd_reindex(args: argparse.Namespace) -> int:
 def _cmd_eval(args: argparse.Namespace) -> int:
     queries = load_queries(repo_root() / args.queries)
     try:
-        report = evaluate(build_retriever(load_kbase_config()), queries, args.label)
+        report = evaluate(
+            build_retriever(load_kbase_config()), queries, args.label, details=args.details
+        )
     except AppError as exc:
         print(f"eval failed: {exc.code}: {exc.message}")
         return 1
@@ -109,6 +123,16 @@ def _cmd_eval(args: argparse.Namespace) -> int:
         (repo_root() / args.output).write_text(output + "\n", encoding="utf-8")
     print(output)
     return 0
+
+
+def _cmd_delete(args: argparse.Namespace) -> int:
+    with session_scope() as session:
+        deleted = ops.delete_documents(session, args.doc_key)
+    missing = sorted(set(args.doc_key) - set(deleted))
+    print(f"deleted {len(deleted)} document(s): {', '.join(deleted) or '-'}")
+    if missing:
+        print(f"not found: {', '.join(missing)}")
+    return 0 if not missing else 1
 
 
 def _cmd_stats(_args: argparse.Namespace) -> int:
@@ -209,6 +233,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     reindex_parser.set_defaults(func=_cmd_reindex)
 
+    delete_parser = subparsers.add_parser(
+        "delete", help="Remove documents and all their chunks, embeddings and equations"
+    )
+    delete_parser.add_argument("--doc-key", action="append", required=True)
+    delete_parser.set_defaults(func=_cmd_delete)
+
     stats_parser = subparsers.add_parser("stats", help="Print corpus counters")
     stats_parser.set_defaults(func=_cmd_stats)
 
@@ -228,6 +258,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     eval_parser.add_argument("--queries", default="benchmarks/retrieval/queries.yaml")
     eval_parser.add_argument("--label", required=True)
     eval_parser.add_argument("--output", help="JSON report, relative to the repo root")
+    eval_parser.add_argument("--details", action="store_true", help="Per-query ranks in the report")
     eval_parser.set_defaults(func=_cmd_eval)
 
     harvest_parser = subparsers.add_parser(
