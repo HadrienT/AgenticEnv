@@ -25,6 +25,8 @@ def build_embedder(config: EmbeddingsConfig) -> Embedder:
             normalize=config.normalize,
             batch_size=config.batch_size,
             timeout_s=config.timeout_s,
+            query_instruction=config.query_instruction,
+            truncate_dim=config.truncate_dim,
         )
     raise ConfigError(
         f"cannot build embedder {config.provider!r}: needs local, or http with a base_url",
@@ -39,7 +41,10 @@ def build_reranker(config: RerankConfig) -> Reranker | None:
         return LexicalOverlapReranker()
     if config.provider == "http" and config.base_url:
         return HttpReranker(
-            base_url=config.base_url, model_name=config.model_name, timeout_s=config.timeout_s
+            base_url=config.base_url,
+            model_name=config.model_name,
+            timeout_s=config.timeout_s,
+            contextual=config.contextual,
         )
     raise ConfigError(
         f"cannot build reranker {config.provider!r}: needs none, lexical, or http with a base_url",
@@ -60,4 +65,6 @@ def build_retriever(config: KbaseConfig) -> HybridRetriever:
         require_page=config.provenance.require_page,
         require_section=config.provenance.require_section,
         lexical_fallback=config.retrieval.lexical_fallback,
+        max_chunks_per_document=config.retrieval.max_chunks_per_document,
+        hnsw_ef_search=config.retrieval.hnsw_ef_search,
     )

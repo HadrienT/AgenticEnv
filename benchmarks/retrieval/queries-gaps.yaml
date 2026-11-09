@@ -1,0 +1,20 @@
+# Topics quant-modeling needs that the kbase corpus does not cover yet (2026-11-09).
+# Same format as `queries.yaml`, but `expected` stays empty until the documents that
+# answer a query are ingested: once they are, fill `expected` with their doc_keys and
+# move the query into `queries.yaml` (category `numerics`). Until then, run
+# `kbase search` on these to see what the corpus returns instead.
+queries:
+  - {category: numerics, text: "multilevel Monte Carlo complexity for option pricing", expected: []}
+  - {category: numerics, text: "COS method Fourier-cosine series expansion for option pricing", expected: []}
+  - {category: numerics, text: "Carr-Madan fast Fourier transform pricing of European options", expected: []}
+  - {category: numerics, text: "Andersen quadratic-exponential scheme for simulating the Heston variance", expected: []}
+  - {category: numerics, text: "ADI finite difference schemes Craig-Sneyd Hundsdorfer-Verwer for the Heston PDE", expected: []}
+  - {category: numerics, text: "Crank-Nicolson oscillations and Rannacher smoothing for non-smooth payoffs", expected: []}
+  - {category: numerics, text: "American option PDE with penalty method or projected SOR", expected: []}
+  - {category: numerics, text: "Monte Carlo option pricing on GPU with CUDA", expected: []}
+  - {category: numerics, text: "SIMD vectorization of Monte Carlo path generation", expected: []}
+  - {category: numerics, text: "counter-based random number generator Philox for parallel simulation", expected: []}
+  - {category: numerics, text: "rough Bergomi simulation with the hybrid scheme", expected: []}
+  - {category: numerics, text: "differential machine learning for pricing and risk", expected: []}
+  - {category: numerics, text: "neural network surrogate for fast model calibration", expected: []}
+  - {category: numerics, text: "xVA exposure simulation on GPU", expected: []}

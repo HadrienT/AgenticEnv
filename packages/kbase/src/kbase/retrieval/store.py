@@ -26,7 +26,7 @@ def load_candidates(
             "FROM kb.chunks c "
             "JOIN kb.document_versions dv ON dv.id = c.document_version_id "
             "JOIN kb.documents d ON d.id = dv.document_id "
-            "LEFT JOIN kb.equations eq ON eq.chunk_id = c.id "
+            "LEFT JOIN kb.equations eq ON eq.chunk_id = c.id AND c.kind = 'equation' "
             "LEFT JOIN kb.tables tb ON tb.chunk_id = c.id "
             "WHERE c.id = ANY(:chunk_ids)"
         ),
@@ -78,3 +78,25 @@ def load_candidates(
         )
         result[str(row.id)] = (chunk, meta)
     return result
+
+
+def load_section_paths(session: Session, section_ids: list[str]) -> dict[str, list[str]]:
+    """Section id → titles from the outermost chapter down (document title excluded)."""
+    if not section_ids:
+        return {}
+    rows = session.execute(
+        text(
+            "WITH RECURSIVE up AS ("
+            " SELECT id, parent_id, title, level, id AS leaf FROM kb.sections"
+            " WHERE id = ANY(CAST(:ids AS uuid[]))"
+            " UNION ALL"
+            " SELECT s.id, s.parent_id, s.title, s.level, up.leaf FROM kb.sections s"
+            " JOIN up ON s.id = up.parent_id"
+            ") SELECT leaf, title FROM up WHERE level > 1 ORDER BY leaf, level"
+        ),
+        {"ids": list(dict.fromkeys(section_ids))},
+    ).all()
+    paths: dict[str, list[str]] = {sid: [] for sid in section_ids}
+    for leaf, title in rows:
+        paths.setdefault(str(leaf), []).append(title)
+    return paths

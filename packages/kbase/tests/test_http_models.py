@@ -76,6 +76,14 @@ def test_a_dimension_mismatch_is_an_error(base_url: str) -> None:
         _embedder(base_url, dim=3).embed_query("a")
 
 
+def test_truncation_keeps_the_leading_dimensions_and_renormalizes(base_url: str) -> None:
+    embedder = HttpEmbedder(
+        base_url=base_url, model_name="m", model_version="1", dim=1, normalize=True,
+        batch_size=2, timeout_s=5, truncate_dim=True,
+    )  # fmt: skip
+    assert list(embedder.embed_query("a")) == pytest.approx([1.0])
+
+
 def test_an_unreachable_server_is_a_dependency_error() -> None:
     with pytest.raises(DependencyError):
         _embedder("http://127.0.0.1:1/v1").embed_query("a")

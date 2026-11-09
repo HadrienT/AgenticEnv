@@ -17,6 +17,12 @@ class EmbeddingsConfig(BaseModel):
     normalize: bool
     base_url: str | None = None
     timeout_s: float = 60.0
+    # Embed "document title / section path / content" instead of the content alone.
+    contextual: bool = False
+    # Asymmetric models (Qwen3-Embedding) want queries as "Instruct: …\nQuery: …".
+    query_instruction: str | None = None
+    # Keep the first `dim` dimensions of a larger Matryoshka model (needs normalize).
+    truncate_dim: bool = False
 
 
 class ChunkingConfig(BaseModel):
@@ -26,6 +32,7 @@ class ChunkingConfig(BaseModel):
     overlap_tokens: int
     keep_equation_with_context: bool
     never_split_within: list[str]
+    min_tokens: int = 0
 
 
 class RerankConfig(BaseModel):
@@ -37,6 +44,9 @@ class RerankConfig(BaseModel):
     candidates: int
     base_url: str | None = None
     timeout_s: float = 30.0
+    # The cross-encoder reads "document title / section path / content" (WP19: +4 points
+    # of passage MRR over the content alone).
+    contextual: bool = False
 
 
 class RetrievalConfig(BaseModel):
@@ -49,6 +59,17 @@ class RetrievalConfig(BaseModel):
     fts_config: str
     lexical_fallback: bool = True
     min_score: float
+    # At most this many chunks of one document in a result: a long book otherwise
+    # fills the top-k with near-duplicates of one answer.
+    max_chunks_per_document: int | None = None
+    # pgvector's default (40) caps an HNSW scan below `candidates_vector`.
+    hnsw_ef_search: int | None = None
+
+
+class CurationConfig(BaseModel):
+    """Section titles (regexes, see `ingestion.curation`) never ingested."""
+
+    drop_sections: list[str] = []
 
 
 class ProvenanceConfig(BaseModel):
@@ -67,6 +88,22 @@ class IngestionConfig(BaseModel):
     mineru_cache_dir: str = "documents/parsed"
 
 
+class HarvestConfig(BaseModel):
+    """arXiv harvest (WP18). Paths are relative to AGX_PATHS_DOCUMENTS_DIR, except the
+    manifest, which is versioned in the repo like `documents/manifest.yaml`."""
+
+    user_agent: str = "AgenticEnv-kbase-harvest/0.1 (+https://github.com/HadrienT/AgenticEnv)"
+    min_interval_s: float = 3.0  # arXiv API terms: one request every 3 seconds
+    max_attempts: int = 4
+    timeout_s: float = 60.0
+    page_size: int = 100
+    min_text_chars: int = 1500
+    html_dir: str = "arxiv/html"
+    md_dir: str = "arxiv/md"
+    manifest: str = "documents/manifest-arxiv.yaml"
+    known_manifests: list[str] = ["documents/manifest.yaml"]
+
+
 class KbaseConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -75,6 +112,8 @@ class KbaseConfig(BaseModel):
     retrieval: RetrievalConfig
     provenance: ProvenanceConfig
     ingestion: IngestionConfig
+    curation: CurationConfig = CurationConfig()
+    harvest: HarvestConfig = HarvestConfig()
 
 
 def load_kbase_config() -> KbaseConfig:

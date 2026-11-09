@@ -32,8 +32,9 @@ from corelib.serialization import to_json
 from corelib.time import utc_now
 from sqlalchemy import text
 
+from kbase.contextual import contextual_text, section_paths
 from kbase.embeddings.base import Embedder
-from kbase.ingestion import dedup, sources, writer
+from kbase.ingestion import curation, dedup, sources, writer
 from kbase.ingestion.chunking import Chunker
 from kbase.ingestion.parsers.base import Parser
 from kbase.schemas import ChunkPolicy, IngestionReport, IngestionRequest
@@ -97,6 +98,8 @@ def ingest(
     pdf_timeout_s: int | None = None,
     require_page: bool,
     require_section: bool,
+    drop_section_patterns: Sequence[str] = (),
+    contextual_embeddings: bool = False,
 ) -> IngestionReport:
     started_monotonic = time.monotonic()
     run_id = new_uuid7()
@@ -153,6 +156,8 @@ def ingest(
             parser = _select_parser(parsers, path)
             with _parse_timeout((pdf_timeout_s if is_pdf else None) or parse_timeout_s):
                 parsed = parser.parse(path, item.meta)
+            patterns = curation.compile_patterns([*drop_section_patterns, *item.exclude_sections])
+            parsed = curation.drop_sections(parsed, patterns)
 
             chunks = chunker.chunk(parsed, policy)
 
@@ -162,7 +167,15 @@ def ingest(
                 equations_written += sum(1 for c in chunks if c.kind == "equation")
                 continue
 
-            embeddings = _embed_with_retry(embedder, [c.content for c in chunks])
+            if contextual_embeddings:
+                paths = section_paths(parsed.sections)
+                inputs = [
+                    contextual_text(parsed.meta.title, paths.get(c.section_id or "", []), c.content)
+                    for c in chunks
+                ]
+            else:
+                inputs = [c.content for c in chunks]
+            embeddings = _embed_with_retry(embedder, inputs)
 
             with session_scope() as session:
                 report = writer.upsert(

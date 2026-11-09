@@ -28,6 +28,8 @@ class _ManifestEntry(BaseModel):
     sha256: str | None = None
     valid_from: date | None = None
     valid_until: date | None = None
+    # Extra section-title regexes to leave out of this document (see ingestion.curation).
+    exclude_sections: list[str] = []
 
 
 class _Manifest(BaseModel):
@@ -85,6 +87,7 @@ def resolve(manifest_path: Path, documents_dir: Path) -> list[SourceItem]:
                 resolved_path=str(resolved_path),
                 valid_from=entry.valid_from,
                 valid_until=entry.valid_until,
+                exclude_sections=entry.exclude_sections,
             )
         )
     return items

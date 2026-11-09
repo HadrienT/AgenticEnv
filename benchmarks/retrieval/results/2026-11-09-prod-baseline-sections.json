@@ -1,0 +1,1766 @@
+{
+  "label": "prod-baseline",
+  "overall": {
+    "queries": 143,
+    "recall_at_5": 0.9370629370629371,
+    "recall_at_10": 0.958041958041958,
+    "mrr": 0.6878288378288379,
+    "ndcg_at_10": 0.7559926188321854,
+    "latency_p50_ms": 438.0,
+    "latency_p95_ms": 737.0,
+    "section_queries": 143,
+    "section_recall_at_5": 0.5804195804195804,
+    "section_recall_at_10": 0.7272727272727273,
+    "section_mrr": 0.36992633035413786
+  },
+  "by_category": {
+    "section": {
+      "queries": 143,
+      "recall_at_5": 0.9370629370629371,
+      "recall_at_10": 0.958041958041958,
+      "mrr": 0.6878288378288379,
+      "ndcg_at_10": 0.7559926188321854,
+      "latency_p50_ms": 438.0,
+      "latency_p95_ms": 737.0,
+      "section_queries": 143,
+      "section_recall_at_5": 0.5804195804195804,
+      "section_recall_at_10": 0.7272727272727273,
+      "section_mrr": 0.36992633035413786
+    }
+  },
+  "details": [
+    {
+      "text": "SABR model order 0 implied volatility calculation using hyperbolic geometry and geodesic distance",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "sabr-paulot-second-order-asymptotic",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "sabr-vol-of-vol-expansion",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "How to approximate option prices using asymptotic expansion and parameter adjustments?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "sabr-paulot-second-order-asymptotic",
+        "sabr-vol-of-vol-expansion",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bergomi-stochastic-volatility-modeling",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "How do different objective functions and error norms affect model parameter calibration using SP500 options data?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "sabr-vol-of-vol-expansion",
+        "sabr-paulot-second-order-asymptotic",
+        "hull-options-futures-other-derivatives-11e",
+        "sample-paper",
+        "sabr-libor-market-models"
+      ]
+    },
+    {
+      "text": "SABR PDE with mean reversion approximation using Dyson series expansion",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "xva-fixed-point-collateral",
+        "sabr-vol-of-vol-expansion",
+        "hull-options-futures-other-derivatives-11e",
+        "volatility-option-pricing-review",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "Calibration method for swaption pricing model using Monte Carlo simulation and GPU computing time?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "sabr-libor-market-models",
+        "heston-fast-calibration",
+        "zhou-quant-finance-interviews",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "What are the main extensions of the Libor Market Model to capture volatility smiles and skews?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 3,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "sabr-libor-market-models",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "What datasets were used for calibrating option pricing models with specific maturities and strikes?",
+      "category": "section",
+      "hit_rank": 7,
+      "section_hit_rank": 16,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "volatility-option-pricing-review",
+        "sabr-paulot-second-order-asymptotic"
+      ]
+    },
+    {
+      "text": "Heston model calibration optimization local vs global methods parameter estimation",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "heston-analysis-calibration-matlab",
+        "gatheral-volatility-surface",
+        "boyd-vandenberghe-convex-optimization",
+        "heston-fast-calibration"
+      ]
+    },
+    {
+      "text": "Heston model calibration residual vector formulation and computational cost considerations",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "heston-fast-calibration",
+        "heston-analysis-calibration-matlab",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "Gradient computation for Heston model parameters in option pricing formulas",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "heston-fast-calibration",
+        "gatheral-volatility-surface",
+        "volatility-option-pricing-review",
+        "tsay-analysis-financial-time-series",
+        "heston-analysis-calibration-matlab"
+      ]
+    },
+    {
+      "text": "Why does Dupire's formula fail in jump diffusion models and what replaces it mathematically?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "dupire-local-vol-jumps",
+        "gatheral-volatility-surface",
+        "shreve-stochastic-calculus-finance-2",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "How to regularize local volatility models to prevent explosion near maturity?",
+      "category": "section",
+      "hit_rank": null,
+      "section_hit_rank": null,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface",
+        "sample-paper"
+      ]
+    },
+    {
+      "text": "Multidimensional Girsanov theorem for changing probability measures in multiple stock models",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-1"
+      ]
+    },
+    {
+      "text": "Black-Scholes formula for European call option pricing with stock and bond dynamics",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "volatility-option-pricing-review",
+        "hull-options-futures-other-derivatives-11e",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "How does stochastic volatility model split Black-Scholes theta into three components?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface",
+        "sabr-paulot-second-order-asymptotic",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "What is the key pricing ingredient for options on realized variance in the stochastic model?",
+      "category": "section",
+      "hit_rank": 5,
+      "section_hit_rank": null,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "volatility-option-pricing-review",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "sabr-paulot-second-order-asymptotic",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "What are the key risk factors and hedging requirements for options on realized variance?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility",
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "How does using lognormal model minimize P&L fluctuations when arbitraging realized short SSR?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "How do forward variance swaps enable delta and vega hedging in volatility modeling?",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "What payoff enables extraction of spot/volatility covariance through cross-gamma P&L?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "How does the mapping from stock price S to driftless process X handle dividend payments in local volatility modeling?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "How does the ATMF skew's power-law decay exponent γ affect the asymptotic behavior of the SSR parameter R_T?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 9,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "How does stochastic volatility vs local volatility modeling affect cliquet structure valuations?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 8,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "What is the relationship between local volatility and instantaneous volatilities in stochastic volatility models?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "How to approximate survival probability using Brownian motion with drift for default risk modeling?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "shreve-stochastic-calculus-finance-2",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "What are Parisian options and how do they differ from standard barrier options in terms of monitoring and manipulation risks?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e",
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "What was the historical performance of telecom stock bond investments compared to holding the underlying stocks?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e",
+        "savine-modern-computational-finance-aad",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "Characteristic function for Merton jump diffusion model with lognormal jump sizes",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "Milstein vs Euler discretization for variance process negative values",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "Volatility swap fair value formula derivation using Bessel functions and Black-Scholes model",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "sabr-paulot-second-order-asymptotic",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "Bilateral counterparty risk CVA formulas for interest-rate derivatives with default correlation and credit spread volatility",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "xva-bilateral-counterparty-risk",
+        "xva-counterparty-risk-faq",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-funding-valuation-adjustment",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "How does correlation between default risks affect bilateral credit valuation adjustments?",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "xva-funding-valuation-adjustment",
+        "gatheral-volatility-surface",
+        "xva-bilateral-counterparty-risk",
+        "xva-counterparty-risk-faq"
+      ]
+    },
+    {
+      "text": "How does collateral re-hypothecation affect funding costs in derivative pricing models?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "xva-ccp-central-clearing-faq",
+        "xva-funding-valuation-adjustment",
+        "xva-counterparty-risk-faq"
+      ]
+    },
+    {
+      "text": "What is the difference between unilateral and bilateral CVA in counterparty risk valuation?",
+      "category": "section",
+      "hit_rank": 5,
+      "section_hit_rank": 16,
+      "top_documents": [
+        "xva-bilateral-counterparty-risk",
+        "xva-counterparty-risk-faq",
+        "xva-ccp-central-clearing-faq",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-funding-valuation-adjustment"
+      ]
+    },
+    {
+      "text": "What challenges exist in measuring credit volatilities and correlations for counterparties without liquid CDS or bond markets?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "xva-counterparty-risk-faq",
+        "xva-bilateral-counterparty-risk",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "What are the limitations of collateral modeling in counterparty risk management during extreme market events?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "aad-adjoints-automatic-diff-finance",
+        "xva-funding-valuation-adjustment",
+        "xva-counterparty-risk-faq",
+        "xva-ccp-central-clearing-faq",
+        "xva-fixed-point-collateral"
+      ]
+    },
+    {
+      "text": "How does multi-jurisdictional CCP operation affect netting efficiency and liquidity requirements?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "xva-ccp-central-clearing-faq",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "xva-unified-csa-initial-margin"
+      ]
+    },
+    {
+      "text": "What regulatory conflicts arise when non-EU CCPs must comply with both Dodd Frank and EMIR requirements?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "xva-ccp-central-clearing-faq",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "ohara-market-microstructure-theory"
+      ]
+    },
+    {
+      "text": "BSDE existence uniqueness conditions with ellipticity and martingale representation",
+      "category": "section",
+      "hit_rank": null,
+      "section_hit_rank": null,
+      "top_documents": [
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "What is the role of the artificial interest rate process in collateralized portfolio valuation dynamics?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "xva-unified-csa-initial-margin",
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-funding-valuation-adjustment",
+        "xva-bilateral-counterparty-risk"
+      ]
+    },
+    {
+      "text": "How does bilateral collateralization affect bid-ask spreads in derivative pricing models?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 9,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "xva-fixed-point-collateral",
+        "xva-ccp-central-clearing-faq",
+        "ohara-market-microstructure-theory"
+      ]
+    },
+    {
+      "text": "How does counterparty risk provision affect call option bid prices under different collateralization scenarios?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "xva-fixed-point-collateral",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "gatheral-volatility-surface",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "Relationship between zero coupon bonds, discount factors, and interest rates in quantitative finance?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-1",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "xva-ccp-central-clearing-faq"
+      ]
+    },
+    {
+      "text": "How does local volatility model determine asset price volatility as a function of price and time?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "volatility-option-pricing-review",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "What volatility surface is needed to price forward starting options with contingent strikes?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility",
+        "gatheral-volatility-surface",
+        "shreve-stochastic-calculus-finance-2",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "How does volatility affect call option gamma near and away from the strike price?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 3,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "gatheral-volatility-surface",
+        "zhou-quant-finance-interviews",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "SABR model parameters for FX volatility smile calibration and delta computation",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 9,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "Forward skew exposure in cliquet options with floor guarantees and call option payoffs",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "Butterfly spread profit payoff structure using call options with three strike prices?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "gatheral-volatility-surface",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "What components make up a structured note and how do they provide capital protection with leverage potential?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 7,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "SOFR swap pricing with deterministic funding rate and forward swap rate definition",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "sofr-interest-rate-modeling",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "What is the definition and mathematical representation of firm-specific unsecured funding rates in quantitative finance?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "sofr-interest-rate-modeling",
+        "xva-unified-csa-initial-margin",
+        "libor-transition-futures-evidence",
+        "xva-ccp-central-clearing-faq"
+      ]
+    },
+    {
+      "text": "Shadow rate model futures rate approximation accuracy compared to Monte Carlo simulation errors?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "sofr-term-structure-futures",
+        "libor-transition-futures-evidence"
+      ]
+    },
+    {
+      "text": "How are SOFR term rates calculated using Kalman filter and futures contract data?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 8,
+      "top_documents": [
+        "libor-transition-futures-evidence",
+        "sofr-term-structure-futures"
+      ]
+    },
+    {
+      "text": "LIBOR rate modeling using multi-curve framework and roll-over risk components",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "libor-transition-futures-evidence",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "sofr-term-structure-futures",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "sofr-interest-rate-modeling"
+      ]
+    },
+    {
+      "text": "How does the model's implied LIBOR-OIS spread compare to observed CDS spreads for panel banks?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "libor-transition-futures-evidence",
+        "xva-bilateral-counterparty-risk",
+        "xva-fixed-point-collateral",
+        "sofr-term-structure-futures",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "What is star discrepancy and how does it relate to low-discrepancy sequences in quantitative finance?",
+      "category": "section",
+      "hit_rank": null,
+      "section_hit_rank": null,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "savine-modern-computational-finance-aad",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "What is the key difference between Monte Carlo and Quasi-Monte Carlo methods for numerical integration?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "mc-enhanced-derivative-pricing",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "StackMC method variance reduction using control variates in Monte Carlo simulations",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "mc-stacked-option-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "hull-options-futures-other-derivatives-11e",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "Stacked Monte Carlo method for stochastic volatility model option pricing with correlated Brownian motions",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "mc-stacked-option-pricing",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "Likelihood ratio method derivative estimator for discounted payoff expectations",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "aad-correlation-greeks",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "What is the statistical interpretation of eigenvectors in covariance matrix decomposition for factor analysis?",
+      "category": "section",
+      "hit_rank": null,
+      "section_hit_rank": null,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "Central limit theorem confidence interval standard error asymptotic normality",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 3,
+      "top_documents": [
+        "wooldridge-introductory-econometrics",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "Exact simulation methods for continuous-time stochastic processes in financial engineering models",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": null,
+      "top_documents": [
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bergomi-stochastic-volatility-modeling",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "What condition makes mesh-based European option pricing weights have constant variance?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 3,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "Stratified sampling estimator variance reduction technique in quantitative finance",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 20,
+      "top_documents": [
+        "sample-paper",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "What is the difference between ordinary and star discrepancy in point set uniformity measurement?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "mc-enhanced-derivative-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "boyd-vandenberghe-convex-optimization",
+        "xva-counterparty-risk-faq",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "How does Gray code improve Sobol sequence generation efficiency?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "mc-enhanced-derivative-pricing",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "How to generate correlated random variables using Cholesky decomposition for Monte Carlo simulations?",
+      "category": "section",
+      "hit_rank": null,
+      "section_hit_rank": null,
+      "top_documents": [
+        "zhou-quant-finance-interviews",
+        "savine-modern-computational-finance-aad",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "hull-options-futures-other-derivatives-11e",
+        "aad-adjoints-automatic-diff-finance"
+      ]
+    },
+    {
+      "text": "Adjoint algorithmic differentiation correlation risk calculation Monte Carlo efficiency",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 17,
+      "top_documents": [
+        "aad-correlation-greeks",
+        "aad-adjoints-automatic-diff-finance",
+        "savine-modern-computational-finance-aad",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "How to compute sensitivities of PDE solution with respect to initial conditions using adjoint methods?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 14,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "aad-adjoints-automatic-diff-finance",
+        "ohara-market-microstructure-theory",
+        "shreve-stochastic-calculus-finance-2",
+        "sabr-vol-of-vol-expansion"
+      ]
+    },
+    {
+      "text": "Reverse mode adjoint method for computing Greeks in SDE discretization with Euler-Maruyama scheme",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "aad-adjoints-automatic-diff-finance"
+      ]
+    },
+    {
+      "text": "Black-Scholes model implementation with spot and risk-neutral measure support",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "shreve-stochastic-calculus-finance-2",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "gatheral-volatility-surface",
+        "sabr-paulot-second-order-asymptotic"
+      ]
+    },
+    {
+      "text": "How are leaf nodes created for Number objects in automatic differentiation?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "savine-modern-computational-finance-aad",
+        "ohara-market-microstructure-theory",
+        "wooldridge-introductory-econometrics",
+        "aad-adjoints-automatic-diff-finance"
+      ]
+    },
+    {
+      "text": "What are the copyright and usage restrictions for reproducing content from the finance computational methods book?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "xva-counterparty-risk-faq",
+        "wooldridge-introductory-econometrics",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "xva-ccp-central-clearing-faq"
+      ]
+    },
+    {
+      "text": "What are the key features and limitations of the SABR stochastic volatility model for option pricing?",
+      "category": "section",
+      "hit_rank": 5,
+      "section_hit_rank": 11,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "sabr-paulot-second-order-asymptotic",
+        "sabr-vol-of-vol-expansion",
+        "hull-options-futures-other-derivatives-11e",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "How does the tape class handle multidimensional adjoints and what methods manage their storage and reset?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "aad-correlation-greeks",
+        "aad-adjoints-automatic-diff-finance",
+        "joshi-cpp-design-patterns-derivatives-pricing"
+      ]
+    },
+    {
+      "text": "How to efficiently generate random numbers from chi-square and Gaussian distributions using uniform random samples?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "libor-transition-futures-evidence",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "Monte Carlo method for pricing financial derivatives with dynamic models and numeraire deflation?",
+      "category": "section",
+      "hit_rank": 6,
+      "section_hit_rank": null,
+      "top_documents": [
+        "mc-stacked-option-pricing",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "What are the key methods and initialization patterns for implementing simulation models in quantitative finance?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 14,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "zhou-quant-finance-interviews",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "heston-fast-calibration"
+      ]
+    },
+    {
+      "text": "Why must base class objects with pure virtual functions be passed by reference in Monte Carlo simulations?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "pham-continuous-time-stochastic-control",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "stochastic-optimization-notes",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "How to implement Newton-Raphson method using template member function pointers for value and derivative calculations?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "boyd-vandenberghe-convex-optimization",
+        "aad-correlation-greeks",
+        "heston-fast-calibration",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "How to implement Monte Carlo pricing for European call options using Box-Muller method?",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "zhou-quant-finance-interviews",
+        "tsay-analysis-financial-time-series",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "How does private inheritance prevent copying in C++ singleton implementations?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "What are the basic and extended data types supported for Excel function exports in quantitative finance applications?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "hull-options-futures-other-derivatives-11e",
+        "tsay-analysis-financial-time-series",
+        "bergomi-stochastic-volatility-modeling",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "What distinguishes physical design coupling from logical design encapsulation in software architecture?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "boyd-vandenberghe-convex-optimization",
+        "savine-modern-computational-finance-aad",
+        "aad-correlation-greeks",
+        "aad-adjoints-automatic-diff-finance"
+      ]
+    },
+    {
+      "text": "What is the purpose of a virtual copy constructor in option pay-off implementation?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "C++ implementation for pricing Asian options using Monte Carlo simulation with antithetic variates",
+      "category": "section",
+      "hit_rank": null,
+      "section_hit_rank": null,
+      "top_documents": [
+        "mc-stacked-option-pricing",
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-2",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "Convexity conditions for composition of scalar functions in optimization theory",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization"
+      ]
+    },
+    {
+      "text": "What is the complexity bound for Newton steps in barrier methods with generalized inequalities?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization"
+      ]
+    },
+    {
+      "text": "What is the minimum decrease rate of the residual norm in damped Newton iterations?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "gatheral-volatility-surface",
+        "tsay-analysis-financial-time-series",
+        "mc-stacked-option-pricing"
+      ]
+    },
+    {
+      "text": "What boundary conditions determine the value of a perpetual American put option?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-1",
+        "shreve-stochastic-calculus-finance-2",
+        "bennett-trading-volatility",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "What conditions define an arbitrage opportunity in a one-period binomial asset-pricing model?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-1",
+        "shreve-stochastic-calculus-finance-2",
+        "boyd-vandenberghe-convex-optimization",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "American option pricing algorithm vs European algorithm in binomial models",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "shreve-stochastic-calculus-finance-1",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "Forward price determination in binomial interest rate models using risk-neutral pricing.",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-2",
+        "savine-modern-computational-finance-aad",
+        "shreve-stochastic-calculus-finance-1",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "What defines a Markov process in binomial asset pricing models and how does it simplify derivative valuation?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-1",
+        "bergomi-stochastic-volatility-modeling",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "Why is early exercise of American call options on non-dividend stocks never optimal?",
+      "category": "section",
+      "hit_rank": 5,
+      "section_hit_rank": 17,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility",
+        "zhou-quant-finance-interviews",
+        "shreve-stochastic-calculus-finance-1"
+      ]
+    },
+    {
+      "text": "What is the primary purpose of using the binomial model in quantitative finance education?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-1",
+        "bennett-trading-volatility",
+        "heston-fast-calibration",
+        "stochastic-optimization-notes",
+        "pham-continuous-time-stochastic-control"
+      ]
+    },
+    {
+      "text": "What is the definition of a finite probability space and how are event probabilities calculated?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-1",
+        "shreve-stochastic-calculus-finance-2",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "ohara-market-microstructure-theory"
+      ]
+    },
+    {
+      "text": "Brownian motion conditional density Markov property transition function",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "tsay-analysis-financial-time-series",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "zhou-quant-finance-interviews",
+        "shreve-stochastic-calculus-finance-1"
+      ]
+    },
+    {
+      "text": "Markov property conditional expectation SDE solution at time t",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-2",
+        "stochastic-optimization-notes",
+        "pham-continuous-time-stochastic-control",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "What conditions characterize a standard Brownian motion using martingale properties and quadratic variation?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "What is the relationship between option price sensitivity and stock price changes in hedging strategies?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-2",
+        "bennett-trading-volatility",
+        "gatheral-volatility-surface",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "How to change the intensity of a Poisson process using measure transformation?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "shreve-stochastic-calculus-finance-2",
+        "heston-fast-calibration",
+        "tsay-analysis-financial-time-series",
+        "pham-continuous-time-stochastic-control"
+      ]
+    },
+    {
+      "text": "What conditions must be met for a risk-neutral probability measure to exist in financial models?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "shreve-stochastic-calculus-finance-1",
+        "hull-options-futures-other-derivatives-11e",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "What is the stochastic differential equation for a portfolio's value with stock and money market investments?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-2",
+        "gatheral-volatility-surface",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "Itô-Doeblin formula for jump processes with continuous and jump components integration",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "What is the relationship between the dual problem solution and the closure of martingale measures in L²(P)?",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": 7,
+      "top_documents": [
+        "xva-fixed-point-collateral",
+        "stochastic-optimization-notes",
+        "wooldridge-introductory-econometrics",
+        "pham-continuous-time-stochastic-control",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "What are the key mathematical contributions to supermartingale decomposition and utility maximization in financial mathematics?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes",
+        "savine-modern-computational-finance-aad",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "What conditions ensure the stochastic exponential of a local martingale remains a martingale under Girsanov's theorem?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "Dynamic programming principle proof for stochastic control problems with Markovian structure",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes"
+      ]
+    },
+    {
+      "text": "What are the conditions for strong solutions of stochastic differential equations with random coefficients?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "Controlled diffusion processes with time-inhomogeneous coefficients and finite horizon optimization problems.",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "stochastic-optimization-notes",
+        "pham-continuous-time-stochastic-control"
+      ]
+    },
+    {
+      "text": "How does the Markovian framework connect semilinear PDE solutions to backward stochastic differential equations?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 14,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "savine-modern-computational-finance-aad",
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes",
+        "boyd-vandenberghe-convex-optimization"
+      ]
+    },
+    {
+      "text": "Dual formulation for concave optimization in financial utility maximization problems",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 11,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "pham-continuous-time-stochastic-control",
+        "stochastic-optimization-notes"
+      ]
+    },
+    {
+      "text": "What do the factor loadings represent in principal components analysis of yield curve movements?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "tsay-analysis-financial-time-series",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "Explicit finite difference method equivalent to which tree approach and why negative probabilities occur",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "joshi-cpp-design-patterns-derivatives-pricing"
+      ]
+    },
+    {
+      "text": "How to adjust Black model for caps and floors when reference rates are based on overnight rates with backward-looking observations?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-2",
+        "sofr-term-structure-futures",
+        "sofr-interest-rate-modeling"
+      ]
+    },
+    {
+      "text": "How can companies use call options to optimize tax treatment of investment income and gains across different jurisdictions?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "How does increased stock price volatility affect call and put option values?",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e",
+        "gatheral-volatility-surface",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "How is credit valuation adjustment (CVA) calculated for derivative portfolios with default risk?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "xva-bilateral-counterparty-risk",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-funding-valuation-adjustment",
+        "xva-counterparty-risk-faq",
+        "xva-ccp-central-clearing-faq"
+      ]
+    },
+    {
+      "text": "What distinguishes systematic from nonsystematic risk in investment returns and how does diversification affect each type?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "ohara-market-microstructure-theory",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "shreve-stochastic-calculus-finance-2",
+        "pham-continuous-time-stochastic-control"
+      ]
+    },
+    {
+      "text": "How did traders exploit foreign exchange rate distribution anomalies for profit in the 1980s?",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 14,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-2",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "What is the hedging benefit of vega-weighted dispersion in correlation mispricing strategies?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 3,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "gatheral-volatility-surface",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "Forward starting variance swap replication using long and short variance swap notionals",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 7,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "What is the realised skew relationship between ATM volatility movement and implied volatility surface changes?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "How do rights issues and takeovers specifically impact corporate leverage and credit spreads?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 10,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "xva-counterparty-risk-faq",
+        "gatheral-volatility-surface",
+        "xva-bilateral-counterparty-risk",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "CBOE correlation index calculation methodology for S&P500 top 50 stocks with rolling maturities?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "hull-options-futures-other-derivatives-11e",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "Why are volatility futures overpriced relative to variance swaps and how does this relate to vol of vol pricing?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "What factors cause close-to-close volatility estimates to overestimate or underestimate true volatility?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 6,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "sabr-vol-of-vol-expansion",
+        "volatility-option-pricing-review",
+        "sample-notes",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "What does it mean for dispersion trades to be short vol of vol and how does this affect their profitability?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "How does dealer inventory management influence short-run price movements and spread formation in market making?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "How does endogenous liquidity arise from trader decisions across multiple markets?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "How does informed trader strategic behavior differ from competitive trading in sequential trade models?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "ohara-market-microstructure-theory"
+      ]
+    },
+    {
+      "text": "How to handle serial correlation in time series regression residuals using Ljung-Box test and ARMA modeling?",
+      "category": "section",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "wooldridge-introductory-econometrics",
+        "shreve-stochastic-calculus-finance-2",
+        "tsay-analysis-financial-time-series",
+        "ohara-market-microstructure-theory"
+      ]
+    },
+    {
+      "text": "Generalized gamma distribution parameters and relationship to Weibull and exponential distributions",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "GPD parameterization using shape and scale parameters for Value at Risk calculations",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "xva-unified-csa-initial-margin",
+        "tsay-analysis-financial-time-series",
+        "savine-modern-computational-finance-aad",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "Can dynamically complete models eliminate serial correlation in error terms for forecasting accuracy?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "wooldridge-introductory-econometrics",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "Do dummy variables for parental race improve differenced regression estimates of income effects?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 7,
+      "top_documents": [
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "What topics are suitable for a one-semester econometrics course covering cross-sectional data?",
+      "category": "section",
+      "hit_rank": 1,
+      "section_hit_rank": 8,
+      "top_documents": [
+        "wooldridge-introductory-econometrics",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "Standard normal distribution moments calculation using moment generating functions",
+      "category": "section",
+      "hit_rank": 3,
+      "section_hit_rank": 7,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-2",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "zhou-quant-finance-interviews",
+        "gatheral-volatility-surface",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "How does stochastic volatility affect European call option pricing compared to constant volatility?",
+      "category": "section",
+      "hit_rank": 6,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "gatheral-volatility-surface",
+        "bergomi-stochastic-volatility-modeling",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "Expected position of first ace in shuffled 52-card deck calculation",
+      "category": "section",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "zhou-quant-finance-interviews",
+        "wooldridge-introductory-econometrics",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    }
+  ]
+}

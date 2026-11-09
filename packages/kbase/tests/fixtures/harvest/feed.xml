@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <opensearch:totalResults>2</opensearch:totalResults>
+  <entry>
+    <id>http://arxiv.org/abs/2401.00001v2</id>
+    <updated>2024-03-02T10:00:00Z</updated>
+    <published>2024-01-01T09:00:00Z</published>
+    <title>Multilevel Monte Carlo
+      for Barrier Options</title>
+    <summary>  We price barrier options with MLMC.  </summary>
+    <author><name>Ada Lovelace</name></author>
+    <author><name>Alan Turing</name></author>
+    <arxiv:doi>10.1000/xyz</arxiv:doi>
+    <arxiv:primary_category term="q-fin.CP"/>
+    <category term="q-fin.CP"/>
+    <category term="math.NA"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/math/0501001v1</id>
+    <updated>2005-01-01T00:00:00Z</updated>
+    <published>2005-01-01T00:00:00Z</published>
+    <title>An Old-Style Identifier</title>
+    <summary>Old.</summary>
+    <author><name>Carl Gauss</name></author>
+    <arxiv:primary_category term="math.PR"/>
+    <category term="math.PR"/>
+  </entry>
+</feed>

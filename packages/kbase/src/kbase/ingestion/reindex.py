@@ -6,13 +6,22 @@ from corelib.errors import ValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from kbase.contextual import contextual_text
 from kbase.embeddings.base import Embedder
 from kbase.ingestion.writer import format_vector
+from kbase.retrieval.store import load_section_paths
 
 _BATCH_SIZE = 200
 
 
-def reindex(session: Session, *, model_name: str, embedder: Embedder, replace: bool = False) -> int:
+def reindex(
+    session: Session,
+    *,
+    model_name: str,
+    embedder: Embedder,
+    replace: bool = False,
+    contextual: bool = False,
+) -> int:
     """Re-embeds every chunk with `embedder`; `model_name` must match the configured model.
     Commits batch by batch, so an interrupted run resumes where it stopped: chunks the
     model already covers are skipped. `replace` then drops the other models' vectors:
@@ -29,7 +38,9 @@ def reindex(session: Session, *, model_name: str, embedder: Embedder, replace: b
     while True:
         rows = session.execute(
             text(
-                "SELECT c.id, c.content FROM kb.chunks c "
+                "SELECT c.id, c.content, c.section_id, d.title FROM kb.chunks c "
+                "JOIN kb.document_versions dv ON dv.id = c.document_version_id "
+                "JOIN kb.documents d ON d.id = dv.document_id "
                 "WHERE (CAST(:last_id AS text) IS NULL OR c.id::text > :last_id) "
                 "AND NOT EXISTS (SELECT 1 FROM kb.chunk_embeddings e "
                 "WHERE e.chunk_id = c.id AND e.model_name = :model_name "
@@ -46,7 +57,13 @@ def reindex(session: Session, *, model_name: str, embedder: Embedder, replace: b
         if not rows:
             break
         chunk_ids = [str(r[0]) for r in rows]
-        contents = [r[1] for r in rows]
+        if contextual:
+            paths = load_section_paths(session, [str(r[2]) for r in rows if r[2]])
+            contents = [
+                contextual_text(r[3], paths.get(str(r[2]), []) if r[2] else [], r[1]) for r in rows
+            ]
+        else:
+            contents = [r[1] for r in rows]
         embeddings = embedder.embed_documents(contents)
         for chunk_id, embedding in zip(chunk_ids, embeddings, strict=True):
             session.execute(

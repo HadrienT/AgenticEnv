@@ -1,0 +1,62 @@
+# First arXiv wave for quant-modeling (WP18): numerical pricing and its performance.
+# Each query follows the arXiv API syntax; `topic` is the kbase topic its papers get
+# (filterable through kb.search). The first query to find a paper sets its topic, so
+# order matters: specific queries first, broad ones last.
+#
+#   uv run kbase harvest --profile configs/harvest/pricing-numerics.yaml --dry-run --summary
+#   uv run kbase harvest --profile configs/harvest/pricing-numerics.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv.yaml
+name: pricing-numerics
+date_from: 2010-01-01
+sort_by: relevance
+queries:
+  # --- Monte Carlo and quasi-Monte Carlo ---
+  - topic: numerical-monte-carlo
+    query: '(abs:"multilevel Monte Carlo" AND (abs:option OR abs:pricing OR abs:finance OR abs:Greeks)) ANDNOT abs:quantum'
+    max_results: 40
+  - topic: numerical-qmc
+    query: '(abs:"quasi-Monte Carlo" OR abs:"low-discrepancy" OR abs:Sobol) AND (cat:q-fin.CP OR cat:q-fin.PR OR cat:q-fin.MF OR abs:option)'
+    max_results: 40
+  - topic: numerical-monte-carlo
+    query: '(cat:q-fin.CP OR cat:q-fin.PR) AND (abs:"variance reduction" OR abs:"importance sampling" OR abs:"control variate")'
+    max_results: 40
+  - topic: numerical-monte-carlo
+    query: 'abs:"random number" AND (abs:parallel OR abs:GPU OR abs:"counter-based") AND (abs:simulation OR abs:"Monte Carlo")'
+    max_results: 20
+  # --- SDE discretization ---
+  - topic: volatility-heston
+    query: 'abs:Heston AND (abs:simulation OR abs:discretization OR abs:scheme) AND (cat:q-fin.CP OR cat:q-fin.PR OR cat:q-fin.MF)'
+    max_results: 40
+  - topic: volatility-rough
+    query: 'abs:"rough volatility" AND (abs:simulation OR abs:scheme OR abs:pricing OR abs:Monte)'
+    max_results: 40
+  # --- Fourier and PDE methods ---
+  - topic: numerical-fourier
+    query: '(abs:"COS method" OR abs:"Fourier-cosine" OR abs:"fast Fourier transform" OR abs:"characteristic function") AND abs:option AND (cat:q-fin.CP OR cat:q-fin.PR OR cat:q-fin.MF)'
+    max_results: 40
+  - topic: numerical-pde
+    query: '(abs:"finite difference" OR abs:ADI OR abs:"Crank-Nicolson" OR abs:"alternating direction") AND (abs:option OR abs:Heston OR abs:pricing)'
+    max_results: 40
+  # --- American and early exercise ---
+  - topic: numerical-american
+    query: 'abs:"American option" AND (abs:regression OR abs:Longstaff OR abs:penalty OR abs:"free boundary" OR abs:"least squares")'
+    max_results: 40
+  # --- Sensitivities ---
+  - topic: numerical-aad
+    query: '(abs:"algorithmic differentiation" OR abs:"automatic differentiation" OR abs:adjoint) AND (abs:Greeks OR abs:sensitivities OR abs:finance OR abs:"Monte Carlo")'
+    max_results: 40
+  # --- Hardware and performance ---
+  - topic: numerical-hpc
+    query: '(abs:GPU OR abs:CUDA OR abs:SIMD OR abs:FPGA OR abs:vectorization OR abs:vectorized) AND (abs:option OR abs:derivatives OR abs:pricing OR abs:xVA OR abs:CVA)'
+    max_results: 40
+  # --- Machine learning for pricing and calibration ---
+  - topic: numerical-ml-pricing
+    query: '(abs:"neural network" OR abs:"deep learning" OR abs:"differential machine learning") AND (abs:pricing OR abs:calibration OR abs:Greeks) AND cat:q-fin.CP'
+    max_results: 40
+  # --- Calibration and xVA numerics ---
+  - topic: numerical-calibration
+    query: 'abs:calibration AND (abs:Heston OR abs:SABR OR abs:"local volatility" OR abs:"stochastic volatility") AND (cat:q-fin.CP OR cat:q-fin.PR)'
+    max_results: 30
+  - topic: cva-xva
+    query: '(abs:xVA OR abs:CVA OR abs:"exposure") AND (abs:"Monte Carlo" OR abs:regression OR abs:GPU) AND (cat:q-fin.CP OR cat:q-fin.RM OR cat:q-fin.PR)'
+    max_results: 30

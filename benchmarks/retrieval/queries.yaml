@@ -3,7 +3,11 @@
 # without looking at what the search returns.
 #
 # category: exact (the terms of the source) | paraphrase (other words, what an agent
-# types) | french | equation
+# types) | french | equation | numerics (what an agent working on quant-modeling's
+# engines asks: Monte Carlo, QMC, AAD, trees, calibration, C++ performance)
+#
+# Topics the corpus does not cover yet live in `queries-gaps.yaml`: they are scored
+# once the documents that answer them are ingested.
 queries:
   - {category: exact, text: "SABR implied volatility approximation", expected: [sabr-paulot-second-order-asymptotic, sabr-vol-of-vol-expansion, sabr-libor-market-models, gatheral-volatility-surface]}
   - {category: exact, text: "Black-Scholes-Merton call option price formula", expected: [hull-options-futures-other-derivatives-11e, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering, bouzoubaa-osseiran-exotic-options-hybrids]}
@@ -24,7 +28,7 @@ queries:
   - {category: exact, text: "autocallable structured product pricing", expected: [bouzoubaa-osseiran-exotic-options-hybrids, bennett-trading-volatility]}
   - {category: exact, text: "OLS heteroskedasticity robust standard errors", expected: [wooldridge-introductory-econometrics]}
   - {category: exact, text: "template factory pattern payoff class C++", expected: [joshi-cpp-design-patterns-derivatives-pricing, savine-modern-computational-finance-aad]}
-  - {category: exact, text: "stochastic gradient descent convergence", expected: [stochastic-optimization-notes, boyd-vandenberghe-convex-optimization]}
+  - {category: exact, text: "stochastic gradient descent convergence", expected: [boyd-vandenberghe-convex-optimization, pham-continuous-time-stochastic-control]}
   - {category: paraphrase, text: "how does implied volatility change with the strike of an option", expected: [gatheral-volatility-surface, hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bergomi-stochastic-volatility-modeling, volatility-option-pricing-review]}
   - {category: paraphrase, text: "making random simulations of option values converge faster", expected: [glasserman-monte-carlo-methods-financial-engineering, mc-enhanced-derivative-pricing, mc-stacked-option-pricing]}
   - {category: paraphrase, text: "protecting a derivatives position against small moves in the underlying", expected: [hull-options-futures-other-derivatives-11e, bennett-trading-volatility, bouzoubaa-osseiran-exotic-options-hybrids]}
@@ -35,7 +39,7 @@ queries:
   - {category: paraphrase, text: "fitting a volatility model quickly to market option prices", expected: [heston-fast-calibration, heston-analysis-calibration-matlab, sabr-libor-market-models, gatheral-volatility-surface]}
   - {category: paraphrase, text: "periods of calm and turbulence in stock returns cluster together", expected: [tsay-analysis-financial-time-series, volatility-option-pricing-review]}
   - {category: paraphrase, text: "the price of a contract that pays only if a level is touched before expiry", expected: [hull-options-futures-other-derivatives-11e, bouzoubaa-osseiran-exotic-options-hybrids, shreve-stochastic-calculus-finance-2, glasserman-monte-carlo-methods-financial-engineering]}
-  - {category: paraphrase, text: "choosing the best action over time when the state evolves randomly", expected: [pham-continuous-time-stochastic-control, stochastic-optimization-notes]}
+  - {category: paraphrase, text: "choosing the best action over time when the state evolves randomly", expected: [pham-continuous-time-stochastic-control]}
   - {category: paraphrase, text: "the cost for a bank of borrowing cash to post collateral", expected: [xva-funding-valuation-adjustment, xva-unified-csa-initial-margin, xva-fixed-point-collateral, xva-ccp-central-clearing-faq]}
   - {category: paraphrase, text: "a discrete up or down stock model to teach no arbitrage pricing", expected: [shreve-stochastic-calculus-finance-1, hull-options-futures-other-derivatives-11e]}
   - {category: paraphrase, text: "brainteasers and probability questions for a trading job", expected: [zhou-quant-finance-interviews]}
@@ -65,3 +69,27 @@ queries:
   - {category: equation, text: "\\text{CVA} = (1-R) \\int_0^T EE(t) dPD(t)", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-unified-csa-initial-margin, xva-fixed-point-collateral]}
   - {category: equation, text: "\\sigma_t^2 = \\alpha_0 + \\alpha_1 a_{t-1}^2 + \\beta_1 \\sigma_{t-1}^2", expected: [tsay-analysis-financial-time-series, volatility-option-pricing-review]}
   - {category: equation, text: "dF = \\sigma F^\\beta dW, d\\sigma = \\nu \\sigma dZ", expected: [sabr-paulot-second-order-asymptotic, sabr-vol-of-vol-expansion, sabr-libor-market-models, gatheral-volatility-surface]}
+  - {category: numerics, text: "Sobol low-discrepancy sequence for quasi-Monte Carlo option pricing", expected: [glasserman-monte-carlo-methods-financial-engineering, savine-modern-computational-finance-aad]}
+  - {category: numerics, text: "Brownian bridge construction of paths for quasi-Monte Carlo", expected: [glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "convergence rate of quasi-Monte Carlo compared with plain Monte Carlo", expected: [glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "pathwise derivative and likelihood ratio estimators for Monte Carlo Greeks", expected: [glasserman-monte-carlo-methods-financial-engineering, aad-adjoints-automatic-diff-finance, savine-modern-computational-finance-aad]}
+  - {category: numerics, text: "Longstaff-Schwartz least squares regression for American options in Monte Carlo", expected: [glasserman-monte-carlo-methods-financial-engineering, hull-options-futures-other-derivatives-11e]}
+  - {category: numerics, text: "Euler and Milstein discretization schemes for stochastic differential equations", expected: [glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "control variate based on the geometric average Asian option", expected: [glasserman-monte-carlo-methods-financial-engineering, hull-options-futures-other-derivatives-11e]}
+  - {category: numerics, text: "importance sampling for deep out-of-the-money options", expected: [glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "discrete monitoring bias of barrier options and continuity correction", expected: [glasserman-monte-carlo-methods-financial-engineering, hull-options-futures-other-derivatives-11e, bouzoubaa-osseiran-exotic-options-hybrids]}
+  - {category: numerics, text: "AAD tape memory consumption and check-pointing in Monte Carlo simulations", expected: [savine-modern-computational-finance-aad, aad-adjoints-automatic-diff-finance]}
+  - {category: numerics, text: "multithreaded Monte Carlo with thread-local AAD tapes", expected: [savine-modern-computational-finance-aad]}
+  - {category: numerics, text: "parallel random number generation with skip-ahead for independent streams", expected: [savine-modern-computational-finance-aad, glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "expression templates to speed up operator overloading AAD in C++", expected: [savine-modern-computational-finance-aad]}
+  - {category: numerics, text: "virtual copy constructor clone pattern for payoff objects", expected: [joshi-cpp-design-patterns-derivatives-pricing]}
+  - {category: numerics, text: "uniform random generator and inverse cumulative normal for Gaussian draws", expected: [joshi-cpp-design-patterns-derivatives-pricing, glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "trinomial tree for the Hull-White short rate model", expected: [hull-options-futures-other-derivatives-11e]}
+  - {category: numerics, text: "numerical integration of the Heston characteristic function pricing formula", expected: [heston-analysis-calibration-matlab, heston-fast-calibration, gatheral-volatility-surface]}
+  - {category: numerics, text: "Levenberg-Marquardt calibration of Heston with an analytical gradient", expected: [heston-fast-calibration]}
+  - {category: numerics, text: "Monte Carlo simulation of exposure profiles for a netting set", expected: [xva-counterparty-risk-faq, xva-unified-csa-initial-margin, xva-bilateral-counterparty-risk]}
+  - {category: numerics, text: "my Monte Carlo Greeks by bumping are too noisy, how do I stabilise them", expected: [glasserman-monte-carlo-methods-financial-engineering, savine-modern-computational-finance-aad, aad-adjoints-automatic-diff-finance]}
+  - {category: numerics, text: "méthode des moindres carrés de Longstaff-Schwartz pour les options américaines", expected: [glasserman-monte-carlo-methods-financial-engineering, hull-options-futures-other-derivatives-11e]}
+  - {category: numerics, text: "mémoire de la bande AAD et parallélisation des simulations", expected: [savine-modern-computational-finance-aad, aad-adjoints-automatic-diff-finance]}
+  - {category: numerics, text: "fast and accurate approximation of the inverse normal CDF", expected: [glasserman-monte-carlo-methods-financial-engineering]}
+  - {category: numerics, text: "randomized quasi-Monte Carlo Owen scrambling error estimation", expected: [glasserman-monte-carlo-methods-financial-engineering]}

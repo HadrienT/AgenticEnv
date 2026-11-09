@@ -1,0 +1,83 @@
+# kbase v2 (WP19): curated books, section chunking with equations inline, bge-m3 with
+# CLS pooling, a contextual cross-encoder over 100 candidates, per-document diversity.
+# Measured in blueprint/wp/WP19-rag-v2.md §8. Needs the WP19 embed/rerank servers
+# (infra/scripts/run-embed-server.sh) and a corpus ingested with this file.
+embeddings:
+  provider: http
+  base_url: http://127.0.0.1:8310/v1
+  model_name: bge-m3
+  model_version: "q8_0-cls"      # CLS pooling: what bge-m3 is trained for (mean was wrong)
+  dim: 1024                      # MUST match the vector(D) migration
+  batch_size: 16
+  normalize: true
+  timeout_s: 300
+  # Content alone: a "title / section path" header made the chunks of one book look
+  # alike and cost 2 points of passage recall before reranking (WP19 §8).
+  contextual: false
+  query_instruction: null
+
+chunking:
+  strategy: section
+  target_tokens: 400             # model tokens (~4 chars each), not words
+  max_tokens: 700
+  min_tokens: 120                # a smaller chunk absorbs its next sibling section
+  overlap_tokens: 50
+  keep_equation_with_context: true
+  never_split_within: [equation, table]
+
+retrieval:
+  default_k: 8
+  candidates_vector: 100
+  candidates_lexical: 100
+  fusion: rrf
+  rrf_k: 60
+  rerank:
+    provider: http
+    base_url: http://127.0.0.1:8311/v1
+    model_name: bge-reranker-v2-m3
+    top_k: 8
+    candidates: 100              # fused candidates the cross-encoder reorders
+    contextual: true             # the cross-encoder reads title / section path / content
+    timeout_s: 300
+  fts_config: simple             # no stemming: keeps SABR, SOFR, CVA intact
+  lexical_fallback: true
+  min_score: 0.0
+  max_chunks_per_document: 3
+  hnsw_ef_search: 200
+
+curation:
+  # Whole-title regexes (case-insensitive), matched once a leading "12.8" is removed.
+  drop_sections:
+    - '(table of )?contents'
+    - 'front matter'
+    - 'preface( to the .*)?'
+    - 'foreword'
+    - 'dedication'
+    - 'acknowledge?ments?'
+    - 'about the authors?'
+    - '(subject |author |name )?index'
+    - 'bibliography'
+    - 'references?'
+    - 'further reading'
+    - 'bibliographic notes'
+    - '(practice |further |review |end of chapter |end-of-chapter )?(questions|problems|exercises)( and problems)?'
+    - 'exercises?'
+    - 'problems?'
+    - 'solutions?( to .*)?'
+    - 'list of (figures|tables|symbols|abbreviations)'
+    - 'copyright.*'
+    - 'new to this edition'
+    - 'solving teaching and learning challenges'
+    - 'designing a course'
+    - 'slides'
+    - 'software'
+    - 'employability'
+    - 'math knowledge'
+
+provenance:
+  require_page: false
+  require_section: true
+
+ingestion:
+  max_file_size_mb: 50
+  parse_timeout_s: 120

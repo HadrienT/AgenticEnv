@@ -35,8 +35,12 @@ class HttpEmbedder:
         normalize: bool,
         batch_size: int,
         timeout_s: float,
+        query_instruction: str | None = None,
+        truncate_dim: bool = False,
     ) -> None:
         self.model_name = model_name
+        self._truncate_dim = truncate_dim
+        self._query_instruction = query_instruction
         self.model_version = model_version
         self.dim = dim
         self._url = f"{base_url.rstrip('/')}/embeddings"
@@ -50,6 +54,10 @@ class HttpEmbedder:
         )
         rows = sorted(body["data"], key=lambda row: row["index"])
         vectors = [[float(v) for v in row["embedding"]] for row in rows]
+        if self._truncate_dim:
+            # Matryoshka-trained models (Qwen3-Embedding) keep most of their quality in
+            # the leading dimensions; renormalized below.
+            vectors = [vector[: self.dim] for vector in vectors]
         for vector in vectors:
             if len(vector) != self.dim:
                 raise DependencyError(
@@ -70,4 +78,6 @@ class HttpEmbedder:
         return vectors
 
     def embed_query(self, text: str) -> Sequence[float]:
+        if self._query_instruction:
+            text = f"Instruct: {self._query_instruction}\nQuery: {text}"
         return self._embed([text])[0]

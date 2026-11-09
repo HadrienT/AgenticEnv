@@ -1,0 +1,1163 @@
+{
+  "label": "v2-final",
+  "overall": {
+    "queries": 84,
+    "recall_at_5": 1.0,
+    "recall_at_10": 1.0,
+    "mrr": 0.8492063492063492,
+    "ndcg_at_10": 0.8304100534888615,
+    "latency_p50_ms": 2209.0,
+    "latency_p95_ms": 3093.0,
+    "section_queries": 0,
+    "section_recall_at_5": null,
+    "section_recall_at_10": null,
+    "section_mrr": null
+  },
+  "by_category": {
+    "equation": {
+      "queries": 8,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.8125,
+      "ndcg_at_10": 0.6473556148414543,
+      "latency_p50_ms": 3242.0,
+      "latency_p95_ms": 3413.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "exact": {
+      "queries": 20,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.9,
+      "ndcg_at_10": 0.8958497565704027,
+      "latency_p50_ms": 2214.0,
+      "latency_p95_ms": 2536.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "french": {
+      "queries": 12,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.8611111111111112,
+      "ndcg_at_10": 0.8634629990384076,
+      "latency_p50_ms": 2187.0,
+      "latency_p95_ms": 2500.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "numerics": {
+      "queries": 24,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.8541666666666666,
+      "ndcg_at_10": 0.852885293868081,
+      "latency_p50_ms": 2219.0,
+      "latency_p95_ms": 2488.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "paraphrase": {
+      "queries": 20,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.8,
+      "ndcg_at_10": 0.7913900700814926,
+      "latency_p50_ms": 2184.0,
+      "latency_p95_ms": 2591.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    }
+  },
+  "details": [
+    {
+      "text": "SABR implied volatility approximation",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "sabr-vol-of-vol-expansion",
+        "sabr-paulot-second-order-asymptotic",
+        "gatheral-volatility-surface",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "sabr-libor-market-models"
+      ]
+    },
+    {
+      "text": "Black-Scholes-Merton call option price formula",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "zhou-quant-finance-interviews",
+        "bennett-trading-volatility",
+        "shreve-stochastic-calculus-finance-2",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "Heston stochastic volatility characteristic function calibration",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "heston-fast-calibration",
+        "heston-analysis-calibration-matlab",
+        "gatheral-volatility-surface",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "Dupire local volatility formula",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "dupire-local-vol-jumps",
+        "savine-modern-computational-finance-aad",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface",
+        "volatility-option-pricing-review"
+      ]
+    },
+    {
+      "text": "credit valuation adjustment CVA exposure",
+      "category": "exact",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "xva-counterparty-risk-faq",
+        "xva-ccp-central-clearing-faq",
+        "xva-bilateral-counterparty-risk",
+        "xva-fixed-point-collateral"
+      ]
+    },
+    {
+      "text": "funding valuation adjustment FVA",
+      "category": "exact",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "xva-ccp-central-clearing-faq",
+        "xva-funding-valuation-adjustment",
+        "xva-counterparty-risk-faq",
+        "xva-fixed-point-collateral"
+      ]
+    },
+    {
+      "text": "SOFR futures term structure",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "sofr-term-structure-futures",
+        "libor-transition-futures-evidence",
+        "sofr-interest-rate-modeling",
+        "hull-options-futures-other-derivatives-11e",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "adjoint algorithmic differentiation greeks",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "aad-adjoints-automatic-diff-finance",
+        "aad-correlation-greeks",
+        "savine-modern-computational-finance-aad",
+        "sabr-vol-of-vol-expansion",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "antithetic variates control variates Monte Carlo variance reduction",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "mc-stacked-option-pricing",
+        "zhou-quant-finance-interviews",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "Hamilton-Jacobi-Bellman equation stochastic control",
+      "category": "exact",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "pham-continuous-time-stochastic-control",
+        "shreve-stochastic-calculus-finance-2",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "Girsanov theorem risk-neutral measure",
+      "category": "exact",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "heston-analysis-calibration-matlab"
+      ]
+    },
+    {
+      "text": "binomial asset pricing model replicating portfolio",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-1",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-2",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "GARCH volatility model estimation",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e",
+        "volatility-option-pricing-review",
+        "bergomi-stochastic-volatility-modeling",
+        "sabr-vol-of-vol-expansion"
+      ]
+    },
+    {
+      "text": "bid-ask spread inventory models market maker",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "xva-fixed-point-collateral"
+      ]
+    },
+    {
+      "text": "Karush-Kuhn-Tucker optimality conditions duality",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "pham-continuous-time-stochastic-control",
+        "zhou-quant-finance-interviews",
+        "bergomi-stochastic-volatility-modeling",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "variance swap replication log contract",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bergomi-stochastic-volatility-modeling",
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "autocallable structured product pricing",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility",
+        "savine-modern-computational-finance-aad",
+        "bergomi-stochastic-volatility-modeling",
+        "xva-funding-valuation-adjustment"
+      ]
+    },
+    {
+      "text": "OLS heteroskedasticity robust standard errors",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "template factory pattern payoff class C++",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "savine-modern-computational-finance-aad",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "stochastic gradient descent convergence",
+      "category": "exact",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "heston-fast-calibration",
+        "savine-modern-computational-finance-aad",
+        "sabr-vol-of-vol-expansion",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "how does implied volatility change with the strike of an option",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "zhou-quant-finance-interviews",
+        "volatility-option-pricing-review",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "making random simulations of option values converge faster",
+      "category": "paraphrase",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "hull-options-futures-other-derivatives-11e",
+        "zhou-quant-finance-interviews",
+        "mc-enhanced-derivative-pricing",
+        "heston-fast-calibration"
+      ]
+    },
+    {
+      "text": "protecting a derivatives position against small moves in the underlying",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "shreve-stochastic-calculus-finance-2",
+        "shreve-stochastic-calculus-finance-1"
+      ]
+    },
+    {
+      "text": "what happens to a trade if the other party goes bankrupt",
+      "category": "paraphrase",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-unified-csa-initial-margin",
+        "zhou-quant-finance-interviews",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "computing all sensitivities of a price at the cost of one extra pricing",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "bergomi-stochastic-volatility-modeling",
+        "aad-adjoints-automatic-diff-finance",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "replacing the old interbank benchmark rate with overnight rates",
+      "category": "paraphrase",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "libor-transition-futures-evidence",
+        "sofr-term-structure-futures",
+        "sofr-interest-rate-modeling",
+        "xva-ccp-central-clearing-faq"
+      ]
+    },
+    {
+      "text": "why informed traders make market makers widen their quotes",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "fitting a volatility model quickly to market option prices",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "heston-analysis-calibration-matlab",
+        "bergomi-stochastic-volatility-modeling",
+        "sabr-vol-of-vol-expansion",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "periods of calm and turbulence in stock returns cluster together",
+      "category": "paraphrase",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "tsay-analysis-financial-time-series",
+        "volatility-option-pricing-review",
+        "wooldridge-introductory-econometrics",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "the price of a contract that pays only if a level is touched before expiry",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-1",
+        "gatheral-volatility-surface",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "choosing the best action over time when the state evolves randomly",
+      "category": "paraphrase",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "boyd-vandenberghe-convex-optimization",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "pham-continuous-time-stochastic-control",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "the cost for a bank of borrowing cash to post collateral",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "xva-fixed-point-collateral",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-unified-csa-initial-margin",
+        "xva-ccp-central-clearing-faq",
+        "sofr-interest-rate-modeling"
+      ]
+    },
+    {
+      "text": "a discrete up or down stock model to teach no arbitrage pricing",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "shreve-stochastic-calculus-finance-1",
+        "shreve-stochastic-calculus-finance-2",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "brainteasers and probability questions for a trading job",
+      "category": "paraphrase",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "zhou-quant-finance-interviews",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "structuring pricing code so new payoffs can be added without changing the engine",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "savine-modern-computational-finance-aad",
+        "bergomi-stochastic-volatility-modeling",
+        "xva-fixed-point-collateral"
+      ]
+    },
+    {
+      "text": "does adding a variable really cause the outcome or is it correlation",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "wooldridge-introductory-econometrics",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "price jumps make the short maturity smile steeper",
+      "category": "paraphrase",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "hull-options-futures-other-derivatives-11e",
+        "gatheral-volatility-surface",
+        "bennett-trading-volatility"
+      ]
+    },
+    {
+      "text": "minimising a function with constraints that has a single optimum",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "wooldridge-introductory-econometrics",
+        "pham-continuous-time-stochastic-control",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "making money from the gap between implied and realised volatility",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "gatheral-volatility-surface",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "models for interest rate caps with a volatility smile",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "sabr-libor-market-models",
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "formule de prix d'une option d'achat européenne",
+      "category": "french",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bennett-trading-volatility",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e",
+        "tsay-analysis-financial-time-series",
+        "xva-fixed-point-collateral"
+      ]
+    },
+    {
+      "text": "réduction de variance en simulation Monte-Carlo",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "zhou-quant-finance-interviews",
+        "savine-modern-computational-finance-aad",
+        "mc-stacked-option-pricing",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "risque de contrepartie et ajustement de crédit",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "xva-bilateral-counterparty-risk",
+        "xva-counterparty-risk-faq",
+        "hull-options-futures-other-derivatives-11e",
+        "xva-fixed-point-collateral",
+        "xva-funding-valuation-adjustment"
+      ]
+    },
+    {
+      "text": "calibration du modèle de volatilité stochastique de Heston",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "heston-fast-calibration",
+        "heston-analysis-calibration-matlab",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface"
+      ]
+    },
+    {
+      "text": "couverture delta d'un portefeuille d'options",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bergomi-stochastic-volatility-modeling",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "gatheral-volatility-surface",
+        "glasserman-monte-carlo-methods-financial-engineering"
+      ]
+    },
+    {
+      "text": "surface de volatilité implicite et absence d'arbitrage",
+      "category": "french",
+      "hit_rank": 3,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling",
+        "gatheral-volatility-surface",
+        "dupire-local-vol-jumps"
+      ]
+    },
+    {
+      "text": "changement de mesure de probabilité et théorème de Girsanov",
+      "category": "french",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "volatility-option-pricing-review",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "pham-continuous-time-stochastic-control",
+        "shreve-stochastic-calculus-finance-2",
+        "heston-analysis-calibration-matlab"
+      ]
+    },
+    {
+      "text": "dérivation automatique adjointe pour le calcul des grecques",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "aad-adjoints-automatic-diff-finance",
+        "aad-correlation-greeks",
+        "shreve-stochastic-calculus-finance-2",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "contrôle stochastique et équation de la programmation dynamique",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "pham-continuous-time-stochastic-control",
+        "bergomi-stochastic-volatility-modeling",
+        "zhou-quant-finance-interviews",
+        "shreve-stochastic-calculus-finance-2",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "microstructure des marchés et fourchette de prix",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "ohara-market-microstructure-theory",
+        "tsay-analysis-financial-time-series",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "optimisation convexe et conditions d'optimalité",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "boyd-vandenberghe-convex-optimization",
+        "pham-continuous-time-stochastic-control",
+        "bergomi-stochastic-volatility-modeling",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "transition du LIBOR vers le SOFR",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "libor-transition-futures-evidence",
+        "sofr-term-structure-futures",
+        "sofr-interest-rate-modeling",
+        "hull-options-futures-other-derivatives-11e",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "dS = \\mu S dt + \\sigma S dW",
+      "category": "equation",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "pham-continuous-time-stochastic-control",
+        "bergomi-stochastic-volatility-modeling",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "shreve-stochastic-calculus-finance-2",
+        "xva-unified-csa-initial-margin"
+      ]
+    },
+    {
+      "text": "d_1 = \\frac{\\ln(S/K) + (r + \\sigma^2/2) T}{\\sigma \\sqrt{T}}",
+      "category": "equation",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "zhou-quant-finance-interviews",
+        "sabr-vol-of-vol-expansion",
+        "bergomi-stochastic-volatility-modeling",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "\\frac{\\partial V}{\\partial t} + \\frac{1}{2}\\sigma^2 S^2 \\frac{\\partial^2 V}{\\partial S^2} + r S \\frac{\\partial V}{\\partial S} - r V = 0",
+      "category": "equation",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "zhou-quant-finance-interviews",
+        "gatheral-volatility-surface",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "\\sigma_{loc}^2(K,T) = \\frac{\\partial_T C}{\\frac{1}{2} K^2 \\partial_{KK} C}",
+      "category": "equation",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "dupire-local-vol-jumps",
+        "gatheral-volatility-surface",
+        "sabr-paulot-second-order-asymptotic",
+        "savine-modern-computational-finance-aad",
+        "heston-fast-calibration"
+      ]
+    },
+    {
+      "text": "dv = \\kappa (\\theta - v) dt + \\xi \\sqrt{v} dW",
+      "category": "equation",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "heston-analysis-calibration-matlab",
+        "sabr-vol-of-vol-expansion",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "libor-transition-futures-evidence",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "\\text{CVA} = (1-R) \\int_0^T EE(t) dPD(t)",
+      "category": "equation",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "xva-unified-csa-initial-margin",
+        "savine-modern-computational-finance-aad",
+        "hull-options-futures-other-derivatives-11e",
+        "heston-fast-calibration",
+        "heston-analysis-calibration-matlab"
+      ]
+    },
+    {
+      "text": "\\sigma_t^2 = \\alpha_0 + \\alpha_1 a_{t-1}^2 + \\beta_1 \\sigma_{t-1}^2",
+      "category": "equation",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "tsay-analysis-financial-time-series",
+        "sabr-paulot-second-order-asymptotic",
+        "bergomi-stochastic-volatility-modeling",
+        "boyd-vandenberghe-convex-optimization",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "dF = \\sigma F^\\beta dW, d\\sigma = \\nu \\sigma dZ",
+      "category": "equation",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "sabr-vol-of-vol-expansion",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bergomi-stochastic-volatility-modeling",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "Sobol low-discrepancy sequence for quasi-Monte Carlo option pricing",
+      "category": "numerics",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "mc-enhanced-derivative-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "hull-options-futures-other-derivatives-11e",
+        "savine-modern-computational-finance-aad",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "Brownian bridge construction of paths for quasi-Monte Carlo",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "mc-enhanced-derivative-pricing",
+        "shreve-stochastic-calculus-finance-2",
+        "savine-modern-computational-finance-aad",
+        "mc-stacked-option-pricing"
+      ]
+    },
+    {
+      "text": "convergence rate of quasi-Monte Carlo compared with plain Monte Carlo",
+      "category": "numerics",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "mc-enhanced-derivative-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "mc-stacked-option-pricing",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "pathwise derivative and likelihood ratio estimators for Monte Carlo Greeks",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "aad-correlation-greeks",
+        "hull-options-futures-other-derivatives-11e",
+        "aad-adjoints-automatic-diff-finance",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "Longstaff-Schwartz least squares regression for American options in Monte Carlo",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "hull-options-futures-other-derivatives-11e",
+        "savine-modern-computational-finance-aad",
+        "xva-bilateral-counterparty-risk",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "Euler and Milstein discretization schemes for stochastic differential equations",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "gatheral-volatility-surface",
+        "bergomi-stochastic-volatility-modeling",
+        "savine-modern-computational-finance-aad",
+        "aad-adjoints-automatic-diff-finance"
+      ]
+    },
+    {
+      "text": "control variate based on the geometric average Asian option",
+      "category": "numerics",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "mc-stacked-option-pricing",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "importance sampling for deep out-of-the-money options",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "hull-options-futures-other-derivatives-11e",
+        "zhou-quant-finance-interviews",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "tsay-analysis-financial-time-series"
+      ]
+    },
+    {
+      "text": "discrete monitoring bias of barrier options and continuity correction",
+      "category": "numerics",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "gatheral-volatility-surface",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "savine-modern-computational-finance-aad",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "AAD tape memory consumption and check-pointing in Monte Carlo simulations",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "aad-correlation-greeks",
+        "mc-stacked-option-pricing",
+        "aad-adjoints-automatic-diff-finance",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "multithreaded Monte Carlo with thread-local AAD tapes",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "mc-stacked-option-pricing",
+        "aad-correlation-greeks",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "xva-bilateral-counterparty-risk"
+      ]
+    },
+    {
+      "text": "parallel random number generation with skip-ahead for independent streams",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "hull-options-futures-other-derivatives-11e",
+        "zhou-quant-finance-interviews"
+      ]
+    },
+    {
+      "text": "expression templates to speed up operator overloading AAD in C++",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "aad-correlation-greeks",
+        "boyd-vandenberghe-convex-optimization",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "virtual copy constructor clone pattern for payoff objects",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "savine-modern-computational-finance-aad",
+        "bouzoubaa-osseiran-exotic-options-hybrids"
+      ]
+    },
+    {
+      "text": "uniform random generator and inverse cumulative normal for Gaussian draws",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "joshi-cpp-design-patterns-derivatives-pricing",
+        "savine-modern-computational-finance-aad",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "tsay-analysis-financial-time-series",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "trinomial tree for the Hull-White short rate model",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "zhou-quant-finance-interviews",
+        "shreve-stochastic-calculus-finance-1",
+        "shreve-stochastic-calculus-finance-2"
+      ]
+    },
+    {
+      "text": "numerical integration of the Heston characteristic function pricing formula",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "heston-fast-calibration",
+        "heston-analysis-calibration-matlab",
+        "gatheral-volatility-surface",
+        "mc-stacked-option-pricing",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "Levenberg-Marquardt calibration of Heston with an analytical gradient",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "heston-fast-calibration",
+        "savine-modern-computational-finance-aad",
+        "heston-analysis-calibration-matlab",
+        "bergomi-stochastic-volatility-modeling",
+        "hull-options-futures-other-derivatives-11e"
+      ]
+    },
+    {
+      "text": "Monte Carlo simulation of exposure profiles for a netting set",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "xva-unified-csa-initial-margin",
+        "savine-modern-computational-finance-aad",
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "bergomi-stochastic-volatility-modeling"
+      ]
+    },
+    {
+      "text": "my Monte Carlo Greeks by bumping are too noisy, how do I stabilise them",
+      "category": "numerics",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "aad-correlation-greeks",
+        "hull-options-futures-other-derivatives-11e",
+        "aad-adjoints-automatic-diff-finance",
+        "savine-modern-computational-finance-aad"
+      ]
+    },
+    {
+      "text": "méthode des moindres carrés de Longstaff-Schwartz pour les options américaines",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "hull-options-futures-other-derivatives-11e",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "savine-modern-computational-finance-aad",
+        "shreve-stochastic-calculus-finance-2",
+        "wooldridge-introductory-econometrics"
+      ]
+    },
+    {
+      "text": "mémoire de la bande AAD et parallélisation des simulations",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "aad-correlation-greeks",
+        "mc-stacked-option-pricing"
+      ]
+    },
+    {
+      "text": "fast and accurate approximation of the inverse normal CDF",
+      "category": "numerics",
+      "hit_rank": 4,
+      "section_hit_rank": null,
+      "top_documents": [
+        "savine-modern-computational-finance-aad",
+        "tsay-analysis-financial-time-series",
+        "bouzoubaa-osseiran-exotic-options-hybrids",
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "sofr-term-structure-futures"
+      ]
+    },
+    {
+      "text": "randomized quasi-Monte Carlo Owen scrambling error estimation",
+      "category": "numerics",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "glasserman-monte-carlo-methods-financial-engineering",
+        "mc-enhanced-derivative-pricing",
+        "bergomi-stochastic-volatility-modeling",
+        "xva-bilateral-counterparty-risk",
+        "savine-modern-computational-finance-aad"
+      ]
+    }
+  ]
+}
