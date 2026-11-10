@@ -104,7 +104,7 @@ def harvest(
     max_new: int | None = None,
     dry_run: bool = False,
 ) -> HarvestReport:
-    known = known_arxiv_ids(settings.known_manifests)
+    known = known_arxiv_ids(settings.known_manifests) | set(profile.exclude_ids)
     candidates = _candidates(client, profile, settings.page_size)
     fresh = [(e, q) for e, q in candidates if e.arxiv_id not in known]
     if max_new is not None:

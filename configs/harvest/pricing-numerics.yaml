@@ -9,6 +9,7 @@
 name: pricing-numerics
 date_from: 2010-01-01
 sort_by: relevance
+# Quantum-computing algorithms are no use to a classical C++ library.
 queries:
   # --- Monte Carlo and quasi-Monte Carlo ---
   - topic: numerical-monte-carlo
@@ -21,7 +22,7 @@ queries:
     query: '(cat:q-fin.CP OR cat:q-fin.PR) AND (abs:"variance reduction" OR abs:"importance sampling" OR abs:"control variate")'
     max_results: 40
   - topic: numerical-monte-carlo
-    query: 'abs:"random number" AND (abs:parallel OR abs:GPU OR abs:"counter-based") AND (abs:simulation OR abs:"Monte Carlo")'
+    query: '(abs:"random number" AND (abs:parallel OR abs:GPU OR abs:"counter-based") AND (abs:simulation OR abs:"Monte Carlo")) ANDNOT abs:quantum'
     max_results: 20
   # --- SDE discretization ---
   - topic: volatility-heston
@@ -43,11 +44,11 @@ queries:
     max_results: 40
   # --- Sensitivities ---
   - topic: numerical-aad
-    query: '(abs:"algorithmic differentiation" OR abs:"automatic differentiation" OR abs:adjoint) AND (abs:Greeks OR abs:sensitivities OR abs:finance OR abs:"Monte Carlo")'
+    query: '(abs:"algorithmic differentiation" OR abs:"automatic differentiation" OR abs:adjoint) AND (abs:Greeks OR abs:finance OR abs:option OR cat:q-fin.CP OR cat:q-fin.PR OR cat:q-fin.RM)'
     max_results: 40
   # --- Hardware and performance ---
   - topic: numerical-hpc
-    query: '(abs:GPU OR abs:CUDA OR abs:SIMD OR abs:FPGA OR abs:vectorization OR abs:vectorized) AND (abs:option OR abs:derivatives OR abs:pricing OR abs:xVA OR abs:CVA)'
+    query: '(abs:GPU OR abs:CUDA OR abs:SIMD OR abs:FPGA OR abs:vectorization OR abs:vectorized) AND (abs:"option pricing" OR abs:finance OR abs:financial OR abs:xVA OR abs:CVA OR cat:q-fin.CP)'
     max_results: 40
   # --- Machine learning for pricing and calibration ---
   - topic: numerical-ml-pricing
@@ -60,3 +61,51 @@ queries:
   - topic: cva-xva
     query: '(abs:xVA OR abs:CVA OR abs:"exposure") AND (abs:"Monte Carlo" OR abs:regression OR abs:GPU) AND (cat:q-fin.CP OR cat:q-fin.RM OR cat:q-fin.PR)'
     max_results: 30
+
+# Reviewed and rejected after wave 1 (2026-11-10): physics, engineering and
+# quantum-computing papers the broad AAD / HPC / QMC queries let in.
+exclude_ids:
+  - '1010.5560'
+  - '1905.09362'
+  - '1104.1717'
+  - '1804.11154'
+  - '2608.00760'
+  - '1602.08440'
+  - '2202.09380'
+  - '2604.14567'
+  - '2606.31707'
+  - '2509.24740'
+  - '1805.01451'
+  - '2002.07401'
+  - '2501.06291'
+  - '2603.20946'
+  - '2308.05530'
+  - '1705.00663'
+  - '1912.07696'
+  - '2201.00241'
+  - '2402.03920'
+  - '2206.05328'
+  - '2109.14801'
+  - '2606.09356'
+  - '1811.11722'
+  - '2305.19768'
+  - '2608.17248'
+  - '2111.14443'
+  - '2107.11541'
+  - '2204.06666'
+  - '2605.15957'
+  - '1808.04201'
+  - '2010.08556'
+  - '2504.20937'
+  - '2501.18720'
+  - '2412.01695'
+  - '2006.14290'
+  - '2608.08751'
+  - '2505.09462'
+  - '2112.10034'
+  - '2404.14115'
+  - '2605.26610'
+  - '2111.15332'
+  - '2011.07319'
+  - '2607.12990'
+  - '2203.04924'

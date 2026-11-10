@@ -39,6 +39,8 @@ class HarvestProfile(BaseModel):
     date_to: date | None = None
     sort_by: Literal["relevance", "submittedDate", "lastUpdatedDate"] = "relevance"
     queries: list[HarvestQuery]
+    # arXiv ids reviewed and rejected (off-topic): never harvested again.
+    exclude_ids: list[str] = Field(default_factory=list)
 
 
 HarvestOutcome = Literal["converted", "no_html", "low_quality", "failed"]

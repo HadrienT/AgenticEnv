@@ -108,6 +108,29 @@ def test_papers_in_other_manifests_are_skipped(tmp_path: Path) -> None:
     assert [p.arxiv_id for p in report.papers] == ["math/0501001"]  # type: ignore[attr-defined]
 
 
+def test_excluded_ids_are_never_harvested(tmp_path: Path) -> None:
+    web = _Web({})
+    manifest = tmp_path / "repo" / "manifest-arxiv.yaml"
+    settings = HarvestSettings(
+        documents_dir=tmp_path / "docs", manifest=manifest, known_manifests=(manifest,),
+        html_dir="arxiv/html", md_dir="arxiv/md", page_size=100, min_text_chars=50,
+    )  # fmt: skip
+    profile = HarvestProfile.model_validate(
+        {
+            "name": "p",
+            "queries": [{"topic": "t", "query": "abs:x"}],
+            "exclude_ids": ["2401.00001"],
+        }
+    )
+    client = PoliteClient(
+        user_agent="t", min_interval_s=0, max_attempts=1, timeout_s=1,
+        transport=web, sleep=lambda _s: None,
+    )  # fmt: skip
+    report = harvest(profile, client=client, settings=settings)
+    assert [p.arxiv_id for p in report.papers] == ["math/0501001"]
+    assert report.skipped_known == 1
+
+
 def test_low_quality_conversion_is_rejected(tmp_path: Path) -> None:
     url = "https://arxiv.org/html/2401.00001"
     web = _Web({url: _html(url, b'<article class="ltx_document"><p>tiny</p></article>')})
