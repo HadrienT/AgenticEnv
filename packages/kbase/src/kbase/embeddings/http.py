@@ -37,8 +37,10 @@ class HttpEmbedder:
         timeout_s: float,
         query_instruction: str | None = None,
         truncate_dim: bool = False,
+        max_input_chars: int | None = None,
     ) -> None:
         self.model_name = model_name
+        self._max_input_chars = max_input_chars
         self._truncate_dim = truncate_dim
         self._query_instruction = query_instruction
         self.model_version = model_version
@@ -49,6 +51,10 @@ class HttpEmbedder:
         self._timeout_s = timeout_s
 
     def _embed(self, texts: Sequence[str]) -> list[list[float]]:
+        if self._max_input_chars:
+            # An encoder takes an input in one pass: past its batch size the server
+            # answers 500 and the whole document fails. The stored content stays whole.
+            texts = [t[: self._max_input_chars] for t in texts]
         body = post_json(
             self._url, {"model": self.model_name, "input": list(texts)}, timeout_s=self._timeout_s
         )

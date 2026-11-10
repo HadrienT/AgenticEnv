@@ -38,9 +38,16 @@ def reranker_text(candidate: RetrievedChunk) -> str:
 
 class HttpReranker:
     def __init__(
-        self, *, base_url: str, model_name: str, timeout_s: float, contextual: bool = False
+        self,
+        *,
+        base_url: str,
+        model_name: str,
+        timeout_s: float,
+        contextual: bool = False,
+        max_document_chars: int | None = None,
     ) -> None:
         self.model_name = model_name
+        self._max_document_chars = max_document_chars
         self._url = f"{base_url.rstrip('/')}/rerank"
         self._timeout_s = timeout_s
         self._contextual = contextual
@@ -54,7 +61,10 @@ class HttpReranker:
                 "model": self.model_name,
                 "query": query,
                 "documents": [
-                    reranker_text(c) if self._contextual else c.chunk.content for c in candidates
+                    (reranker_text(c) if self._contextual else c.chunk.content)[
+                        : self._max_document_chars
+                    ]
+                    for c in candidates
                 ],
             },
             timeout_s=self._timeout_s,

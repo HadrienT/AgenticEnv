@@ -303,10 +303,47 @@ class SectionChunker:
             if block.kind == "text" and cost > policy.max_tokens:
                 for sentence_group in _split_by_tokens(rendered, policy.max_tokens):
                     add(_Piece(sentence_group, approx_tokens(sentence_group), block))
+            elif block.kind == "table" and cost > policy.max_tokens:
+                for table_part in _split_table(block, policy.max_tokens):
+                    add(_Piece(table_part, approx_tokens(table_part), block))
             else:
                 add(_Piece(rendered, cost, block))
         flush(overlap=False)
         return chunks
+
+
+def _split_table(block: ContentBlock, max_tokens: int) -> list[str]:
+    """A table too long for one chunk, cut between rows; every part repeats the caption
+    and the header, so each reads on its own. Big numeric result tables are the case:
+    digits cost far more tokens per character than prose (an 18,000-character table is
+    over 6,000 tokens, past what the embedding model takes in one pass)."""
+    lines = (block.table_content_md or block.text).splitlines()
+    header = (
+        lines[:2]
+        if len(lines) > 1 and set(lines[1].replace("|", "").strip()) <= set("-: ")
+        else lines[:1]
+    )
+    rows = lines[len(header) :]
+    caption = block.table_caption
+    parts: list[str] = []
+    current: list[str] = []
+
+    def emit() -> None:
+        title = caption if not parts or caption is None else f"{caption} (continued)"
+        parts.append("\n".join(([title] if title else []) + header + current))
+
+    budget = max_tokens - approx_tokens("\n".join(([caption] if caption else []) + header))
+    used = 0
+    for row in rows:
+        cost = approx_tokens(row)
+        if current and used + cost > budget:
+            emit()
+            current, used = [], 0
+        current.append(row)
+        used += cost
+    if current or not parts:
+        emit()
+    return parts
 
 
 def _split_by_tokens(text: str, max_tokens: int) -> list[str]:

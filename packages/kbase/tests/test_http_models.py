@@ -84,6 +84,29 @@ def test_truncation_keeps_the_leading_dimensions_and_renormalizes(base_url: str)
     assert list(embedder.embed_query("a")) == pytest.approx([1.0])
 
 
+def test_inputs_are_capped_in_characters(base_url: str) -> None:
+    seen: list[str] = []
+    original = _Handler.do_POST
+
+    def recording(self: _Handler) -> None:
+        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        seen.extend(body["input"])
+        self.rfile = __import__("io").BytesIO(json.dumps(body).encode())
+        self.headers.replace_header("Content-Length", str(len(json.dumps(body).encode())))
+        original(self)
+
+    _Handler.do_POST = recording  # type: ignore[method-assign]
+    try:
+        embedder = HttpEmbedder(
+            base_url=base_url, model_name="m", model_version="1", dim=2, normalize=True,
+            batch_size=2, timeout_s=5, max_input_chars=5,
+        )  # fmt: skip
+        embedder.embed_documents(["abcdefghij", "xy"])
+    finally:
+        _Handler.do_POST = original  # type: ignore[method-assign]
+    assert seen == ["abcde", "xy"]
+
+
 def test_an_unreachable_server_is_a_dependency_error() -> None:
     with pytest.raises(DependencyError):
         _embedder("http://127.0.0.1:1/v1").embed_query("a")
