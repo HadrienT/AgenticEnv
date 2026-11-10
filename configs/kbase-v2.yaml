@@ -76,6 +76,10 @@ curation:
     - 'software'
     - 'employability'
     - 'math knowledge'
+    - 'notices?'
+    - 'trademarks?'
+    - '(document )?revision history'
+    - 'legal (notices?|information|disclaimer)'
 
 provenance:
   require_page: false

@@ -1357,17 +1357,6 @@ documents:
   topic: numerical-monte-carlo
   source_url: https://arxiv.org/abs/2506.16240v4
   license: arXiv preprint; terms on the abs page
-- doc_key: arxiv-1506.03693
-  path: arxiv/md/1506.03693.md
-  title: 'Optimization Monte Carlo: Efficient and Embarrassingly Parallel Likelihood-Free Inference'
-  authors:
-  - Edward Meeds
-  - Max Welling
-  year: 2015
-  doc_type: research_paper
-  topic: numerical-monte-carlo
-  source_url: https://arxiv.org/abs/1506.03693v2
-  license: arXiv preprint; terms on the abs page
 - doc_key: arxiv-2403.06362
   path: arxiv/md/2403.06362.md
   title: An Alternative to Stride-Based RNG for Monte Carlo Transport
@@ -3680,18 +3669,6 @@ documents:
   topic: numerical-aad
   source_url: https://arxiv.org/abs/2401.08361v2
   license: arXiv preprint; terms on the abs page
-- doc_key: arxiv-2108.03409
-  path: arxiv/md/2108.03409.md
-  title: 'jVMC: Versatile and performant variational Monte Carlo leveraging automated differentiation
-    and GPU acceleration'
-  authors:
-  - Markus Schmitt
-  - Moritz Reh
-  year: 2021
-  doc_type: research_paper
-  topic: numerical-aad
-  source_url: https://arxiv.org/abs/2108.03409v2
-  license: arXiv preprint; terms on the abs page
 - doc_key: arxiv-1811.05031
   path: arxiv/md/1811.05031.md
   title: A Review of automatic differentiation and its efficient implementation
@@ -3865,29 +3842,6 @@ documents:
   doc_type: research_paper
   topic: numerical-hpc
   source_url: https://arxiv.org/abs/2211.17005v1
-  license: arXiv preprint; terms on the abs page
-- doc_key: arxiv-2610.01761
-  path: arxiv/md/2610.01761.md
-  title: 'A-GHOST: High-rate streaming of trigger-level data to programmable GPU inference'
-  authors:
-  - I. Xiotidis
-  - N. Clarke Hall
-  - M. S. Larson
-  - R. Gurunathan
-  - C. Burdick
-  - T. Du
-  - N. Konstantinidis
-  - K. Kordas
-  - D. Leshchev
-  - D. W. Miller
-  - V. A. Petrovic
-  - D. Sampsonidou
-  - A. Thompson
-  - T. Wengler
-  year: 2026
-  doc_type: research_paper
-  topic: numerical-hpc
-  source_url: https://arxiv.org/abs/2610.01761v1
   license: arXiv preprint; terms on the abs page
 - doc_key: arxiv-1402.5094
   path: arxiv/md/1402.5094.md
@@ -4177,24 +4131,6 @@ documents:
   doc_type: research_paper
   topic: numerical-ml-pricing
   source_url: https://arxiv.org/abs/2207.00524v1
-  license: arXiv preprint; terms on the abs page
-- doc_key: arxiv-2605.09061
-  path: arxiv/md/2605.09061.md
-  title: A Market-Rule-Informed Neural Network for Efficient Imbalance Electricity Price Forecasting
-  authors:
-  - Runyao Yu
-  - Julia Lin
-  - Derek W. Bunn
-  - Jochen Stiasny
-  - Wentao Wang
-  - Yujie Chen
-  - Tara Esterl
-  - Peter Palensky
-  - Jochen L. Cremer
-  year: 2026
-  doc_type: research_paper
-  topic: numerical-ml-pricing
-  source_url: https://arxiv.org/abs/2605.09061v1
   license: arXiv preprint; terms on the abs page
 - doc_key: arxiv-2404.08903
   path: arxiv/md/2404.08903.md
@@ -4799,4 +4735,983 @@ documents:
   doc_type: research_paper
   topic: cva-xva
   source_url: https://arxiv.org/abs/1204.2638v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.10477
+  path: arxiv/md/2309.10477.md
+  title: Derivatives Sensitivities Computation under Heston Model on GPU
+  authors:
+  - Pierre-Antoine Arsaguet
+  - Paul Bilokon
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2309.10477v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1310.6526
+  path: arxiv/md/1310.6526.md
+  title: Exact simulation pricing with Gamma processes and their extensions
+  authors:
+  - Lancelot F. James
+  - Dohyun Kim
+  - Zhiyuan Zhang
+  year: 2013
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1310.6526v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2401.13361
+  path: arxiv/md/2401.13361.md
+  title: A note on the numerical approximation of Greeks for American-style options
+  authors:
+  - Karel J. in 't Hout
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2401.13361v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2211.13890
+  path: arxiv/md/2211.13890.md
+  title: Option Pricing under Multifactor Black-Scholes Model Using Orthogonal Spline Wavelets
+  authors:
+  - Dana Černá
+  - Kateřina Fiňková
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2211.13890v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.07554
+  path: arxiv/md/2610.07554.md
+  title: A B-Spline Galerkin Method for Option Pricing under the CGMY Tempered Stable Process
+  authors:
+  - Davood Damircheli
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2610.07554v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1210.5487
+  path: arxiv/md/1210.5487.md
+  title: The impact of a natural time change on the convergence of the Crank-Nicolson scheme
+  authors:
+  - C. Reisinger
+  - A. Whitley
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1210.5487v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2501.02327
+  path: arxiv/md/2501.02327.md
+  title: Finite Element Method for HJB in Option Pricing with Stock Borrowing Fees
+  authors:
+  - Rakhymzhan Kazbek
+  - Aidana Abdukarimova
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2501.02327v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2103.08825
+  path: arxiv/md/2103.08825.md
+  title: An Efficient Vectorization Scheme for Stencil Computation
+  authors:
+  - Kun Li
+  - Liang Yuan
+  - Yunquan Zhang
+  - Yue Yue
+  - Hang Cao
+  - Pengqi Lu
+  year: 2021
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2103.08825v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2103.09235
+  path: arxiv/md/2103.09235.md
+  title: Reducing Redundancy in Data Organization and Arithmetic Calculation for Stencil Computations
+  authors:
+  - Kun Li
+  - Liang Yuan
+  - Yunquan Zhang
+  - Yue Yue
+  - Hang Cao
+  - Pengqi Lu
+  year: 2021
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2103.09235v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.16682
+  path: arxiv/md/2309.16682.md
+  title: 'VMT19937: A SIMD-Friendly Pseudo Random Number Generator based on Mersenne Twister 19937'
+  authors:
+  - Fabio Cannizzo
+  year: 2023
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2309.16682v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2310.16298
+  path: arxiv/md/2310.16298.md
+  title: Stencil Matrixization
+  authors:
+  - Wenxuan Zhao
+  - Liang Yuan
+  - Baicheng Yan
+  - Penghao Ma
+  - Yunquan Zhang
+  - Long Wang
+  - Zhe Wang
+  year: 2023
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2310.16298v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2010.04868
+  path: arxiv/md/2010.04868.md
+  title: Temporal Vectorization for Stencils
+  authors:
+  - Liang Yuan
+  - Hang Cao
+  - Yunquan Zhang
+  - Kun Li
+  - Pengqi Lu
+  - Yue Yue
+  year: 2020
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2010.04868v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1412.4825
+  path: arxiv/md/1412.4825.md
+  title: 'Efficient SIMD RNG for Varying-Parameter Streams: C++ Class BatchRNG'
+  authors:
+  - Alireza S. Mahani
+  - Mansour T. A. Sharabiani
+  year: 2014
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/1412.4825v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2102.03681
+  path: arxiv/md/2102.03681.md
+  title: 'FastAD: Expression Template-Based C++ Library for Fast and Memory-Efficient Automatic Differentiation'
+  authors:
+  - James Yang
+  year: 2021
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2102.03681v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2412.16001
+  path: arxiv/md/2412.16001.md
+  title: Multi-Strided Access Patterns to Boost Hardware Prefetching
+  authors:
+  - Miguel O. Blom
+  - Kristian F. D. Rietveld
+  - Rob V. van Nieuwpoort
+  year: 2024
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2412.16001v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1411.0583
+  path: arxiv/md/1411.0583.md
+  title: A Hitchhiker's Guide to Automatic Differentiation
+  authors:
+  - Philipp H. W. Hoffmann
+  year: 2014
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/1411.0583v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2306.07895
+  path: arxiv/md/2306.07895.md
+  title: A dual number formulation to efficiently compute higher order directional derivatives
+  authors:
+  - R. Peón-Escalante
+  - K. B. Cantún-Avila
+  - O. Carvente
+  - A. Espinosa-Romero
+  - F. Peñuñuri
+  year: 2023
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/2306.07895v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-0812.4740
+  path: arxiv/md/0812.4740.md
+  title: Polynomial processes and their applications to mathematical Finance
+  authors:
+  - Christa Cuchiero
+  - Martin Keller-Ressel
+  - Josef Teichmann
+  year: 2008
+  doc_type: research_paper
+  topic: performance-simd
+  source_url: https://arxiv.org/abs/0812.4740v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1611.02665
+  path: arxiv/md/1611.02665.md
+  title: Optimization and parallelization of B-spline based orbital evaluations in QMC on multi/many-core
+    shared memory processors
+  authors:
+  - Amrita Mathuriya
+  - Ye Luo
+  - Anouar Benali
+  - Luke Shulenburger
+  - Jeongnim Kim
+  year: 2016
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/1611.02665v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1806.05713
+  path: arxiv/md/1806.05713.md
+  title: SIMD Vectorization for the Lennard-Jones Potential with AVX2 and AVX-512 instructions
+  authors:
+  - Hiroshi Watanabe
+  - Koh M. Nakagawa
+  year: 2018
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/1806.05713v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1402.4986
+  path: arxiv/md/1402.4986.md
+  title: Performance Impact of Data Layout on the GPU-accelerated IDW Interpolation
+  authors:
+  - Gang Mei
+  - Hong Tian
+  year: 2014
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/1402.4986v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.29740
+  path: arxiv/md/2605.29740.md
+  title: 'CARM Tool: Cache-Aware Roofline Model Automatic Benchmarking and Application Analysis'
+  authors:
+  - José Morgado
+  - Leonel Sousa
+  - Aleksandar Ilic
+  year: 2026
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/2605.29740v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1702.04653
+  path: arxiv/md/1702.04653.md
+  title: 'Kerncraft: A Tool for Analytic Performance Modeling of Loop Kernels'
+  authors:
+  - Julian Hammer
+  - Jan Eitzinger
+  - Georg Hager
+  - Gerhard Wellein
+  year: 2017
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/1702.04653v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2009.02449
+  path: arxiv/md/2009.02449.md
+  title: 'Hierarchical Roofline Analysis: How to Collect Data using Performance Tools on Intel CPUs and
+    NVIDIA GPUs'
+  authors:
+  - Charlene Yang
+  year: 2020
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/2009.02449v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1212.0703
+  path: arxiv/md/1212.0703.md
+  title: The Cost of Address Translation
+  authors:
+  - Tomasz Jurkiewicz
+  - Kurt Mehlhorn
+  year: 2012
+  doc_type: research_paper
+  topic: performance-cpu
+  source_url: https://arxiv.org/abs/1212.0703v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1205.3506
+  path: arxiv/md/1205.3506.md
+  title: Efficient Expression Templates for Operator Overloading-based Automatic Differentiation
+  authors:
+  - Eric Phipps
+  - Roger Pawlowski
+  year: 2012
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1205.3506v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1705.01729
+  path: arxiv/md/1705.01729.md
+  title: Compile-Time Symbolic Differentiation Using C++ Expression Templates
+  authors:
+  - Drosos Kourounis
+  - Leonidas Gergidis
+  - Michael Saunders
+  - Andrea Walther
+  - Olaf Schenk
+  year: 2017
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1705.01729v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1110.3233
+  path: arxiv/md/1110.3233.md
+  title: Metaprogramming Applied to Numerical Problems
+  authors:
+  - Mario Mulansky
+  - Karsten Ahnert
+  year: 2011
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1110.3233v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2604.22242
+  path: arxiv/md/2604.22242.md
+  title: Fast GPU Linear Algebra via Compile Time Expression Fusion
+  authors:
+  - Ryan R. Curtin
+  - Marcus Edel
+  - Conrad Sanderson
+  year: 2026
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/2604.22242v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1509.07164
+  path: arxiv/md/1509.07164.md
+  title: 'The Stan Math Library: Reverse-Mode Automatic Differentiation in C++'
+  authors:
+  - Bob Carpenter
+  - Matthew D. Hoffman
+  - Marcus Brubaker
+  - Daniel Lee
+  - Peter Li
+  - Michael Betancourt
+  year: 2015
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1509.07164v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2502.03000
+  path: arxiv/md/2502.03000.md
+  title: 'Armadillo: An Efficient Framework for Numerical Linear Algebra'
+  authors:
+  - Conrad Sanderson
+  - Ryan Curtin
+  year: 2025
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/2502.03000v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1109.1264
+  path: arxiv/md/1109.1264.md
+  title: A New Vectorization Technique for Expression Templates in C++
+  authors:
+  - J. Progsch
+  - Y. Ineichen
+  - A. Adelmann
+  year: 2011
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1109.1264v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1104.1729
+  path: arxiv/md/1104.1729.md
+  title: 'Expression Templates Revisited: A Performance Analysis of the Current ET Methodology'
+  authors:
+  - Klaus Iglberger
+  - Georg Hager
+  - Jan Treibig
+  - Ulrich Ruede
+  year: 2011
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1104.1729v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1911.12604
+  path: arxiv/md/1911.12604.md
+  title: 'Eigen-AD: Algorithmic Differentiation of the Eigen Library'
+  authors:
+  - Patrick Peltzer
+  - Johannes Lotz
+  - Uwe Naumann
+  year: 2019
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/1911.12604v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2003.04103
+  path: arxiv/md/2003.04103.md
+  title: Flexible numerical optimization with ensmallen
+  authors:
+  - Ryan R. Curtin
+  - Marcus Edel
+  - Rahul Ganesh Prabhu
+  - Suryoday Basak
+  - Zhihao Lou
+  - Conrad Sanderson
+  year: 2020
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/2003.04103v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2506.09242
+  path: arxiv/md/2506.09242.md
+  title: Multi-GPU Acceleration of PALABOS Fluid Solver using C++ Standard Parallelism
+  authors:
+  - Jonas Latt
+  - Christophe Coreixas
+  year: 2025
+  doc_type: research_paper
+  topic: performance-cpp
+  source_url: https://arxiv.org/abs/2506.09242v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1906.02818
+  path: arxiv/md/1906.02818.md
+  title: Tensor Processing Units for Financial Monte Carlo
+  authors:
+  - Francois Belletti
+  - Davis King
+  - Kun Yang
+  - Roland Nelet
+  - Yusef Shafi
+  - Yi-Fan Chen
+  - John Anderson
+  year: 2019
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/1906.02818v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2307.16640
+  path: arxiv/md/2307.16640.md
+  title: A multilevel Monte Carlo algorithm for SDEs driven by countably dimensional Wiener process and
+    Poisson random measure
+  authors:
+  - Michał Sobieraj
+  year: 2023
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2307.16640v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2408.09229
+  path: arxiv/md/2408.09229.md
+  title: 'cuVegas: Accelerate Multidimensional Monte Carlo Integration through a Parallelized CUDA-based
+    Implementation of the VEGAS Enhanced Algorithm'
+  authors:
+  - Emiliano Tolotti
+  - Anas Jnini
+  - Flavio Vella
+  - Roberto Passerone
+  year: 2024
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2408.09229v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.15502
+  path: arxiv/md/2606.15502.md
+  title: 'Fast, Reliable, and Error-Bounded Option Pricing with Pretrained Neural Networks: A GJR--GARCH
+    Study'
+  authors:
+  - Thijs van den Berg
+  year: 2026
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2606.15502v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1909.13560
+  path: arxiv/md/1909.13560.md
+  title: Multistep schemes for solving backward stochastic differential equations on GPU
+  authors:
+  - Lorenc Kapllani
+  - Long Teng
+  year: 2019
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/1909.13560v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2304.06835
+  path: arxiv/md/2304.06835.md
+  title: Automated Translation and Accelerated Solving of Differential Equations on Multiple GPU Platforms
+  authors:
+  - Utkarsh Utkarsh
+  - Valentin Churavy
+  - Yingbo Ma
+  - Tim Besard
+  - Prakitr Srisuma
+  - Tim Gymnich
+  - Adam R. Gerlach
+  - Alan Edelman
+  - George Barbastathis
+  - Richard D. Braatz
+  - Christopher Rackauckas
+  year: 2023
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2304.06835v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-0901.0638
+  path: arxiv/md/0901.0638.md
+  title: 'Quantile Mechanics II: Changes of Variables in Monte Carlo methods and GPU-Optimized Normal
+    Quantiles'
+  authors:
+  - William T. Shaw
+  - Thomas Luu
+  - Nick Brickman
+  year: 2009
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/0901.0638v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2407.21085
+  path: arxiv/md/2407.21085.md
+  title: Stratified regression Monte-Carlo scheme for semilinear PDEs and BSDEs with large scale parallelization
+    on GPUs
+  authors:
+  - E. Gobet
+  - J. G. López-Salas
+  - P. Turkedjiev
+  - C. Vázquez
+  year: 2024
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2407.21085v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2407.21084
+  path: arxiv/md/2407.21084.md
+  title: Quasi-Regression Monte-Carlo scheme for semi-linear PDEs and BSDEs with large scale parallelization
+    on GPUs
+  authors:
+  - E. Gobet
+  - J. G. López-Salas
+  - C. Vázquez
+  year: 2024
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2407.21084v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1101.3228
+  path: arxiv/md/1101.3228.md
+  title: 'GPGPUs in computational finance: Massive parallel computing for American style options'
+  authors:
+  - Gilles Pagès
+  - Benedikt Wilbertz
+  year: 2011
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/1101.3228v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.12345
+  path: arxiv/md/2403.12345.md
+  title: Performance Portable Monte Carlo Particle Transport on Intel, NVIDIA, and AMD GPUs
+  authors:
+  - John Tramm
+  - Paul Romano
+  - Patrick Shriwise
+  - Amanda Lund
+  - Johannes Doerfert
+  - Patrick Steinbrecher
+  - Andrew Siegel
+  - Gavin Ridley
+  year: 2024
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2403.12345v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2509.03933
+  path: arxiv/md/2509.03933.md
+  title: A Highly Scalable TDMA for GPUs and Its Application to Flow Solver Optimization
+  authors:
+  - Seungchan Kim
+  - Jihoo Kim
+  - Sanghyun Ha
+  - Donghyun You
+  year: 2025
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2509.03933v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2509.03015
+  path: arxiv/md/2509.03015.md
+  title: Harnessing Batched BLAS/LAPACK Kernels on GPUs for Parallel Solutions of Block Tridiagonal Systems
+  authors:
+  - David Jin
+  - Alexis Montoison
+  - Sungho Shin
+  year: 2025
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2509.03015v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1902.09931
+  path: arxiv/md/1902.09931.md
+  title: cuSten -- CUDA Finite Difference and Stencil Library
+  authors:
+  - Andrew Gloster
+  - Lennon O'Naraigh
+  year: 2019
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/1902.09931v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2501.09398
+  path: arxiv/md/2501.09398.md
+  title: 'Boosting Performance of Iterative Applications on GPUs: Kernel Batching with CUDA Graphs'
+  authors:
+  - Jonah Ekelund
+  - Stefano Markidis
+  - Ivy Peng
+  year: 2025
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2501.09398v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2101.06550
+  path: arxiv/md/2101.06550.md
+  title: GPU Methodologies for Numerical Partial Differential Equations
+  authors:
+  - Andrew Gloster
+  year: 2021
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2101.06550v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2601.03754
+  path: arxiv/md/2601.03754.md
+  title: GPU-Accelerated Cholesky Factorization of Block Tridiagonal Matrices
+  authors:
+  - Roland Schwan
+  - Daniel Kuhn
+  - Colin N. Jones
+  year: 2026
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2601.03754v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2411.13532
+  path: arxiv/md/2411.13532.md
+  title: A Distributed-memory Tridiagonal Solver Based on a Specialised Data Structure Optimised for CPU
+    and GPU Architectures
+  authors:
+  - Semih Akkurt
+  - Sébastien Lemaire
+  - Paul Bartholomew
+  - Sylvain Laizet
+  year: 2024
+  doc_type: research_paper
+  topic: performance-cuda
+  source_url: https://arxiv.org/abs/2411.13532v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1810.11530
+  path: arxiv/md/1810.11530.md
+  title: 'Automatic differentiation in ML: Where we are and where we should be going'
+  authors:
+  - Bart van Merriënboer
+  - Olivier Breuleux
+  - Arnaud Bergeron
+  - Pascal Lamblin
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1810.11530v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2307.06075
+  path: arxiv/md/2307.06075.md
+  title: Integrating Enzyme-generated functions into CoDiPack
+  authors:
+  - M. Sagebaum
+  - M. Aehle
+  - N. R. Gauger
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2307.06075v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2508.05371
+  path: arxiv/md/2508.05371.md
+  title: Adding complex numbers to expression template algorithmic differentiation tools
+  authors:
+  - Max Sagebaum
+  - Nicolas R. Gauger
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2508.05371v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2006.12992
+  path: arxiv/md/2006.12992.md
+  title: Assign optimization for algorithmic differentiation reuse index management strategies
+  authors:
+  - Max Sagebaum
+  - Johannes Blühdorn
+  - Nicolas R. Gauger
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2006.12992v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2102.11572
+  path: arxiv/md/2102.11572.md
+  title: Event-Based Automatic Differentiation of OpenMP with OpDiLib
+  authors:
+  - Johannes Blühdorn
+  - Max Sagebaum
+  - Nicolas R. Gauger
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2102.11572v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2305.09568
+  path: arxiv/md/2305.09568.md
+  title: Step-based checkpointing with high-level algorithmic differentiation
+  authors:
+  - James R. Maddison
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2305.09568v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1611.03410
+  path: arxiv/md/1611.03410.md
+  title: Binomial Checkpointing for Arbitrary Programs with No User Annotation
+  authors:
+  - Jeffrey Mark Siskind
+  - Barak A. Pearlmutter
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1611.03410v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2207.07018
+  path: arxiv/md/2207.07018.md
+  title: Reduction of the Random Access Memory Size in Adjoint Algorithmic Differentiation by Overloading
+  authors:
+  - Uwe Naumann
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2207.07018v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1803.04154
+  path: arxiv/md/1803.04154.md
+  title: Algorithmic Differentiation for Domain Specific Languages
+  authors:
+  - Max Sagebaum
+  - Nicolas R. Gauger
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1803.04154v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2010.01709
+  path: arxiv/md/2010.01709.md
+  title: Instead of Rewriting Foreign Code for Machine Learning, Automatically Synthesize Fast Gradients
+  authors:
+  - William S. Moses
+  - Valentin Churavy
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2010.01709v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1812.01892
+  path: arxiv/md/1812.01892.md
+  title: A Comparison of Automatic Differentiation and Continuous Sensitivity Analysis for Derivatives
+    of Differential Equation Solutions
+  authors:
+  - Yingbo Ma
+  - Vaibhav Dixit
+  - Mike Innes
+  - Xingjian Guo
+  - Christopher Rackauckas
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1812.01892v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2003.05755
+  path: arxiv/md/2003.05755.md
+  title: Optimization of Generalized Jacobian Chain Products without Memory Constraints
+  authors:
+  - Uwe Naumann
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2003.05755v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.15613
+  path: arxiv/md/2602.15613.md
+  title: Algorithmic differentiation for domain specific languages in C++ with expression templates
+  authors:
+  - Max Sagebaum
+  - Nicolas R. Gauger
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2602.15613v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2604.17094
+  path: arxiv/md/2604.17094.md
+  title: Simple approximations of some statistical functions
+  authors:
+  - Zinovy Malkin
+  year: 2026
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2604.17094v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1912.09240
+  path: arxiv/md/1912.09240.md
+  title: 'Parareal computation of stochastic differential equations with time-scale separation: a numerical
+    study'
+  authors:
+  - Tony Lelièvre
+  - Frédéric Legoll
+  - Keith Myerscough
+  - Giovanni Samaey
+  year: 2019
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/1912.09240v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1811.11720
+  path: arxiv/md/1811.11720.md
+  title: A GPU compatible quasi-Monte Carlo integrator interfaced to pySecDec
+  authors:
+  - S. Borowka
+  - G. Heinrich
+  - S. Jahn
+  - S. P. Jones
+  - M. Kerner
+  - J. Schlenk
+  year: 2018
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/1811.11720v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2012.09715
+  path: arxiv/md/2012.09715.md
+  title: Approximating inverse cumulative distribution functions to produce approximate random variables
+  authors:
+  - Oliver Sheridan-Methven
+  - Michael Giles
+  year: 2020
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2012.09715v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1405.6111
+  path: arxiv/md/1405.6111.md
+  title: Splitting and Matrix Exponential approach for jump-diffusion models with Inverse Normal Gaussian,
+    Hyperbolic and Meixner jumps
+  authors:
+  - Andrey Itkin
+  year: 2014
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/1405.6111v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-0802.4411
+  path: arxiv/md/0802.4411.md
+  title: Chi-square simulation of the CIR process and the Heston model
+  authors:
+  - Simon J. A. Malham
+  - Anke Wiese
+  year: 2008
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/0802.4411v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2012.09739
+  path: arxiv/md/2012.09739.md
+  title: Rounding error using low precision approximate random variables
+  authors:
+  - Oliver Sheridan-Methven
+  - Michael Giles
+  year: 2020
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2012.09739v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2506.11962
+  path: arxiv/md/2506.11962.md
+  title: Accurate Reduced Floating-Point Precision Implicit Monte Carlo
+  authors:
+  - Simon Butson
+  - Mathew Cleveland
+  - Alex Long
+  - Todd Palmer
+  year: 2025
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2506.11962v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2408.05148
+  path: arxiv/md/2408.05148.md
+  title: Impacts of floating-point non-associativity on reproducibility for HPC and deep learning applications
+  authors:
+  - Sanjif Shanmugavelu
+  - Mathieu Taillefumier
+  - Christopher Culver
+  - Oscar Hernandez
+  - Mark Coletti
+  - Ada Sedova
+  year: 2024
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2408.05148v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2205.05339
+  path: arxiv/md/2205.05339.md
+  title: An Efficient Summation Algorithm for the Accuracy, Convergence and Reproducibility of Parallel
+    Numerical Methods
+  authors:
+  - Farah Benmouhoub
+  - Pierre-Loïc Garoche
+  - Matthieu Martel
+  year: 2022
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2205.05339v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.00093
+  path: arxiv/md/2512.00093.md
+  title: Making the RANMAR pseudorandom number generator in LAMMPS up to four times faster, with an implementation
+    of jump-ahead
+  authors:
+  - Hiroshi Haramoto
+  - Kosuke Suzuki
+  year: 2025
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2512.00093v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2107.01604
+  path: arxiv/md/2107.01604.md
+  title: Deterministic and Probabilistic Error Bounds for Floating Point Summation Algorithms
+  authors:
+  - Eric Hallman
+  - Ilse C. F. Ipsen
+  year: 2021
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2107.01604v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.19452
+  path: arxiv/md/2602.19452.md
+  title: Dekker's floating point number system and compensated summation algorithms
+  authors:
+  - Longfei Gao
+  - Frimpong Baidoo
+  year: 2026
+  doc_type: research_paper
+  topic: performance-numerics
+  source_url: https://arxiv.org/abs/2602.19452v1
   license: arXiv preprint; terms on the abs page
