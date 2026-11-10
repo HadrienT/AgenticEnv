@@ -15,6 +15,8 @@ embeddings:
   # alike and cost 2 points of passage recall before reranking (WP19 §8).
   contextual: false
   query_instruction: null
+  # Worst case ~2 characters per token (numeric tables): stays under the 4096-token batch.
+  max_input_chars: 8000
 
 chunking:
   strategy: section
@@ -38,6 +40,7 @@ retrieval:
     top_k: 8
     candidates: 100              # fused candidates the cross-encoder reorders
     contextual: true             # the cross-encoder reads title / section path / content
+    max_document_chars: 8000
     timeout_s: 300
   fts_config: simple             # no stemming: keeps SABR, SOFR, CVA intact
   lexical_fallback: true

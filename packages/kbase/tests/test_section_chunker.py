@@ -74,3 +74,27 @@ def test_contextual_text_heads_content_with_document_and_path() -> None:
         "Glasserman\n2 Random › 2.3 Normals\n\nbody"
     )
     assert contextual_text("Glasserman", [], "body") == "Glasserman\n\nbody"
+
+
+def test_an_oversized_table_is_cut_between_rows_and_repeats_its_header() -> None:
+    rows = [f"| {i} | {i * 0.123456:.6f} | {i * 9.87:.4f} |" for i in range(120)]
+    table = "\n".join(["| N | error | time |", "|---|---|---|", *rows])
+    sections = [_section("1", None, 1, "Paper"), _section("1.1", "1", 2, "5 Results")]
+    blocks = [
+        ContentBlock(
+            kind="table",
+            text=table,
+            section_id="1.1",
+            table_caption="Table 4: Convergence",
+            table_content_md=table,
+        )  # fmt: skip
+    ]
+    chunks = SectionChunker().chunk(_doc(sections, blocks), _POLICY)
+    assert len(chunks) > 3
+    assert all(c.n_tokens <= _POLICY.max_tokens + 40 for c in chunks)
+    assert "Table 4: Convergence\n| N | error | time |" in chunks[0].content
+    assert (
+        "Table 4: Convergence (continued)\n| N | error | time |\n|---|---|---|" in chunks[1].content
+    )
+    carried = [line for c in chunks for line in c.content.splitlines() if line.startswith("| ")]
+    assert [r for r in carried if r != "| N | error | time |"] == rows

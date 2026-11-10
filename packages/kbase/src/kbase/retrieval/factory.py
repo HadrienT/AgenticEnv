@@ -27,6 +27,7 @@ def build_embedder(config: EmbeddingsConfig) -> Embedder:
             timeout_s=config.timeout_s,
             query_instruction=config.query_instruction,
             truncate_dim=config.truncate_dim,
+            max_input_chars=config.max_input_chars,
         )
     raise ConfigError(
         f"cannot build embedder {config.provider!r}: needs local, or http with a base_url",
@@ -45,6 +46,7 @@ def build_reranker(config: RerankConfig) -> Reranker | None:
             model_name=config.model_name,
             timeout_s=config.timeout_s,
             contextual=config.contextual,
+            max_document_chars=config.max_document_chars,
         )
     raise ConfigError(
         f"cannot build reranker {config.provider!r}: needs none, lexical, or http with a base_url",

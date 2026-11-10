@@ -23,6 +23,8 @@ class EmbeddingsConfig(BaseModel):
     query_instruction: str | None = None
     # Keep the first `dim` dimensions of a larger Matryoshka model (needs normalize).
     truncate_dim: bool = False
+    # Characters sent per input; keeps any chunk under the server's batch size.
+    max_input_chars: int | None = None
 
 
 class ChunkingConfig(BaseModel):
@@ -47,6 +49,7 @@ class RerankConfig(BaseModel):
     # The cross-encoder reads "document title / section path / content" (WP19: +4 points
     # of passage MRR over the content alone).
     contextual: bool = False
+    max_document_chars: int | None = None
 
 
 class RetrievalConfig(BaseModel):
