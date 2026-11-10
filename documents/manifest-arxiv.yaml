@@ -3,22 +3,6 @@
 # (configs/harvest/) to change what gets harvested.
 
 documents:
-- doc_key: arxiv-2012.06283
-  path: arxiv/md/2012.06283.md
-  title: Quantum-accelerated multilevel Monte Carlo methods for stochastic differential equations in mathematical
-    finance
-  authors:
-  - Dong An
-  - Noah Linden
-  - Jin-Peng Liu
-  - Ashley Montanaro
-  - Changpeng Shao
-  - Jiasu Wang
-  year: 2020
-  doc_type: research_paper
-  topic: numerical-monte-carlo
-  source_url: https://arxiv.org/abs/2012.06283v2
-  license: arXiv preprint; terms on the abs page
 - doc_key: arxiv-1403.5309
   path: arxiv/md/1403.5309.md
   title: Multilevel Monte Carlo For Exponential Lévy Models
@@ -29,20 +13,6 @@ documents:
   doc_type: research_paper
   topic: numerical-monte-carlo
   source_url: https://arxiv.org/abs/1403.5309v2
-  license: arXiv preprint; terms on the abs page
-- doc_key: arxiv-2606.31076
-  path: arxiv/md/2606.31076.md
-  title: Quantum Derivative Pricing for SPDEs via BDSDE Representation
-  authors:
-  - Xinmiao Li
-  - Yanqiao Wang
-  - Rundi Lu
-  - Zhengwei Liu
-  - Jin-Peng Liu
-  year: 2026
-  doc_type: research_paper
-  topic: numerical-monte-carlo
-  source_url: https://arxiv.org/abs/2606.31076v1
   license: arXiv preprint; terms on the abs page
 - doc_key: arxiv-1906.11002
   path: arxiv/md/1906.11002.md
@@ -182,4 +152,4651 @@ documents:
   doc_type: research_paper
   topic: numerical-monte-carlo
   source_url: https://arxiv.org/abs/2003.05708v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.14549
+  path: arxiv/md/2209.14549.md
+  title: Multilevel Monte Carlo and its Applications in Financial Engineering
+  authors:
+  - Devang Sinha
+  - Siddhartha P. Chakrabarty
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2209.14549v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2308.07835
+  path: arxiv/md/2308.07835.md
+  title: Nested Multilevel Monte Carlo with Biased and Antithetic Sampling
+  authors:
+  - Abdul-Lateef Haji-Ali
+  - Jonathan Spence
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2308.07835v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.03017
+  path: arxiv/md/2209.03017.md
+  title: Multilevel Path Branching for Digital Options
+  authors:
+  - Michael B. Giles
+  - Abdul-Lateef Haji-Ali
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2209.03017v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2502.07123
+  path: arxiv/md/2502.07123.md
+  title: A nested MLMC framework for efficient simulations on FPGAs
+  authors:
+  - Irina-Beatrice Haas
+  - Michael B. Giles
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2502.07123v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1402.0243
+  path: arxiv/md/1402.0243.md
+  title: Faster Comparison of Stopping Times by Nested Conditional Monte Carlo
+  authors:
+  - Fabian Dickmann
+  - Nikolaus Schweizer
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1402.0243v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1302.4676
+  path: arxiv/md/1302.4676.md
+  title: Analysis of multilevel Monte Carlo path simulation using the Milstein discretisation
+  authors:
+  - Michael B. Giles
+  - Kristian Debrabant
+  - Andreas Rößler
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1302.4676v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2103.15310
+  path: arxiv/md/2103.15310.md
+  title: Monte Carlo algorithm for the extrema of tempered stable processes
+  authors:
+  - Jorge Ignacio González Cázares
+  - Aleksandar Mijatović
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2103.15310v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1405.3561
+  path: arxiv/md/1405.3561.md
+  title: An explicit Euler scheme with strong rate of convergence for financial SDEs with non-Lipschitz
+    coefficients
+  authors:
+  - Jean-Francois Chassagneux
+  - Antoine Jacquier
+  - Ivo Mihaylov
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1405.3561v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2107.09148
+  path: arxiv/md/2107.09148.md
+  title: Adaptive Multilevel Monte Carlo for Probabilities
+  authors:
+  - Abdul-Lateef Haji-Ali
+  - Jonathan Spence
+  - Aretha Teckentrup
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2107.09148v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1310.2676
+  path: arxiv/md/1310.2676.md
+  title: Complexity of Multilevel Monte Carlo Tau-Leaping
+  authors:
+  - David F. Anderson
+  - Desmond J. Higham
+  - Yu Sun
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1310.2676v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1401.1177
+  path: arxiv/md/1401.1177.md
+  title: Multilevel Richardson-Romberg extrapolation
+  authors:
+  - Vincent Lemaire
+  - Gilles Pagès
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1401.1177v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1708.03223
+  path: arxiv/md/1708.03223.md
+  title: On multilevel Picard numerical approximations for high-dimensional nonlinear parabolic partial
+    differential equations and high-dimensional nonlinear backward stochastic differential equations
+  authors:
+  - Weinan E
+  - Martin Hutzenthaler
+  - Arnulf Jentzen
+  - Thomas Kruse
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1708.03223v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1706.08190
+  path: arxiv/md/1706.08190.md
+  title: Multilevel Monte Carlo on a high-dimensional parameter space for transmission problems with geometric
+    uncertainties
+  authors:
+  - Laura Scarabosio
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1706.08190v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1412.3039
+  path: arxiv/md/1412.3039.md
+  title: Multilevel Monte Carlo for stochastic differential equations with small noise
+  authors:
+  - David F. Anderson
+  - Desmond J. Higham
+  - Yu Sun
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1412.3039v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2210.00779
+  path: arxiv/md/2210.00779.md
+  title: Interpolated Drift Implicit Euler MLMC Method for Barrier Option Pricing and application to CIR
+    and CEV Models
+  authors:
+  - Mouna Ben Derouich
+  - Ahmed Kebaier
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2210.00779v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.05837
+  path: arxiv/md/2403.05837.md
+  title: Multilevel Monte Carlo methods for positivity-preserving approximations of the Heston 3/2-model
+  authors:
+  - Xiaojuan Wu
+  - Siqing Gan
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2403.05837v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1510.03590
+  path: arxiv/md/1510.03590.md
+  title: Coupling Importance Sampling and Multilevel Monte Carlo using Sample Average Approximation
+  authors:
+  - Ahmed Kebaier
+  - Jérôme Lelong
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1510.03590v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.16975
+  path: arxiv/md/2403.16975.md
+  title: 'Unconditionally positivity-preserving approximations of the Ait-Sahalia type model: Explicit
+    Milstein-type schemes'
+  authors:
+  - Yingsong Jiang
+  - Ruishu Liu
+  - Xiaojie Wang
+  - Jinghua Zhuo
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2403.16975v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2503.00465
+  path: arxiv/md/2503.00465.md
+  title: Bayesian Inference for Non-Synchronously Observed Diffusions
+  authors:
+  - Ajay Jasra
+  - Kengo Kamatani
+  - Amin Wu
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2503.00465v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1202.6283
+  path: arxiv/md/1202.6283.md
+  title: Antithetic multilevel Monte Carlo estimation for multi-dimensional SDEs without Lévy area simulation
+  authors:
+  - Michael B. Giles
+  - Lukasz Szpruch
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1202.6283v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2607.19188
+  path: arxiv/md/2607.19188.md
+  title: 'Numerical methods for Langevin-type SPDE: an implicit Milstein approach and multilevel Monte
+    Carlo techniques'
+  authors:
+  - Sascha Portaro
+  - Carlos Vázquez
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2607.19188v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2102.08734
+  path: arxiv/md/2102.08734.md
+  title: Multilevel Monte Carlo learning
+  authors:
+  - Thomas Gerstner
+  - Bastian Harrach
+  - Daniel Roth
+  - Martin Simon
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2102.08734v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.12643
+  path: arxiv/md/2610.12643.md
+  title: Median randomized quasi-Monte Carlo for nested integration
+  authors:
+  - Arved Bartuska
+  - Yang Liu
+  - Raúl Tempone
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2610.12643v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2305.12992
+  path: arxiv/md/2305.12992.md
+  title: Antithetic multilevel Monte Carlo method for approximations of SDEs with non-globally Lipschitz
+    continuous coefficients
+  authors:
+  - Chenxu Pang
+  - Xiaojie Wang
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2305.12992v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2210.16548
+  path: arxiv/md/2210.16548.md
+  title: 'The importance of being scrambled: supercharged Quasi Monte Carlo'
+  authors:
+  - J. Hok
+  - S. Kucherenko
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2210.16548v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2510.03650
+  path: arxiv/md/2510.03650.md
+  title: LLM-Guided Evolutionary Program Synthesis for Quasi-Monte Carlo Design
+  authors:
+  - Amir Sadikov
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2510.03650v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2202.02682
+  path: arxiv/md/2202.02682.md
+  title: Pre-integration via Active Subspaces
+  authors:
+  - Sifan Liu
+  - Art B. Owen
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2202.02682v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1504.02896
+  path: arxiv/md/1504.02896.md
+  title: Pricing and Risk Management with High-Dimensional Quasi Monte Carlo and Global Sensitivity Analysis
+  authors:
+  - Marco Bianchetti
+  - Sergei Kucherenko
+  - Stefano Scoleri
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1504.02896v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1202.3217
+  path: arxiv/md/1202.3217.md
+  title: Quasi-Monte Carlo methods for the Heston model
+  authors:
+  - Jan Baldeaux
+  - Dale Roberts
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1202.3217v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1403.5599
+  path: arxiv/md/1403.5599.md
+  title: The acceptance-rejection method for low-discrepancy sequences
+  authors:
+  - Nguyet Nguyen
+  - Giray Ökten
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1403.5599v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2608.17636
+  path: arxiv/md/2608.17636.md
+  title: 'COS-TT-CHF: A Tensor-Train Characteristic-Function COS Method for Multi-Asset Option Pricing'
+  authors:
+  - Lucas Arenstein
+  - Michael Kastoryano
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2608.17636v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.14354
+  path: arxiv/md/2602.14354.md
+  title: Application of Quasi Monte Carlo and Global Sensitivity Analysis to Option Pricing and Greeks
+  authors:
+  - Stefano Scoleri
+  - Marco Bianchetti
+  - Sergei Kucherenko
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2602.14354v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1408.4609
+  path: arxiv/md/1408.4609.md
+  title: Spatial low-discrepancy sequences, spherical cone discrepancy, and applications in financial
+    modeling
+  authors:
+  - Johann S. Brauchart
+  - Josef Dick
+  - Lou Fang
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1408.4609v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1712.00920
+  path: arxiv/md/1712.00920.md
+  title: High dimensional integration of kinks and jumps -- smoothing by preintegration
+  authors:
+  - Andreas Griewank
+  - Frances Y. Kuo
+  - Hernan Leövey
+  - Ian H. Sloan
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1712.00920v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2504.11576
+  path: arxiv/md/2504.11576.md
+  title: Effective dimensionality reduction for Greeks computation using Randomized QMC
+  authors:
+  - Luca Albieri
+  - Sergei Kucherenko
+  - Stefano Scoleri
+  - Marco Bianchetti
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2504.11576v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2109.05279
+  path: arxiv/md/2109.05279.md
+  title: Quasi-Monte Carlo-Based Conditional Malliavin Method for Continuous-Time Asian Option Greeks
+  authors:
+  - Chao Yu
+  - Xiaoqun Wang
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2109.05279v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1707.04293
+  path: arxiv/md/1707.04293.md
+  title: A short introduction to quasi-Monte Carlo option pricing
+  authors:
+  - Gunther Leobacher
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1707.04293v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2106.08421
+  path: arxiv/md/2106.08421.md
+  title: Pricing and Risk Analysis in Hyperbolic Local Volatility Model with Quasi Monte Carlo
+  authors:
+  - Julien Hok
+  - Sergei Kucherenko
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2106.08421v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2212.11493
+  path: arxiv/md/2212.11493.md
+  title: Theory and construction of Quasi-Monte Carlo rules for option pricing and density estimation
+  authors:
+  - Alexander D. Gilbert
+  - Frances Y. Kuo
+  - Ian H. Sloan
+  - Abirami Srikumar
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2212.11493v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.11337
+  path: arxiv/md/2209.11337.md
+  title: Quasi-Monte Carlo methods for calculating derivatives sensitivities on the GPU
+  authors:
+  - Paul Bilokon
+  - Sergei Kucherenko
+  - Casey Williams
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2209.11337v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1408.5526
+  path: arxiv/md/1408.5526.md
+  title: High Performance Financial Simulation Using Randomized Quasi-Monte Carlo Methods
+  authors:
+  - Linlin Xu
+  - Giray Ökten
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1408.5526v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1207.6566
+  path: arxiv/md/1207.6566.md
+  title: Conditional sampling for barrier option pricing under the Heston model
+  authors:
+  - Nico Achtsis
+  - Ronald Cools
+  - Dirk Nuyens
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1207.6566v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1607.05572
+  path: arxiv/md/1607.05572.md
+  title: Smoothing the payoff for efficient computation of Basket option prices
+  authors:
+  - Christian Bayer
+  - Markus Siebenmorgen
+  - Raul Tempone
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1607.05572v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2603.01763
+  path: arxiv/md/2603.01763.md
+  title: Importance sampling and active subspace in quasi-Monte Carlo
+  authors:
+  - Jiaxin Yu
+  - Xiaoqun Wang
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2603.01763v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1708.09512
+  path: arxiv/md/1708.09512.md
+  title: On the error rate of conditional quasi-Monte Carlo for discontinuous functions
+  authors:
+  - Zhijian He
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1708.09512v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1905.12062
+  path: arxiv/md/1905.12062.md
+  title: Array-RQMC for option pricing under stochastic volatility models
+  authors:
+  - Amal Ben Abdellah
+  - Pierre L'Ecuyer
+  - Florian Puchhammer
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1905.12062v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1103.5722
+  path: arxiv/md/1103.5722.md
+  title: Multidimensional Quasi-Monte Carlo Malliavin Greeks
+  authors:
+  - Nicola Cufaro Petroni
+  - Piergiacomo Sabino
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1103.5722v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1812.08533
+  path: arxiv/md/1812.08533.md
+  title: Hierarchical adaptive sparse grids and quasi Monte Carlo for option pricing under the rough Bergomi
+    model
+  authors:
+  - Christian Bayer
+  - Chiheb Ben Hammouda
+  - Raul Tempone
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1812.08533v7
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1811.08509
+  path: arxiv/md/1811.08509.md
+  title: An Aspect of Optimal Regression Design for LSMC
+  authors:
+  - Christian Weiß
+  - Zoran Nikolić
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1811.08509v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1709.02577
+  path: arxiv/md/1709.02577.md
+  title: An integrated quasi-Monte Carlo method for handling high dimensional problems with discontinuities
+    in financial engineering
+  authors:
+  - Zhijian He
+  - Xiaoqun Wang
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1709.02577v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2111.01874
+  path: arxiv/md/2111.01874.md
+  title: Numerical Smoothing with Hierarchical Adaptive Sparse Grids and Quasi-Monte Carlo Methods for
+    Efficient Option Pricing
+  authors:
+  - Christian Bayer
+  - Chiheb Ben Hammouda
+  - Raúl Tempone
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2111.01874v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1105.3297
+  path: arxiv/md/1105.3297.md
+  title: Exact Simulation of the 3/2 Model
+  authors:
+  - Jan Baldeaux
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1105.3297v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2103.16075
+  path: arxiv/md/2103.16075.md
+  title: Equivalence between Sobolev spaces of first-order dominating mixed smoothness and unanchored
+    ANOVA spaces on $\mathbb{R}^d$
+  authors:
+  - Alexander D. Gilbert
+  - Frances Y. Kuo
+  - Ian H. Sloan
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2103.16075v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1312.5919
+  path: arxiv/md/1312.5919.md
+  title: A Monte Carlo method for optimal portfolio executions
+  authors:
+  - Nico Achtsis
+  - Dirk Nuyens
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1312.5919v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.06424
+  path: arxiv/md/2602.06424.md
+  title: Single- and Multi-Level Fourier-RQMC Methods for Multivariate Shortfall Risk
+  authors:
+  - Chiheb Ben Hammouda
+  - Truong Ngoc Nguyen
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/2602.06424v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1712.09201
+  path: arxiv/md/1712.09201.md
+  title: Approximation methods for piecewise deterministic Markov processes and their costs
+  authors:
+  - Peter Kritzer
+  - Gunther Leobacher
+  - Michaela Szölgyenyi
+  - Stefan Thonhauser
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-qmc
+  source_url: https://arxiv.org/abs/1712.09201v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2111.00348
+  path: arxiv/md/2111.00348.md
+  title: Large and moderate deviations for importance sampling in the Heston model
+  authors:
+  - Marc Geha
+  - Antoine Jacquier
+  - Zan Zuric
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2111.00348v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.12885
+  path: arxiv/md/2209.12885.md
+  title: Neural variance reduction for stochastic differential equations
+  authors:
+  - P. D. Hinds
+  - M. V. Tretyakov
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2209.12885v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1001.3551
+  path: arxiv/md/1001.3551.md
+  title: A framework for adaptive Monte-Carlo procedures
+  authors:
+  - Bernard Lapeyre
+  - Jérôme Lelong
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1001.3551v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1105.5416
+  path: arxiv/md/1105.5416.md
+  title: Analytic results and weighted Monte Carlo simulations for CDO pricing
+  authors:
+  - Marcell Stippinger
+  - Bálint Vető
+  - Éva Rácz
+  - Zsolt Bihary
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1105.5416v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2302.12439
+  path: arxiv/md/2302.12439.md
+  title: Simultaneous upper and lower bounds of American-style option prices with hedging via neural networks
+  authors:
+  - Ivan Guo
+  - Nicolas Langrené
+  - Jiahao Wu
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2302.12439v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1608.01197
+  path: arxiv/md/1608.01197.md
+  title: Efficient exposure computation by risk factor decomposition
+  authors:
+  - Cornelis S. L. de Graaf
+  - Drona Kandhai
+  - Christoph Reisinger
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1608.01197v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1903.11275
+  path: arxiv/md/1903.11275.md
+  title: Variance Reduction Applied to Machine Learning for Pricing Bermudan/American Options in High
+    Dimension
+  authors:
+  - Ludovic Goudenège
+  - Andrea Molent
+  - Antonino Zanette
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1903.11275v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2511.04412
+  path: arxiv/md/2511.04412.md
+  title: 'On the Estimation of Own Funds for Life Insurers: A Study of Direct, Indirect, and Control Variate
+    Methods in a Risk-Neutral Pricing Framework'
+  authors:
+  - Mark-Oliver Wolf
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2511.04412v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.05512
+  path: arxiv/md/2309.05512.md
+  title: Monte Carlo Simulation for Trading Under a Lévy-Driven Mean-Reverting Framework
+  authors:
+  - Tim Leung
+  - Kevin W. Lu
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2309.05512v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2412.11257
+  path: arxiv/md/2412.11257.md
+  title: 'Prediction-Enhanced Monte Carlo: A Machine Learning View on Control Variate'
+  authors:
+  - Fengpei Li
+  - Haoxian Chen
+  - Jiahe Lin
+  - Arkin Gupta
+  - Xiaowei Tan
+  - Honglei Zhao
+  - Gang Xu
+  - Yuriy Nevmyvaka
+  - Agostino Capponi
+  - Henry Lam
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2412.11257v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2511.19826
+  path: arxiv/md/2511.19826.md
+  title: 'Efficient Importance Sampling under Heston Model: Short Maturity and Deep Out-of-the-Money Options'
+  authors:
+  - Yun-Feng Tu
+  - Chuan-Hsiang Han
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2511.19826v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2402.09243
+  path: arxiv/md/2402.09243.md
+  title: Exact simulation scheme for the Ornstein-Uhlenbeck driven stochastic volatility model with the
+    Karhunen-Loève expansions
+  authors:
+  - Jaehyuk Choi
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2402.09243v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1612.05255
+  path: arxiv/md/1612.05255.md
+  title: Stratified regression-based variance reduction approach for weak approximation schemes
+  authors:
+  - Denis Belomestny
+  - Stefan Häfner
+  - Mikhail Urusov
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1612.05255v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2405.03453
+  path: arxiv/md/2405.03453.md
+  title: A weighted multilevel Monte Carlo method
+  authors:
+  - Yu Li
+  - Antony Ware
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2405.03453v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1111.4808
+  path: arxiv/md/1111.4808.md
+  title: Conditional sampling for barrier option pricing under the LT method
+  authors:
+  - Nico Achtsis
+  - Ronald Cools
+  - Dirk Nuyens
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1111.4808v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1004.5037
+  path: arxiv/md/1004.5037.md
+  title: Convenient Multiple Directions of Stratification
+  authors:
+  - Benjamin Jourdain
+  - Bernard Lapeyre
+  - Piergiacomo Sabino
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1004.5037v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2311.12330
+  path: arxiv/md/2311.12330.md
+  title: A General Framework for Importance Sampling with Markov Random Walks
+  authors:
+  - Cheng-Der Fuh
+  - Yanwei Jia
+  - Steven Kou
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2311.12330v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2508.03790
+  path: arxiv/md/2508.03790.md
+  title: Asymptotic universal moment matching properties of normal distributions
+  authors:
+  - Xuan Liu
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2508.03790v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.02040
+  path: arxiv/md/2605.02040.md
+  title: Analytic approximation for Bachelier option prices and applications
+  authors:
+  - Elisa Alòs
+  - Òscar Burés
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2605.02040v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2104.01365
+  path: arxiv/md/2104.01365.md
+  title: JDOI Variance Reduction Method and the Pricing of American-Style Options
+  authors:
+  - Johan Auster
+  - Ludovic Mathys
+  - Fabio Maeder
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2104.01365v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2609.21291
+  path: arxiv/md/2609.21291.md
+  title: Efficient simulation schemes for pricing options under the Ornstein--Uhlenbeck driven stochastic
+    volatility model
+  authors:
+  - Congxin He
+  - Yue Kuen Kwok
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2609.21291v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1911.13123
+  path: arxiv/md/1911.13123.md
+  title: The equivalent constant-elasticity-of-variance (CEV) volatility of the stochastic-alpha-beta-rho
+    (SABR) model
+  authors:
+  - Jaehyuk Choi
+  - Lixin Wu
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1911.13123v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2101.09890
+  path: arxiv/md/2101.09890.md
+  title: 'A new efficient approximation scheme for solving high-dimensional semilinear PDEs: control variate
+    method for Deep BSDE solver'
+  authors:
+  - Akihiko Takahashi
+  - Yoshifumi Tsuchida
+  - Toshihiro Yamada
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2101.09890v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2305.09166
+  path: arxiv/md/2305.09166.md
+  title: Finite-Difference Solution Ansatz approach in Least-Squares Monte Carlo
+  authors:
+  - Jiawei Huo
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2305.09166v10
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1711.03744
+  path: arxiv/md/1711.03744.md
+  title: Efficient Exponential Tilting for Portfolio Credit Risk
+  authors:
+  - Cheng-Der Fuh
+  - Chuan-Ju Wang
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1711.03744v6
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1805.04704
+  path: arxiv/md/1805.04704.md
+  title: The Heston stochastic volatility model with piecewise constant parameters - efficient calibration
+    and pricing of window barrier options
+  authors:
+  - Daniel Guterding
+  - Wolfram Boenkost
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1805.04704v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2509.25899
+  path: arxiv/md/2509.25899.md
+  title: Fast catastrophe bond valuation with neural-network surrogates
+  authors:
+  - Julian Sester
+  - Huansang Xu
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2509.25899v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2608.30749
+  path: arxiv/md/2608.30749.md
+  title: Importance Sampling Enhanced with the COS Method for the Portfolio Risk Allocation
+  authors:
+  - Fang Fang
+  - Xiaoyu Shen
+  - Qinling Wang
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2608.30749v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1307.2218
+  path: arxiv/md/1307.2218.md
+  title: Importance sampling for jump processes and applications to finance
+  authors:
+  - Laetitia Badouraly Kassim
+  - Jérôme Lelong
+  - Imane Loumrhari
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1307.2218v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1907.00219
+  path: arxiv/md/1907.00219.md
+  title: Branching Particle Pricers with Heston Examples
+  authors:
+  - Michael A. Kouritzin
+  - Anne MacKay
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1907.00219v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1904.09799
+  path: arxiv/md/1904.09799.md
+  title: Prediction Law of Mixed Gaussian Volterra Processes
+  authors:
+  - Tommi Sottinen
+  - Lauri Viitasaari
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1904.09799v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1509.01479
+  path: arxiv/md/1509.01479.md
+  title: A mixed Monte Carlo and PDE variance reduction method for foreign exchange options under the
+    Heston-CIR model
+  authors:
+  - Andrei Cozma
+  - Christoph Reisinger
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1509.01479v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2108.01999
+  path: arxiv/md/2108.01999.md
+  title: On simulation of rough Volterra stochastic volatility models
+  authors:
+  - Jan Matas
+  - Jan Pospíšil
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2108.01999v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.02085
+  path: arxiv/md/2605.02085.md
+  title: Fast Monte-Carlo
+  authors:
+  - Irene Aldridge
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2605.02085v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1206.3390
+  path: arxiv/md/1206.3390.md
+  title: State-independent Importance Sampling for Random Walks with Regularly Varying Increments
+  authors:
+  - Karthyek R. A. Murthy
+  - Sandeep Juneja
+  - Jose Blanchet
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1206.3390v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1101.1846
+  path: arxiv/md/1101.1846.md
+  title: Using graphics processing units to generate random numbers
+  authors:
+  - S. Hissoiny
+  - P. Després
+  - B. Ozell
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1101.1846v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1003.1898
+  path: arxiv/md/1003.1898.md
+  title: Pseudo-random number generators for Monte Carlo simulations on Graphics Processing Units
+  authors:
+  - Vadim Demchik
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1003.1898v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1709.04394
+  path: arxiv/md/1709.04394.md
+  title: Monte Carlo methods for massively parallel computers
+  authors:
+  - Martin Weigel
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1709.04394v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1104.0198
+  path: arxiv/md/1104.0198.md
+  title: Why The Results of Parallel and Serial Monte Carlo Simulations May Differ
+  authors:
+  - Boris D. Lubachevsky
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1104.0198v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1204.6193
+  path: arxiv/md/1204.6193.md
+  title: Random number generators for massively parallel simulations on GPU
+  authors:
+  - Markus Manssen
+  - Martin Weigel
+  - Alexander K. Hartmann
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1204.6193v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1101.0876
+  path: arxiv/md/1101.0876.md
+  title: q-State Potts model metastability study using optimized GPU-based Monte Carlo algorithms
+  authors:
+  - Ezequiel E. Ferrero
+  - Juan Pablo De Francesco
+  - Nicolás Wolovick
+  - Sergio A. Cannas
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1101.0876v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1101.1245
+  path: arxiv/md/1101.1245.md
+  title: 'GPUMCD: a new GPU-oriented Monte Carlo dose calculation platform'
+  authors:
+  - Sami Hissoiny
+  - Hugo Bouchard
+  - Benoît Ozell
+  - Philippe Després
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1101.1245v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1310.7087
+  path: arxiv/md/1310.7087.md
+  title: 'QCDGPU: open-source package for Monte Carlo lattice simulations on OpenCL-compatible multi-GPU
+    systems'
+  authors:
+  - Vadim Demchik
+  - Natalia Kolomoyets
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1310.7087v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1003.1123
+  path: arxiv/md/1003.1123.md
+  title: Efficient pseudo-random number generators for biomolecular simulations on graphics processors
+  authors:
+  - A. Zhmurov
+  - K. Rybnikov
+  - Y. Kholodov
+  - V. Barsegov
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1003.1123v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1403.7645
+  path: arxiv/md/1403.7645.md
+  title: Using RngStreams for Parallel Random Number Generation in C++ and R
+  authors:
+  - Andrew T. Karl
+  - Randy Eubank
+  - Jelena Milovanovic
+  - Mark Reiser
+  - Dennis Young
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1403.7645v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2506.16240
+  path: arxiv/md/2506.16240.md
+  title: 'Microcanonical simulated annealing: Massively parallel Monte Carlo simulations with sporadic
+    random-number generation'
+  authors:
+  - M. Bernaschi
+  - C. Chilin
+  - L. A. Fernandez
+  - I. González-Adalid Pemartín
+  - E. Marinari
+  - V. Martin-Mayor
+  - G. Parisi
+  - F. Ricci-Tersenghi
+  - J. J. Ruiz-Lorenzo
+  - D. Yllanes
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2506.16240v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1506.03693
+  path: arxiv/md/1506.03693.md
+  title: 'Optimization Monte Carlo: Efficient and Embarrassingly Parallel Likelihood-Free Inference'
+  authors:
+  - Edward Meeds
+  - Max Welling
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/1506.03693v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.06362
+  path: arxiv/md/2403.06362.md
+  title: An Alternative to Stride-Based RNG for Monte Carlo Transport
+  authors:
+  - Braxton S. Cuneo
+  - Ilham Variansyah
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-monte-carlo
+  source_url: https://arxiv.org/abs/2403.06362v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2310.04146
+  path: arxiv/md/2310.04146.md
+  title: Efficient option pricing in the rough Heston model using weak simulation schemes
+  authors:
+  - Christian Bayer
+  - Simon Breneis
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2310.04146v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2601.00815
+  path: arxiv/md/2601.00815.md
+  title: 'Almost-Exact Simulation Scheme for Heston-type Models: Bermudan and American Option Pricing'
+  authors:
+  - Mara Kalicanin Dimitrov
+  - Marko Dimitrov
+  - Anatoliy Malyarenko
+  - Ying Ni
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2601.00815v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2301.02800
+  path: arxiv/md/2301.02800.md
+  title: Simulation schemes for the Heston model with Poisson conditioning
+  authors:
+  - Jaehyuk Choi
+  - Yue Kuen Kwok
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2301.02800v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2609.21301
+  path: arxiv/md/2609.21301.md
+  title: Simulation of stochastic volatility models via operator splitting schemes
+  authors:
+  - Lilian Hu
+  - Congxin He
+  - Yue Kuen Kwok
+  - Gongqiu Zhang
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2609.21301v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2510.08805
+  path: arxiv/md/2510.08805.md
+  title: 'Lifted Heston Model: Efficient Monte Carlo Simulation with Large Time Steps'
+  authors:
+  - Nicola F. Zaugg
+  - Lech A. Grzelak
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2510.08805v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1810.04868
+  path: arxiv/md/1810.04868.md
+  title: Lifting the Heston model
+  authors:
+  - Eduardo Abi Jaber
+  year: 2018
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1810.04868v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1503.03705
+  path: arxiv/md/1503.03705.md
+  title: A hybrid tree/finite-difference approach for Heston-Hull-White type models
+  authors:
+  - M. Briani
+  - L. Caramellino
+  - A. Zanette
+  year: 2015
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1503.03705v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1111.4087
+  path: arxiv/md/1111.4087.md
+  title: ADI finite difference schemes for the Heston-Hull-White PDE
+  authors:
+  - Tinne Haentjens
+  - Karel J. in 't Hout
+  year: 2011
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1111.4087v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1111.6067
+  path: arxiv/md/1111.6067.md
+  title: Adaptive Simulation of the Heston Model
+  authors:
+  - Ian Iscoe
+  - Asif Lakhany
+  year: 2011
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1111.6067v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1309.0110
+  path: arxiv/md/1309.0110.md
+  title: ADI schemes for pricing American options under the Heston model
+  authors:
+  - Tinne Haentjens
+  - Karel in 't Hout
+  year: 2013
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1309.0110v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2504.21658
+  path: arxiv/md/2504.21658.md
+  title: Approximation and regularity results for the Heston model and related processes
+  authors:
+  - Edoardo Lombardo
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2504.21658v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2407.17151
+  path: arxiv/md/2407.17151.md
+  title: High order approximations and simulation schemes for the log-Heston process
+  authors:
+  - Aurélien Alfonsi
+  - Edoardo Lombardo
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2407.17151v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2301.12072
+  path: arxiv/md/2301.12072.md
+  title: Unbiased estimators for the Heston model with stochastic interest rates
+  authors:
+  - Chao Zheng
+  - Jiangtao Pan
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2301.12072v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.06737
+  path: arxiv/md/2606.06737.md
+  title: Fast-excursion limit of the Heston model
+  authors:
+  - Ryan McCrickerd
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2606.06737v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2412.11264
+  path: arxiv/md/2412.11264.md
+  title: 'Simulation of square-root processes made simple: applications to the Heston model'
+  authors:
+  - Eduardo Abi Jaber
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2412.11264v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2008.08576
+  path: arxiv/md/2008.08576.md
+  title: Series expansions and direct inversion for the Heston model
+  authors:
+  - Simon J. A. Malham
+  - Jiaqi Shen
+  - Anke Wiese
+  year: 2020
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2008.08576v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.13334
+  path: arxiv/md/2209.13334.md
+  title: High order approximations of the Cox-Ingersoll-Ross process semigroup using random grids
+  authors:
+  - Aurélien Alfonsi
+  - Edoardo Lombardo
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2209.13334v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1305.7092
+  path: arxiv/md/1305.7092.md
+  title: Prices and Asymptotics for Discrete Variance Swaps
+  authors:
+  - Carole Bernard
+  - Zhenyu Cui
+  year: 2013
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1305.7092v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1912.00691
+  path: arxiv/md/1912.00691.md
+  title: Artificial boundary method for the solution of pricing European options under the Heston model
+  authors:
+  - Hongshan Li
+  - Zhongyi Huang
+  year: 2019
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1912.00691v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2101.03626
+  path: arxiv/md/2101.03626.md
+  title: On the RND under Heston's stochastic volatility model
+  authors:
+  - Ben Boukai
+  year: 2021
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2101.03626v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1608.02028
+  path: arxiv/md/1608.02028.md
+  title: Explicit Heston Solutions and Stochastic Approximation for Path-dependent Option Pricing
+  authors:
+  - Michael A. Kouritzin
+  year: 2016
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1608.02028v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.00540
+  path: arxiv/md/2309.00540.md
+  title: Instabilities of Super-Time-Stepping Methods on the Heston Stochastic Volatility Model
+  authors:
+  - Fabien Le Floc'h
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2309.00540v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2504.19885
+  path: arxiv/md/2504.19885.md
+  title: Simulating integrated Volterra square-root processes and Volterra Heston models via Inverse Gaussian
+  authors:
+  - Eduardo Abi Jaber
+  - Elie Attal
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2504.19885v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1808.05295
+  path: arxiv/md/1808.05295.md
+  title: 'SINH-acceleration: efficient evaluation of probability distributions, option pricing, and Monte-Carlo
+    simulations'
+  authors:
+  - Svetlana Boyarchenko
+  - Sergei Levendorskiĭ
+  year: 2018
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1808.05295v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2503.18259
+  path: arxiv/md/2503.18259.md
+  title: 'Rough Heston model as the scaling limit of bivariate cumulative heavy-tailed INAR processes:
+    Weak-error bounds and option pricing'
+  authors:
+  - Yingli Wang
+  - Zhenyu Cui
+  - Lingjiong Zhu
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2503.18259v7
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.05326
+  path: arxiv/md/2512.05326.md
+  title: Convolution-FFT for option pricing in the Heston model
+  authors:
+  - Xiang Gao
+  - Cody Hyndman
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2512.05326v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2211.03638
+  path: arxiv/md/2211.03638.md
+  title: On Pricing of Discrete Asian and Lookback Options under the Heston Model
+  authors:
+  - Leonardo Perotti
+  - Lech A. Grzelak
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2211.03638v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2409.12453
+  path: arxiv/md/2409.12453.md
+  title: Theoretical and Empirical Validation of Heston Model
+  authors:
+  - Zheng Cao
+  - Xinhao Lin
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2409.12453v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1309.0557
+  path: arxiv/md/1309.0557.md
+  title: Exact Simulation of Wishart Multidimensional Stochastic Volatility Model
+  authors:
+  - Chulmin Kang
+  - Wanmo Kang
+  year: 2013
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1309.0557v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2102.13505
+  path: arxiv/md/2102.13505.md
+  title: Approximation of Stochastic Volterra Equations with kernels of completely monotone type
+  authors:
+  - Aurélien Alfonsi
+  - Ahmed Kebaier
+  year: 2021
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2102.13505v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1011.6532
+  path: arxiv/md/1011.6532.md
+  title: Stability of central finite difference schemes for the Heston PDE
+  authors:
+  - K. J. in 't Hout
+  - K. Volders
+  year: 2010
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1011.6532v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1706.04566
+  path: arxiv/md/1706.04566.md
+  title: Realized volatility and parametric estimation of Heston SDEs
+  authors:
+  - Robert Azencott
+  - Peng Ren
+  - Ilya Timofeyev
+  year: 2017
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1706.04566v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2103.11734
+  path: arxiv/md/2103.11734.md
+  title: American options in the Volterra Heston model
+  authors:
+  - Etienne Chevalier
+  - Sergio Pulido
+  - Elizabeth Zúñiga
+  year: 2021
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2103.11734v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1606.08381
+  path: arxiv/md/1606.08381.md
+  title: Pricing European and American Options under Heston Model using Discontinuous Galerkin Finite
+    Elements
+  authors:
+  - Sinem Kozpınar
+  - Murat Uzunca
+  - Bülent Karasözen
+  year: 2016
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1606.08381v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1206.5983
+  path: arxiv/md/1206.5983.md
+  title: On a Symmetrization of Diffusion Processes
+  authors:
+  - Jiro Akahori
+  - Yuri Imamura
+  year: 2012
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1206.5983v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1211.5867
+  path: arxiv/md/1211.5867.md
+  title: An FBSDE Approach to American Option Pricing with an Interacting Particle Method
+  authors:
+  - Masaaki Fujii
+  - Seisho Sato
+  - Akihiko Takahashi
+  year: 2012
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/1211.5867v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2504.14343
+  path: arxiv/md/2504.14343.md
+  title: Numerical analysis of a particle system for the calibrated Heston-type local stochastic volatility
+    model
+  authors:
+  - Christoph Reisinger
+  - Maria Olympia Tsianni
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-heston
+  source_url: https://arxiv.org/abs/2504.14343v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2509.09105
+  path: arxiv/md/2509.09105.md
+  title: Long memory score-driven models as approximations for rough Ornstein-Uhlenbeck processes
+  authors:
+  - Yinhao Wu
+  - Ping He
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2509.09105v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1711.03078
+  path: arxiv/md/1711.03078.md
+  title: Functional central limit theorems for rough volatility
+  authors:
+  - Blanka Horvath
+  - Antoine Jacquier
+  - Aitor Muguruza
+  - Andreas Sojmark
+  year: 2017
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1711.03078v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2412.02135
+  path: arxiv/md/2412.02135.md
+  title: Unsupervised Learning-based Calibration Scheme for Rough Volatility Models
+  authors:
+  - Changqing Teng
+  - Guanglian Li
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2412.02135v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2105.04511
+  path: arxiv/md/2105.04511.md
+  title: Least squares Monte Carlo methods in stochastic Volterra rough volatility models
+  authors:
+  - Henrique Guerreiro
+  - João Guerra
+  year: 2021
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2105.04511v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.11897
+  path: arxiv/md/2403.11897.md
+  title: Risk premium and rough volatility
+  authors:
+  - Ofelia Bonesini
+  - Antoine Jacquier
+  - Aitor Muguruza
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2403.11897v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2201.10466
+  path: arxiv/md/2201.10466.md
+  title: 'Multiscaling and rough volatility: an empirical investigation'
+  authors:
+  - Giuseppe Brandi
+  - T. Di Matteo
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2201.10466v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2412.21192
+  path: arxiv/md/2412.21192.md
+  title: Rough differential equations for volatility
+  authors:
+  - Ofelia Bonesini
+  - Emilio Ferrucci
+  - Ioannis Gasteratos
+  - Antoine Jacquier
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2412.21192v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2603.26514
+  path: arxiv/md/2603.26514.md
+  title: Rough volatility dynamics in commodity markets
+  authors:
+  - Roberto Daluiso
+  - Héctor Folgar-Cameán
+  - Andrea Pallavicini
+  - Carlos Vázquez
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2603.26514v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1802.01641
+  path: arxiv/md/1802.01641.md
+  title: Volatility options in rough volatility models
+  authors:
+  - Blanka Horvath
+  - Antoine Jacquier
+  - Peter Tankov
+  year: 2018
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1802.01641v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1801.10359
+  path: arxiv/md/1801.10359.md
+  title: Multi-factor approximation of rough volatility models
+  authors:
+  - Eduardo Abi Jaber
+  - Omar El Euch
+  year: 2018
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1801.10359v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.00746
+  path: arxiv/md/2403.00746.md
+  title: A time-stepping deep gradient flow method for option pricing in (rough) diffusion models
+  authors:
+  - Antonis Papapantoleon
+  - Jasper Rou
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2403.00746v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2104.04233
+  path: arxiv/md/2104.04233.md
+  title: Functional quantization of rough volatility and applications to volatility derivatives
+  authors:
+  - Ofelia Bonesini
+  - Giorgia Callegaro
+  - Antoine Jacquier
+  year: 2021
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2104.04233v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.11738
+  path: arxiv/md/2403.11738.md
+  title: A path-dependent PDE solver based on signature kernels
+  authors:
+  - Alexandre Pannier
+  - Cristopher Salvi
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2403.11738v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2205.09958
+  path: arxiv/md/2205.09958.md
+  title: A partial rough path space for rough volatility
+  authors:
+  - Masaaki Fukasawa
+  - Ryoji Takano
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2205.09958v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2510.19126
+  path: arxiv/md/2510.19126.md
+  title: An Efficient Calibration Framework for Volatility Derivatives under Rough Volatility with Jumps
+  authors:
+  - Keyuan Wu
+  - Tenghan Zhong
+  - Yuxuan Ouyang
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2510.19126v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.11183
+  path: arxiv/md/2309.11183.md
+  title: '$\mathfrak{X}$PDE for $\mathfrak{X} \in \{\mathrm{BS},\mathrm{FBS}, \mathrm{P}\}$: a rough volatility
+    context'
+  authors:
+  - Ofelia Bonesini
+  - Antoine Jacquier
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2309.11183v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2401.03345
+  path: arxiv/md/2401.03345.md
+  title: 'Volatility models in practice: Rough, Path-dependent or Markovian?'
+  authors:
+  - Eduardo Abi Jaber
+  - Shaun
+  - Li
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2401.03345v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2002.09215
+  path: arxiv/md/2002.09215.md
+  title: Volatility has to be rough
+  authors:
+  - Masaaki Fukasawa
+  year: 2020
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2002.09215v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2603.13170
+  path: arxiv/md/2603.13170.md
+  title: Microstructural Foundation of Rough Log-Normal Volatility Models
+  authors:
+  - Paul P. Hager
+  - Ulrich Horst
+  - Thomas Wagenhofer
+  - Wei Xu
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2603.13170v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1508.05233
+  path: arxiv/md/1508.05233.md
+  title: Super-replication in Fully Incomplete Markets
+  authors:
+  - Yan Dolinsky
+  - Ariel Neufeld
+  year: 2015
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1508.05233v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1910.13338
+  path: arxiv/md/1910.13338.md
+  title: From microscopic price dynamics to multidimensional rough volatility models
+  authors:
+  - Mehdi Tomas
+  - Mathieu Rosenbaum
+  year: 2019
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1910.13338v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2608.27575
+  path: arxiv/md/2608.27575.md
+  title: Pricing and Calibration of Bitcoin Inverse Options via the Rough Bergomi Model
+  authors:
+  - Riccardo Caruso
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2608.27575v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1609.05177
+  path: arxiv/md/1609.05177.md
+  title: The microstructural foundations of leverage effect and rough volatility
+  authors:
+  - El Euch Omar
+  - Fukasawa Masaaki
+  - Rosenbaum Mathieu
+  year: 2016
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1609.05177v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2009.08814
+  path: arxiv/md/2009.08814.md
+  title: 'Short dated smile under Rough Volatility: asymptotics and numerics'
+  authors:
+  - Peter K. Friz
+  - Paul Gassiat
+  - Paolo Pigato
+  year: 2020
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2009.08814v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1708.02563
+  path: arxiv/md/1708.02563.md
+  title: Turbocharging Monte Carlo pricing for the rough Bergomi model
+  authors:
+  - Ryan McCrickerd
+  - Mikko S. Pakkanen
+  year: 2017
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1708.02563v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2210.01216
+  path: arxiv/md/2210.01216.md
+  title: 'Statistical inference for rough volatility: Central limit theorems'
+  authors:
+  - Carsten Chong
+  - Marc Hoffmann
+  - Yanghui Liu
+  - Mathieu Rosenbaum
+  - Grégoire Szymanski
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2210.01216v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.16418
+  path: arxiv/md/2512.16418.md
+  title: An Euler scheme for BSDEs via the Wiener chaos decomposition
+  authors:
+  - Pere Diaz-Lozano
+  - Giulia Di Nunno
+  year: 2025
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2512.16418v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1901.09647
+  path: arxiv/md/1901.09647.md
+  title: Deep Learning Volatility
+  authors:
+  - Blanka Horvath
+  - Aitor Muguruza
+  - Mehdi Tomas
+  year: 2019
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1901.09647v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.27932
+  path: arxiv/md/2606.27932.md
+  title: (In)Efficient Market States and Rough Volatility Detected via Grunwald-Letnikov Fractional Derivative
+  authors:
+  - Daniele Angelini
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2606.27932v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.00097
+  path: arxiv/md/2602.00097.md
+  title: 'Rough Martingale Optimal Transport: Theory, Implementation, and Regulatory Applications for
+    Non-Modelable Risk Factors'
+  authors:
+  - Sri Sairam Gautam B.
+  - Isha
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2602.00097v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2411.19317
+  path: arxiv/md/2411.19317.md
+  title: Deep learning interpretability for rough volatility
+  authors:
+  - Bo Yuan
+  - Damiano Brigo
+  - Antoine Jacquier
+  - Nicola Pede
+  year: 2024
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2411.19317v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2210.01214
+  path: arxiv/md/2210.01214.md
+  title: 'Statistical inference for rough volatility: Minimax Theory'
+  authors:
+  - Carsten Chong
+  - Marc Hoffmann
+  - Yanghui Liu
+  - Mathieu Rosenbaum
+  - Grégoire Szymanski
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2210.01214v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1811.00267
+  path: arxiv/md/1811.00267.md
+  title: 'Precise asymptotics: robust stochastic volatility models'
+  authors:
+  - Peter K. Friz
+  - Paul Gassiat
+  - Paolo Pigato
+  year: 2018
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/1811.00267v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2212.07817
+  path: arxiv/md/2212.07817.md
+  title: 'Reconstructing Volatility: Pricing of Index Options under Rough Volatility'
+  authors:
+  - Peter K. Friz
+  - Thomas Wagenhofer
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2212.07817v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2304.03042
+  path: arxiv/md/2304.03042.md
+  title: Rough volatility, path-dependent PDEs and weak rates of convergence
+  authors:
+  - Ofelia Bonesini
+  - Antoine Jacquier
+  - Alexandre Pannier
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2304.03042v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.23488
+  path: arxiv/md/2610.23488.md
+  title: On the skew-curvature power law relationship in a stochastic volatility model with infinite variation
+    Lévy jumps
+  authors:
+  - Òscar Burés
+  - Josep Vives
+  year: 2026
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2610.23488v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2001.01789
+  path: arxiv/md/2001.01789.md
+  title: The quadratic rough Heston model and the joint S&P 500/VIX smile calibration problem
+  authors:
+  - Jim Gatheral
+  - Paul Jusselin
+  - Mathieu Rosenbaum
+  year: 2020
+  doc_type: research_paper
+  topic: volatility-rough
+  source_url: https://arxiv.org/abs/2001.01789v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2507.13186
+  path: arxiv/md/2507.13186.md
+  title: NUFFT for the Fast COS Method
+  authors:
+  - Fabien LeFloc'h
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2507.13186v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1604.08735
+  path: arxiv/md/1604.08735.md
+  title: Pricing Bermudan options under local Lévy models with default
+  authors:
+  - Anastasia Borovykh
+  - Cornelis W. Oosterlee
+  - Andrea Pascucci
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1604.08735v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2301.00648
+  path: arxiv/md/2301.00648.md
+  title: Fast Barrier Option Pricing by the COS BEM Method in Heston Model
+  authors:
+  - A. Aimi
+  - C. Guardasoni
+  - L. Ortiz-Gracia
+  - S. Sanfelici
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2301.00648v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2307.12843
+  path: arxiv/md/2307.12843.md
+  title: From characteristic functions to multivariate distribution functions and European option prices
+    by the damped COS method
+  authors:
+  - Gero Junike
+  - Hauke Stier
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2307.12843v8
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2607.25599
+  path: arxiv/md/2607.25599.md
+  title: An Analytic COS Method for Compound Option Valuation
+  authors:
+  - Zhipeng Huang
+  - Cornelis W. Oosterlee
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2607.25599v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2507.20338
+  path: arxiv/md/2507.20338.md
+  title: Lévy-Driven Option Pricing without a Riskless Asset
+  authors:
+  - Ziyao Wang
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2507.20338v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2109.01030
+  path: arxiv/md/2109.01030.md
+  title: Precise option pricing by the COS method--How to choose the truncation range
+  authors:
+  - Gero Junike
+  - Konstantin Pankrashkin
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2109.01030v6
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1701.00886
+  path: arxiv/md/1701.00886.md
+  title: Pricing European Options by Stable Fourier-Cosine Series Expansions
+  authors:
+  - Chunfa Wang
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1701.00886v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2303.16012
+  path: arxiv/md/2303.16012.md
+  title: On the number of terms in the COS method for European option pricing
+  authors:
+  - Gero Junike
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2303.16012v13
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2005.13248
+  path: arxiv/md/2005.13248.md
+  title: More Robust Pricing of European Options Based on Fourier Cosine Series Expansions
+  authors:
+  - Fabien Le Floc'h
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2005.13248v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1409.1175
+  path: arxiv/md/1409.1175.md
+  title: Pricing Spread Options under Stochastic Correlation and Jump-Diffusion Models
+  authors:
+  - Pablo Olivares
+  - Matthew Cane
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1409.1175v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2205.13321
+  path: arxiv/md/2205.13321.md
+  title: A new self-exciting jump-diffusion process for option pricing
+  authors:
+  - Luis A. Souto Arias
+  - Pasquale Cirillo
+  - Cornelis W. Oosterlee
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2205.13321v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2009.00557
+  path: arxiv/md/2009.00557.md
+  title: 'The SINC way: A fast and accurate approach to Fourier pricing'
+  authors:
+  - Fabio Baschetti
+  - Giacomo Bormetti
+  - Silvia Romagnoli
+  - Pietro Rossi
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2009.00557v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1403.3756
+  path: arxiv/md/1403.3756.md
+  title: A fast Fourier transform method for Mellin-type option pricing
+  authors:
+  - D. J. Manuge
+  - P. T. Kim
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1403.3756v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1506.03898
+  path: arxiv/md/1506.03898.md
+  title: Numerical analysis on local risk-minimization forexponential Lévy models
+  authors:
+  - Takuji Arai
+  - Yuto Imai
+  - Ryoichi Suzuki
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1506.03898v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2203.02323
+  path: arxiv/md/2203.02323.md
+  title: Solution of integrals with fractional Brownian motion for different Hurst indices
+  authors:
+  - Fei Gao
+  - Shuaiqiang Liu
+  - Cornelis W. Oosterlee
+  - Nico M. Temme
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2203.02323v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2506.18210
+  path: arxiv/md/2506.18210.md
+  title: American options valuation in time-dependent jump-diffusion models via integral equations and
+    characteristic functions
+  authors:
+  - Andrey Itkin
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2506.18210v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1407.1343
+  path: arxiv/md/1407.1343.md
+  title: 'Computing Greeks for Lévy Models: The Fourier Transform Approach'
+  authors:
+  - Federico De Olivera
+  - Ernesto Mordecki
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1407.1343v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1904.12260
+  path: arxiv/md/1904.12260.md
+  title: Pricing and hedging of VIX options for Barndorff-Nielsen and Shephard models
+  authors:
+  - Takuji Arai
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1904.12260v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.16115
+  path: arxiv/md/2512.16115.md
+  title: An Efficient Machine Learning Framework for Option Pricing via Fourier Transform
+  authors:
+  - Liying Zhang
+  - Ying Gao
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2512.16115v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2203.08196
+  path: arxiv/md/2203.08196.md
+  title: Optimal Damping with Hierarchical Adaptive Quadrature for Efficient Fourier Pricing of Multi-Asset
+    Options in Lévy Models
+  authors:
+  - Michael Samet
+  - Christian Bayer
+  - Chiheb Ben Hammouda
+  - Antonis Papapantoleon
+  - Raúl Tempone
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2203.08196v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2511.02700
+  path: arxiv/md/2511.02700.md
+  title: Numerical valuation of European options under two-asset infinite-activity exponential Lévy models
+  authors:
+  - Massimiliano Moda
+  - Karel J. in 't Hout
+  - Michèle Vanmaele
+  - Fred Espen Benth
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2511.02700v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.24714
+  path: arxiv/md/2512.24714.md
+  title: Boundary error control for numerical solution of BSDEs by the convolution-FFT method
+  authors:
+  - Xiang Gao
+  - Cody Hyndman
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2512.24714v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1203.6899
+  path: arxiv/md/1203.6899.md
+  title: Fast computation of vanilla prices in time-changed models and implied volatilities using rational
+    approximations
+  authors:
+  - Martijn Pistorius
+  - Johannes Stolte
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1203.6899v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1012.0754
+  path: arxiv/md/1012.0754.md
+  title: Pricing and Hedging in Affine Models with Possibility of Default
+  authors:
+  - Patrick Cheridito
+  - Alexander Wugalter
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1012.0754v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1706.06709
+  path: arxiv/md/1706.06709.md
+  title: Singular Fourier-Padé Series Expansion of European Option Prices
+  authors:
+  - Tat Lung Chan
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1706.06709v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1706.09755
+  path: arxiv/md/1706.09755.md
+  title: Hilbert transform, spectral filters and option pricing
+  authors:
+  - Carolyn E. Phelan
+  - Daniele Marazzina
+  - Gianluca Fusai
+  - Guido Germano
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1706.09755v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1801.09362
+  path: arxiv/md/1801.09362.md
+  title: First Passage Time for Tempered Stable Process and Its Application to Perpetual American Option
+    and Barrier Option Pricing
+  authors:
+  - Young Shin Kim
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1801.09362v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.00858
+  path: arxiv/md/2602.00858.md
+  title: Short-Rate-Dependent Volatility Models
+  authors:
+  - Tim Leung
+  - Matthew Lorig
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2602.00858v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2006.04659
+  path: arxiv/md/2006.04659.md
+  title: Explicit option valuation in the exponential NIG model
+  authors:
+  - Jean-Philippe Aguilar
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2006.04659v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2303.02317
+  path: arxiv/md/2303.02317.md
+  title: Fast American Option Pricing using Nonlinear Stencils
+  authors:
+  - Zafar Ahmad
+  - Reilly Browne
+  - Rezaul Chowdhury
+  - Rathish Das
+  - Yushen Huang
+  - Yimin Zhu
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2303.02317v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1110.5846
+  path: arxiv/md/1110.5846.md
+  title: Two-factor capital structure models for equity and credit
+  authors:
+  - Thomas R. Hurd
+  - Zhuowei Zhou
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/1110.5846v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2410.02925
+  path: arxiv/md/2410.02925.md
+  title: A second order finite volume IMEX Runge-Kutta scheme for two dimensional PDEs in finance
+  authors:
+  - J. G. López-Salas
+  - M. Suárez-Taboada
+  - M. J. Castro
+  - A. M. Ferreiro-Ferreiro
+  - J. A. García-Rodríguez
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2410.02925v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2408.01642
+  path: arxiv/md/2408.01642.md
+  title: Neural Term Structure of Additive Process for Option Pricing
+  authors:
+  - Jimin Lin
+  - Guixin Liu
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2408.01642v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2306.08421
+  path: arxiv/md/2306.08421.md
+  title: Failure of Fourier pricing techniques to approximate the Greeks
+  authors:
+  - Tobias Behrens
+  - Gero Junike
+  - Wim Schoutens
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2306.08421v6
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2404.16295
+  path: arxiv/md/2404.16295.md
+  title: Joint Pricing in SPX and VIX Derivative Markets with Composite Change of Time Models
+  authors:
+  - Liexin Cheng
+  - Xue Cheng
+  - Xianhua Peng
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-fourier
+  source_url: https://arxiv.org/abs/2404.16295v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1512.02529
+  path: arxiv/md/1512.02529.md
+  title: High-order ADI scheme for option pricing in stochastic volatility models
+  authors:
+  - Bertram Düring
+  - James Miles
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1512.02529v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2106.12049
+  path: arxiv/md/2106.12049.md
+  title: Pricing American options with the Runge-Kutta-Legendre finite difference scheme
+  authors:
+  - Fabien Le Floc'h
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2106.12049v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2306.01535
+  path: arxiv/md/2306.01535.md
+  title: Numerical Solution of HCIR Equation with Transaction Costs using Alternating Direction Implicit
+    Method
+  authors:
+  - Elham Mashayekhi
+  - Javad Damirchi
+  - Ahmad Reza Yazdanian
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2306.01535v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2308.06808
+  path: arxiv/md/2308.06808.md
+  title: A Mean Convection Finite Difference Method for Solving Black Scholes Model for Option Pricing
+  authors:
+  - An Ning
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2308.06808v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1106.1999
+  path: arxiv/md/1106.1999.md
+  title: Pricing of average strike Asian call option using numerical PDE methods
+  authors:
+  - Abhishek Kumar
+  - Ashwin Waikos
+  - Siddhartha P. Chakrabarty
+  year: 2011
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1106.1999v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1804.09043
+  path: arxiv/md/1804.09043.md
+  title: Compact finite difference method for pricing European and American options under jump-diffusion
+    models
+  authors:
+  - Kuldip Singh Patel
+  - Mani Mehra
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1804.09043v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2010.13541
+  path: arxiv/md/2010.13541.md
+  title: A Finite Element Approach to the Numerical Solutions of Leland's Mode
+  authors:
+  - Dongming Wei
+  - Yogi Ahmad Erlangga
+  - Gulzat Zhumakhanova
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2010.13541v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1504.01022
+  path: arxiv/md/1504.01022.md
+  title: Application of Operator Splitting Methods in Finance
+  authors:
+  - Karel in 't Hout
+  - Jari Toivanen
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1504.01022v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2103.08380
+  path: arxiv/md/2103.08380.md
+  title: Finite element solutions of the nonlinear RAPM Black-Scholes model
+  authors:
+  - Dongming Wei
+  - Yogi Ahmad Erlangga
+  - Andrey Pak
+  - Laila Zhexembay
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2103.08380v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.06214
+  path: arxiv/md/2512.06214.md
+  title: A Front Fixing Crank-Nicolson Finite Deference for the American Put Options Model
+  authors:
+  - Z. I. Ali
+  - M. A. Abebe
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2512.06214v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1307.7178
+  path: arxiv/md/1307.7178.md
+  title: A hybrid approach for the implementation of the Heston model
+  authors:
+  - Maya Briani
+  - Lucia Caramellino
+  - Antonino Zanette
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1307.7178v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1611.01379
+  path: arxiv/md/1611.01379.md
+  title: Sparse grid high-order ADI scheme for option pricing in stochastic volatility models
+  authors:
+  - Bertram Düring
+  - Christian Hendricks
+  - James Miles
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1611.01379v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1907.00297
+  path: arxiv/md/1907.00297.md
+  title: A weighted finite difference method for subdiffusive Black Scholes Model
+  authors:
+  - Grzegorz Krzyżanowski
+  - Marcin Magdziarz
+  - Łukasz Płociniczak
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1907.00297v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1611.00316
+  path: arxiv/md/1611.00316.md
+  title: Essentially high-order compact schemes with application to stochastic volatility models on non-uniform
+    grids
+  authors:
+  - Bertram Düring
+  - Christof Heuer
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1611.00316v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.19092
+  path: arxiv/md/2602.19092.md
+  title: Finite Element Solution of the Two-Dimensional Bates Model for Option Pricing Under Stochastic
+    Volatility and Jumps
+  authors:
+  - Neda Bagheri Renani
+  - Daniel Sevcovic
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2602.19092v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2003.12934
+  path: arxiv/md/2003.12934.md
+  title: An iterative splitting method for pricing European options under the Heston model
+  authors:
+  - Hongshan Li
+  - Zhongyi Huang
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2003.12934v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1612.00402
+  path: arxiv/md/1612.00402.md
+  title: Reduced Order Models for Pricing European and American Options under Stochastic Volatility and
+    Jump-Diffusion Models
+  authors:
+  - Maciej Balajewicz
+  - Jari Toivanen
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1612.00402v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.27335
+  path: arxiv/md/2606.27335.md
+  title: Valuing American options and Flexible Forwards contracts in time-dependent models
+  authors:
+  - Leif Andersen
+  - Andrey Itkin
+  - Rakhymzhan Kazbek
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2606.27335v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1909.10187
+  path: arxiv/md/1909.10187.md
+  title: Consistent and Efficient Pricing of SPX and VIX Options under Multiscale Stochastic Volatility
+  authors:
+  - Jaegi Jeon
+  - Geonwoo Kim
+  - Jeonggyu Huh
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1909.10187v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2301.10734
+  path: arxiv/md/2301.10734.md
+  title: Valuation of the Convertible Bonds under Penalty TF model using Finite Element Method
+  authors:
+  - Rakhymzhan Kazbek
+  - Yogi Erlangga
+  - Yerlan Amanbek
+  - Dongming Wei
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2301.10734v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2408.15416
+  path: arxiv/md/2408.15416.md
+  title: Option Pricing with Stochastic Volatility, Equity Premium, and Interest Rates
+  authors:
+  - Nicole Hao
+  - Echo Li
+  - Diep Luong-Le
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2408.15416v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1808.02365
+  path: arxiv/md/1808.02365.md
+  title: Pricing Financial Derivatives using Radial Basis Function generated Finite Differences with Polyharmonic
+    Splines on Smoothly Varying Node Layouts
+  authors:
+  - Slobodan Milovanović
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1808.02365v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1602.09078
+  path: arxiv/md/1602.09078.md
+  title: Pricing and Hedging GMWB in the Heston and in the Black-Scholes with Stochastic Interest Rate
+    Models
+  authors:
+  - Ludovic Goudenège
+  - Andrea Molent
+  - Antonino Zanette
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1602.09078v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1509.02686
+  path: arxiv/md/1509.02686.md
+  title: Pricing and Hedging GLWB in the Heston and in the Black-Scholes with Stochastic Interest Rate
+    Models
+  authors:
+  - Ludovic Goudenege
+  - Andrea Molent
+  - Antonino Zanette
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1509.02686v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1312.5693
+  path: arxiv/md/1312.5693.md
+  title: 'Pricing of vanilla and first generation exotic options in the local stochastic volatility framework:
+    survey and new results'
+  authors:
+  - Alexander Lipton
+  - Andrey Gal
+  - Andris Lasis
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1312.5693v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1802.05681
+  path: arxiv/md/1802.05681.md
+  title: Backward Differentiation Formula finite difference schemes for diffusion equations with an obstacle
+    term
+  authors:
+  - Olivier Bokanowski
+  - Kristian Debrabant
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1802.05681v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2603.19984
+  path: arxiv/md/2603.19984.md
+  title: If Not Now, Then When? Model Risk in the Optimal Exercise of American Options
+  authors:
+  - Luna Rigby
+  - Rüdiger Frey
+  - Erik Schlögl
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2603.19984v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.21145
+  path: arxiv/md/2610.21145.md
+  title: Pricing American Commodity Options Under the Schwartz Two-Factor Model Using the Alternating
+    Direction Explicit (ADE) Method
+  authors:
+  - Sanjith Prabhu
+  - Daniel J. Duffy
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2610.21145v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.30562
+  path: arxiv/md/2605.30562.md
+  title: Option Pricing under Stochastic Volatility and Jumps:A PIDE Framework with Empirical Evidence
+  authors:
+  - Abigail Anokyewaa Mensah
+  - Ayush Jha
+  - Hongwei Mei
+  - Rui Wang
+  - Svetlozar T. Rachev
+  - Frank J. Fabozzi
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2605.30562v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.00201
+  path: arxiv/md/2602.00201.md
+  title: Numerical Simulations for Time-Fractional Black-Scholes Equations
+  authors:
+  - Neetu Garg
+  - A. S. V. Ravi Kanth
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2602.00201v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2109.12795
+  path: arxiv/md/2109.12795.md
+  title: Total value adjustment of Bermudan option valuation under pure jump Lévy fluctuations
+  authors:
+  - Gangnan Yuan
+  - Ding Deng
+  - Jinqiao Duan
+  - Weiguo Lu
+  - Fengyan Wu
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2109.12795v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1901.03839
+  path: arxiv/md/1901.03839.md
+  title: Operator splitting schemes for the two-asset Merton jump-diffusion model
+  authors:
+  - Lynn Boen
+  - Karel J. in 't Hout
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/1901.03839v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2202.06177
+  path: arxiv/md/2202.06177.md
+  title: Semi-analytical pricing of barrier options in the time-dependent Heston model
+  authors:
+  - P. Carr
+  - A. Itkin
+  - D. Muravey
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-pde
+  source_url: https://arxiv.org/abs/2202.06177v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2201.02587
+  path: arxiv/md/2201.02587.md
+  title: Pricing Bermudan options using regression trees/random forests
+  authors:
+  - Zineb El Filali Ech-Chafiq
+  - Pierre Henry-Labordere
+  - Jérôme Lelong
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2201.02587v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2101.11001
+  path: arxiv/md/2101.11001.md
+  title: Sample path generation of the stochastic volatility CGMY process and its application to path-dependent
+    option pricing
+  authors:
+  - Young Shin Kim
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2101.11001v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1907.10578
+  path: arxiv/md/1907.10578.md
+  title: Deep Learning-Based Least Square Forward-Backward Stochastic Differential Equation Solver for
+    High-Dimensional Derivative Pricing
+  authors:
+  - Jian Liang
+  - Zhe Xu
+  - Peter Li
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1907.10578v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2312.03444
+  path: arxiv/md/2312.03444.md
+  title: Primal and dual optimal stopping with signatures
+  authors:
+  - Christian Bayer
+  - Luca Pelizzari
+  - John Schoenmakers
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2312.03444v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2503.01040
+  path: arxiv/md/2503.01040.md
+  title: Pricing time-capped American options using Least Squares Monte Carlo method
+  authors:
+  - Paweł Stȩpniak
+  - Zbigniew Palmowski
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2503.01040v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.36921
+  path: arxiv/md/2610.36921.md
+  title: 'A Deep Learning-Driven Operator Splitting Scheme for Free Boundary Problems: An Application
+    to American Option Pricing in Incomplete Markets'
+  authors:
+  - Dong Yan
+  - Haocheng Zhu
+  - Yao Li
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2610.36921v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2405.11392
+  path: arxiv/md/2405.11392.md
+  title: 'Deep Penalty Methods: A Class of Deep Learning Algorithms for Solving High Dimensional Optimal
+    Stopping Problems'
+  authors:
+  - Yunfei Peng
+  - Pengyu Wei
+  - Wei Wei
+  - Xiaole Xue
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2405.11392v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2003.05358
+  path: arxiv/md/2003.05358.md
+  title: A computational weighted finite difference method for American and barrier options in subdiffusive
+    Black-Scholes model
+  authors:
+  - Grzegorz Krzyżanowski
+  - Marcin Magdziarz
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2003.05358v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1701.01515
+  path: arxiv/md/1701.01515.md
+  title: Analytic properties of American option prices under a modified Black-Scholes equation with spatial
+    fractional derivatives
+  authors:
+  - Wenting Chen
+  - Kai Du
+  - Xinzi Qiu
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1701.01515v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1806.05579
+  path: arxiv/md/1806.05579.md
+  title: 'A new approach for American option pricing: The Dynamic Chebyshev method'
+  authors:
+  - Kathrin Glau
+  - Mirco Mahlstedt
+  - Christian Pötz
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1806.05579v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1504.04594
+  path: arxiv/md/1504.04594.md
+  title: A Posteriori Error Estimator for a Front-Fixing Finite Difference Scheme for American Options
+  authors:
+  - Riccardo Fazio
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1504.04594v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2409.07477
+  path: arxiv/md/2409.07477.md
+  title: American option pricing using generalised stochastic hybrid systems
+  authors:
+  - Evelyn Buckwar
+  - Sascha Desmettre
+  - Agnes Mallinger
+  - Amira Meddah
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2409.07477v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2311.07211
+  path: arxiv/md/2311.07211.md
+  title: A Gaussian Process Based Method with Deep Kernel Learning for Pricing High-dimensional American
+    Options
+  authors:
+  - Jirong Zhuang
+  - Deng Ding
+  - Weiguo Lu
+  - Xuan Wu
+  - Gangnan Yuan
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2311.07211v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2503.07808
+  path: arxiv/md/2503.07808.md
+  title: A space-time finite element method for parabolic obstacle problems
+  authors:
+  - José Joaquín Carvajal
+  - Davood Damircheli
+  - Thomas Führer
+  - Francisco Fuica
+  - Michael Karkulik
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2503.07808v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2405.02570
+  path: arxiv/md/2405.02570.md
+  title: Gradient-enhanced sparse Hermite polynomial expansions for pricing and hedging high-dimensional
+    American options
+  authors:
+  - Jiefei Yang
+  - Guanglian Li
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2405.02570v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1011.3599
+  path: arxiv/md/1011.3599.md
+  title: A finite dimensional approximation for pricing moving average options
+  authors:
+  - Marie Bernhart
+  - Peter Tankov
+  - Xavier Warin
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1011.3599v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1804.01475
+  path: arxiv/md/1804.01475.md
+  title: Pricing sovereign contingent convertible debt
+  authors:
+  - Andrea Consiglio
+  - Michele Tumminello
+  - Stavros A. Zenios
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1804.01475v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.06688
+  path: arxiv/md/2605.06688.md
+  title: American Options Pricing under Heston Model via Curriculum Learning in Coupled PINNs
+  authors:
+  - Rohan
+  - Siddanth Shetty
+  - Amit N. Kumar
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2605.06688v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.24309
+  path: arxiv/md/2606.24309.md
+  title: Randomized Neural Networks for estimation of exposure profiles and Credit Valuation Adjustment
+    (CVA) for American Equity Options
+  authors:
+  - Isidro Moroso Varona
+  - Jakub Michańków
+  - Paweł Sakowski
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2606.24309v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2611.09428
+  path: arxiv/md/2611.09428.md
+  title: 'Kolmogorov Obstacle Problems: Euclidean Free Boundary Regularity under a Cone Condition'
+  authors:
+  - Junkee Jeon
+  - Takwon Kim
+  - Jehan Oh
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2611.09428v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1412.6063
+  path: arxiv/md/1412.6063.md
+  title: Local weak form meshless techniques based on the radial point interpolation (RPI) method and
+    local boundary integral equation (LBIE) method to evaluate European and American options
+  authors:
+  - Jamal Amani Rad
+  - Kourosh Parand
+  - Saeid Abbasbandy
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1412.6063v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1604.02890
+  path: arxiv/md/1604.02890.md
+  title: Perpetual American options in diffusion-type models with running maxima and drawdowns
+  authors:
+  - Pavel V. Gapeev
+  - Neofytos Rodosthenous
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1604.02890v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2511.07235
+  path: arxiv/md/2511.07235.md
+  title: Deep Neural Operator Learning for Probabilistic Models
+  authors:
+  - Erhan Bayraktar
+  - Qi Feng
+  - Zecheng Zhang
+  - Zhaoyu Zhang
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2511.07235v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1012.4976
+  path: arxiv/md/1012.4976.md
+  title: On the Use of Policy Iteration as an Easy Way of Pricing American Options
+  authors:
+  - Christoph Reisinger
+  - Jan Hendrik Witte
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1012.4976v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1605.00544
+  path: arxiv/md/1605.00544.md
+  title: Free boundary regularity in the parabolic fractional obstacle problem
+  authors:
+  - Begoña Barrios
+  - Alessio Figalli
+  - Xavier Ros-Oton
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1605.00544v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.14967
+  path: arxiv/md/2602.14967.md
+  title: The proximal Galerkin method for non-symmetric variational inequalities
+  authors:
+  - Guosheng Fu
+  - Brendan Keith
+  - Dohyun Kim
+  - Rami Masri
+  - Will Pazner
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2602.14967v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2208.04030
+  path: arxiv/md/2208.04030.md
+  title: Foreign exchange options on Heston-CIR model under Lévy process framework
+  authors:
+  - Giacomo Ascione
+  - Farshid Mehrdoust
+  - Giuseppe Orlando
+  - Oldouz Samimi
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2208.04030v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1909.11532
+  path: arxiv/md/1909.11532.md
+  title: Deep Neural Network Framework Based on Backward Stochastic Differential Equations for Pricing
+    and Hedging American Options in High Dimensions
+  authors:
+  - Yangang Chen
+  - Justin W. L. Wan
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1909.11532v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2005.03554
+  path: arxiv/md/2005.03554.md
+  title: Mortgage Contracts and Underwater Default
+  authors:
+  - Yerkin Kitapbayev
+  - Scott Robertson
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2005.03554v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1610.09622
+  path: arxiv/md/1610.09622.md
+  title: Numerical study of splitting methods for American option valuation
+  authors:
+  - Karel in 't Hout
+  - Radoslav Valkov
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1610.09622v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1807.06622
+  path: arxiv/md/1807.06622.md
+  title: Deep Learning-Based BSDE Solver for Libor Market Model with Application to Bermudan Swaption
+    Pricing and Hedging
+  authors:
+  - Haojie Wang
+  - Han Chen
+  - Agus Sudjianto
+  - Richard Liu
+  - Qi Shen
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1807.06622v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1611.06344
+  path: arxiv/md/1611.06344.md
+  title: Regression-based complexity reduction of the nested Monte Carlo methods
+  authors:
+  - Denis Belomestny
+  - Stefan Häfner
+  - Mikhail Urusov
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1611.06344v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2507.17606
+  path: arxiv/md/2507.17606.md
+  title: Time Deep Gradient Flow Method for pricing American options
+  authors:
+  - Jasper Rou
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2507.17606v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1905.09474
+  path: arxiv/md/1905.09474.md
+  title: Machine Learning for Pricing American Options in High-Dimensional Markovian and non-Markovian
+    models
+  authors:
+  - Ludovic Goudenège
+  - Andrea Molent
+  - Antonino Zanette
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1905.09474v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1911.04569
+  path: arxiv/md/1911.04569.md
+  title: Option prices in stochastic volatility models
+  authors:
+  - Giulia Terenzi
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1911.04569v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2104.13669
+  path: arxiv/md/2104.13669.md
+  title: Optimal Stopping via Randomized Neural Networks
+  authors:
+  - Calypso Herrera
+  - Florian Krach
+  - Pierre Ruyssen
+  - Josef Teichmann
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2104.13669v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2409.03204
+  path: arxiv/md/2409.03204.md
+  title: Pricing American Options using Machine Learning Algorithms
+  authors:
+  - Prudence Djagba
+  - Callixte Ndizihiwe
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/2409.03204v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2507.13324
+  path: arxiv/md/2507.13324.md
+  title: A Framework for Waterfall Pricing Using Simulation-Based Uncertainty Modeling
+  authors:
+  - Nicola Jean
+  - Giacomo Le Pera
+  - Lorenzo Giada
+  - Claudio Nordio
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2507.13324v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1811.05741
+  path: arxiv/md/1811.05741.md
+  title: Stochastic Algorithmic Differentiation of (Expectations of) Discontinuous Functions (Indicator
+    Functions)
+  authors:
+  - Christian P. Fries
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1811.05741v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2106.12431
+  path: arxiv/md/2106.12431.md
+  title: 'Chebyshev Greeks: Smoothing Gamma without Bias'
+  authors:
+  - Andrea Maran
+  - Andrea Pallavicini
+  - Stefano Scoleri
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2106.12431v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1606.06143
+  path: arxiv/md/1606.06143.md
+  title: Vibrato and automatic differentiation for high order derivatives and sensitivities of financial
+    options
+  authors:
+  - Gilles Pagès
+  - Olivier Pironneau
+  - Guillaume Sall
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1606.06143v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1703.02311
+  path: arxiv/md/1703.02311.md
+  title: Mini-symposium on automatic differentiation and its applications in the financial industry
+  authors:
+  - Sébastien Geeraert
+  - Charles-Albert Lehalle
+  - Barak Pearlmutter
+  - Olivier Pironneau
+  - Adil Reghai
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1703.02311v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2603.12375
+  path: arxiv/md/2603.12375.md
+  title: Feynman-Kac Derivatives Pricing on the Full Forward Curve
+  authors:
+  - Kevin Mott
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2603.12375v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1809.01289
+  path: arxiv/md/1809.01289.md
+  title: Automatic differentiation for error analysis of Monte Carlo data
+  authors:
+  - Alberto Ramos
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1809.01289v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1504.06107
+  path: arxiv/md/1504.06107.md
+  title: Unbiased simulation of stochastic differential equations
+  authors:
+  - Pierre Henry-Labordere
+  - Xiaolu Tan
+  - Nizar Touzi
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1504.06107v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1911.09117
+  path: arxiv/md/1911.09117.md
+  title: 'Automatic Differentiable Monte Carlo: Theory and Application'
+  authors:
+  - Shi-Xin Zhang
+  - Zhou-Quan Wan
+  - Hong Yao
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1911.09117v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2410.01911
+  path: arxiv/md/2410.01911.md
+  title: A C++ implementation of the discrete adjoint sensitivity analysis method for explicit adaptive
+    Runge-Kutta methods enabled by automatic adjoint differentiation and SIMD vectorization
+  authors:
+  - Rui Martins
+  - Evgeny Lakshtanov
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2410.01911v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.00862
+  path: arxiv/md/2605.00862.md
+  title: Replication-Consistent Liquidity Forecasting for Derivatives -- Forward Funding Sensitivities
+    and a Liquidity Valuation Adjustment for Settlement Lags
+  authors:
+  - Christian P. Fries
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2605.00862v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2307.15406
+  path: arxiv/md/2307.15406.md
+  title: Stochastic automatic differentiation for Monte Carlo processes
+  authors:
+  - Guilherme Catumba
+  - Alberto Ramos
+  - Bryan Zaldivar
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2307.15406v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2012.11183
+  path: arxiv/md/2012.11183.md
+  title: Automatic differentiation for error analysis
+  authors:
+  - Alberto Ramos
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2012.11183v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.14371
+  path: arxiv/md/2209.14371.md
+  title: 'pyerrors: a python framework for error analysis of Monte Carlo data'
+  authors:
+  - Fabian Joswig
+  - Simon Kuberski
+  - Justus T. Kuhlmann
+  - Jan Neuendorf
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2209.14371v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.05900
+  path: arxiv/md/2606.05900.md
+  title: 'Derivative-Informed Operator Learning for Finance: On-the-Fly Greeks, Surfaces, Hedging, and
+    Control'
+  authors:
+  - Miquel Noguer I Alonso
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2606.05900v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2401.08361
+  path: arxiv/md/2401.08361.md
+  title: Adjoint Monte Carlo Method
+  authors:
+  - Russel Caflisch
+  - Yunan Yang
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2401.08361v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2108.03409
+  path: arxiv/md/2108.03409.md
+  title: 'jVMC: Versatile and performant variational Monte Carlo leveraging automated differentiation
+    and GPU acceleration'
+  authors:
+  - Markus Schmitt
+  - Moritz Reh
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/2108.03409v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1811.05031
+  path: arxiv/md/1811.05031.md
+  title: A Review of automatic differentiation and its efficient implementation
+  authors:
+  - Charles C. Margossian
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-aad
+  source_url: https://arxiv.org/abs/1811.05031v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2604.27210
+  path: arxiv/md/2604.27210.md
+  title: 'Fast-Vollib: A Fast Implied Volatility Library for Python with PyTorch, JAX, and CUDA Fused-Kernel
+    Backends'
+  authors:
+  - Raeid Saqur
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2604.27210v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1412.5332
+  path: arxiv/md/1412.5332.md
+  title: 'Efficient XVA Management: Pricing, Hedging, and Attribution using Trade-Level Regression and
+    Global Conditioning'
+  authors:
+  - Chris Kenyon
+  - Andrew Green
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1412.5332v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1211.0820
+  path: arxiv/md/1211.0820.md
+  title: Performance of SSE and AVX Instruction Sets
+  authors:
+  - Hwancheol Jeong
+  - Sunghoon Kim
+  - Weonjong Lee
+  - Seok-Ho Myung
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1211.0820v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2210.06439
+  path: arxiv/md/2210.06439.md
+  title: 'From Merging Frameworks to Merging Stars: Experiences using HPX, Kokkos and SIMD Types'
+  authors:
+  - Gregor Daiß
+  - Srinivas Yadav Singanaboina
+  - Patrick Diehl
+  - Hartmut Kaiser
+  - Dirk Pflüger
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2210.06439v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.10219
+  path: arxiv/md/2606.10219.md
+  title: Fast Exact Nearest-Neighbor Learning for High-Frequency Financial Time Series
+  authors:
+  - Henry Han
+  - Diane Li
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2606.10219v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1610.01450
+  path: arxiv/md/1610.01450.md
+  title: Asset Pricing with Random Volatility
+  authors:
+  - Xin Liu
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1610.01450v9
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2009.00368
+  path: arxiv/md/2009.00368.md
+  title: XVA Analysis From the Balance Sheet
+  authors:
+  - Claudio Albanese
+  - Stephane Crepey
+  - Rodney Hoskinson
+  - Bouazza Saadeddine
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2009.00368v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2506.23409
+  path: arxiv/md/2506.23409.md
+  title: Pricing and Calibration of VIX Derivatives in Mixed Bergomi Models via Quantisation
+  authors:
+  - Nelson Kyakutwika
+  - Mesias Alfeus
+  - Erik Schlögl
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2506.23409v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2109.05998
+  path: arxiv/md/2109.05998.md
+  title: Options Pricing under Bayesian MS-VAR Process
+  authors:
+  - Battulga Gankhuu
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2109.05998v6
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1407.5877
+  path: arxiv/md/1407.5877.md
+  title: Linear vector optimization and European option pricing under proportional transaction costs
+  authors:
+  - Alet Roux
+  - Tomasz Zastawniak
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1407.5877v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.21784
+  path: arxiv/md/2606.21784.md
+  title: 'KineticSim: A Lightweight, High-Performance Execution Engine for Real-Time Market Simulators'
+  authors:
+  - Shakya Jayakody
+  - Prarthinie Jayakody
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2606.21784v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2210.06217
+  path: arxiv/md/2210.06217.md
+  title: Estimating Option Pricing Models Using a Characteristic Function-Based Linear State Space Representation
+  authors:
+  - H. Peter Boswijk
+  - Roger J. A. Laeven
+  - Evgenii Vladimirov
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2210.06217v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.14784
+  path: arxiv/md/2309.14784.md
+  title: Approximation Rates for Deep Calibration of (Rough) Stochastic Volatility Models
+  authors:
+  - Francesca Biagini
+  - Lukas Gonon
+  - Niklas Walter
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2309.14784v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2211.17005
+  path: arxiv/md/2211.17005.md
+  title: Pathwise CVA Regressions With Oversimulated Defaults
+  authors:
+  - Lokman Abbas-Turki
+  - Stéphane Crépey
+  - Bouazza Saadeddine
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2211.17005v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.01761
+  path: arxiv/md/2610.01761.md
+  title: 'A-GHOST: High-rate streaming of trigger-level data to programmable GPU inference'
+  authors:
+  - I. Xiotidis
+  - N. Clarke Hall
+  - M. S. Larson
+  - R. Gurunathan
+  - C. Burdick
+  - T. Du
+  - N. Konstantinidis
+  - K. Kordas
+  - D. Leshchev
+  - D. W. Miller
+  - V. A. Petrovic
+  - D. Sampsonidou
+  - A. Thompson
+  - T. Wengler
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2610.01761v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1402.5094
+  path: arxiv/md/1402.5094.md
+  title: Accelerating Implicit Finite Difference Schemes Using a Hardware Optimized Tridiagonal Solver
+    for FPGAs
+  authors:
+  - Samuel Palmer
+  year: 2014
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1402.5094v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1004.4153
+  path: arxiv/md/1004.4153.md
+  title: Improved Frechet bounds and model-free pricing of multi-asset options
+  authors:
+  - Peter Tankov
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1004.4153v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1505.04417
+  path: arxiv/md/1505.04417.md
+  title: A Domain Specific Approach to High Performance Heterogeneous Computing
+  authors:
+  - Gordon Inggs
+  - David B. Thomas
+  - Wayne Luk
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/1505.04417v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2204.13740
+  path: arxiv/md/2204.13740.md
+  title: 'Black-Scholes Option Pricing on Intel CPUs and GPUs: Implementation on SYCL and Optimization
+    Techniques'
+  authors:
+  - Elena Panova
+  - Valentin Volokitin
+  - Anton Gorshkov
+  - Iosif Meyerov
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2204.13740v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2105.09578
+  path: arxiv/md/2105.09578.md
+  title: 'ThundeRiNG: Generating Multiple Independent Random Number Sequences on FPGAs'
+  authors:
+  - Hongshi Tan
+  - Xinyu Chen
+  - Yao Chen
+  - Bingsheng He
+  - Weng-Fai Wong
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2105.09578v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2606.16059
+  path: arxiv/md/2606.16059.md
+  title: 'Mojo: A Promising Tool for Scalable Financial AI Efficiency'
+  authors:
+  - Henry Han
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-hpc
+  source_url: https://arxiv.org/abs/2606.16059v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2603.07600
+  path: arxiv/md/2603.07600.md
+  title: Differential Machine Learning for 0DTE Options with Stochastic Volatility and Jumps
+  authors:
+  - Takayuki Sakuma
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2603.07600v5
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2006.15012
+  path: arxiv/md/2006.15012.md
+  title: An unsupervised deep learning approach in solving partial integro-differential equations
+  authors:
+  - Ali Hirsa
+  - Weilong Fu
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2006.15012v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2404.11257
+  path: arxiv/md/2404.11257.md
+  title: Deep Joint Learning valuation of Bermudan Swaptions
+  authors:
+  - Francisco Gómez Casanova
+  - Álvaro Leitao
+  - Fernando de Lope Contreras
+  - Carlos Vázquez
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2404.11257v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2309.07843
+  path: arxiv/md/2309.07843.md
+  title: Applying Deep Learning to Calibrate Stochastic Volatility Models
+  authors:
+  - Abir Sridi
+  - Paul Bilokon
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2309.07843v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2407.15536
+  path: arxiv/md/2407.15536.md
+  title: Calibrating the Heston model with deep differential networks
+  authors:
+  - Chen Zhang
+  - Giovanni Amici
+  - Marco Morandotti
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2407.15536v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2007.10462
+  path: arxiv/md/2007.10462.md
+  title: Deep Local Volatility
+  authors:
+  - Marc Chataigner
+  - Stéphane Crépey
+  - Matthew Dixon
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2007.10462v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2503.06707
+  path: arxiv/md/2503.06707.md
+  title: 'Axes that matter: PCA with a difference'
+  authors:
+  - Brian Huge
+  - Antoine Savine
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2503.06707v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1906.03507
+  path: arxiv/md/1906.03507.md
+  title: 'Deep learning calibration of option pricing models: some pitfalls and solutions'
+  authors:
+  - A Itkin
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/1906.03507v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.07162
+  path: arxiv/md/2512.07162.md
+  title: 'DeepSVM: Learning Stochastic Volatility Models with Physics-Informed Deep Operator Networks'
+  authors:
+  - Kieran A. Malandain
+  - Selim Kalici
+  - Hakob Chakhoyan
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2512.07162v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2412.12213
+  path: arxiv/md/2412.12213.md
+  title: 'Finance-Informed Neural Network: Learning the Geometry of Option Pricing'
+  authors:
+  - Amine M. Aboussalah
+  - Xuanze Li
+  - Cheng Chi
+  - Raj Patel
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2412.12213v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2107.01611
+  path: arxiv/md/2107.01611.md
+  title: Deep calibration of the quadratic rough Heston model
+  authors:
+  - Mathieu Rosenbaum
+  - Jianfei Zhang
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2107.01611v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2211.11803
+  path: arxiv/md/2211.11803.md
+  title: Deep learning and American options via free boundary framework
+  authors:
+  - Chinonso Nwankwo
+  - Nneka Umeorah
+  - Tony Ware
+  - Weizhong Dai
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2211.11803v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2508.02759
+  path: arxiv/md/2508.02759.md
+  title: 'Hedging with memory: shallow and deep learning with signatures'
+  authors:
+  - Eduardo Abi Jaber
+  - Louis-Amand Gérard
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2508.02759v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2304.09750
+  path: arxiv/md/2304.09750.md
+  title: Application of Tensor Neural Networks to Pricing Bermudan Swaptions
+  authors:
+  - Raj G. Patel
+  - Tomas Dominguez
+  - Mohammad Dib
+  - Samuel Palmer
+  - Andrea Cadarso
+  - Fernando De Lope Contreras
+  - Abdelkader Ratnani
+  - Francisco Gomez Casanova
+  - Senaida Hernández-Santana
+  - Álvaro Díaz-Fernández
+  - Eva Andrés
+  - Jorge Luis-Hita
+  - Escolástico Sánchez-Martínez
+  - Samuel Mugel
+  - Roman Orus
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2304.09750v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2302.06682
+  path: arxiv/md/2302.06682.md
+  title: Parametric Differential Machine Learning for Pricing and Calibration
+  authors:
+  - Arun Kumar Polala
+  - Bernhard Hientzsch
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2302.06682v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2505.03789
+  path: arxiv/md/2505.03789.md
+  title: A new architecture of high-order deep neural networks that learn martingales
+  authors:
+  - Syoiti Ninomiya
+  - Yuming Ma
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2505.03789v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2608.30867
+  path: arxiv/md/2608.30867.md
+  title: Neural Calibration of a Complete Market Model
+  authors:
+  - Andrea Molent
+  - Michel Vellekoop
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2608.30867v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2207.00524
+  path: arxiv/md/2207.00524.md
+  title: Solving barrier options under stochastic volatility using deep learning
+  authors:
+  - Weilong Fu
+  - Ali Hirsa
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2207.00524v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2605.09061
+  path: arxiv/md/2605.09061.md
+  title: A Market-Rule-Informed Neural Network for Efficient Imbalance Electricity Price Forecasting
+  authors:
+  - Runyao Yu
+  - Julia Lin
+  - Derek W. Bunn
+  - Jochen Stiasny
+  - Wentao Wang
+  - Yujie Chen
+  - Tara Esterl
+  - Peter Palensky
+  - Jochen L. Cremer
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2605.09061v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2404.08903
+  path: arxiv/md/2404.08903.md
+  title: Enhancing path-integral approximation for non-linear diffusion with neural network
+  authors:
+  - Anna Knezevic
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2404.08903v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2204.08581
+  path: arxiv/md/2204.08581.md
+  title: On Parametric Optimal Execution and Machine Learning Surrogates
+  authors:
+  - Tao Chen
+  - Mike Ludkovski
+  - Moritz Voß
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2204.08581v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1904.10523
+  path: arxiv/md/1904.10523.md
+  title: A neural network-based framework for financial model calibration
+  authors:
+  - Shuaiqiang Liu
+  - Anastasia Borovykh
+  - Lech A. Grzelak
+  - Cornelis W. Oosterlee
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/1904.10523v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2408.11257
+  path: arxiv/md/2408.11257.md
+  title: A case study on different one-factor Cheyette models for short maturity caplet calibration
+  authors:
+  - Arun Kumar Polala
+  - Bernhard Hientzsch
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2408.11257v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2609.33767
+  path: arxiv/md/2609.33767.md
+  title: 'Taming the Greeks: Option Portfolios with Inductive Biases'
+  authors:
+  - Wee Ling Tan
+  - Stephen Roberts
+  - Stefan Zohren
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2609.33767v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1812.05315
+  path: arxiv/md/1812.05315.md
+  title: 'Calibrating rough volatility models: a convolutional neural network approach'
+  authors:
+  - Henry Stone
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/1812.05315v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2201.07880
+  path: arxiv/md/2201.07880.md
+  title: Deep self-consistent learning of local volatility
+  authors:
+  - Zhe Wang
+  - Ameir Shaa
+  - Nicolas Privault
+  - Claude Guet
+  year: 2021
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2201.07880v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2011.10630
+  path: arxiv/md/2011.10630.md
+  title: Solving path dependent PDEs with LSTM networks and path signatures
+  authors:
+  - Marc Sabate-Vidales
+  - David Šiška
+  - Lukasz Szpruch
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2011.10630v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2507.09412
+  path: arxiv/md/2507.09412.md
+  title: Joint deep calibration of the 4-factor PDV model
+  authors:
+  - Fabio Baschetti
+  - Giacomo Bormetti
+  - Pietro Rossi
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2507.09412v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1810.05094
+  path: arxiv/md/1810.05094.md
+  title: Unbiased deep solvers for linear parametric PDEs
+  authors:
+  - Marc Sabate Vidales
+  - David Siska
+  - Lukasz Szpruch
+  year: 2018
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/1810.05094v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2007.03494
+  path: arxiv/md/2007.03494.md
+  title: Volatility model calibration with neural networks a comparison between direct and indirect methods
+  authors:
+  - Dirk Roeder
+  - Georgi Dimitroff
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2007.03494v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2409.06724
+  path: arxiv/md/2409.06724.md
+  title: MLP, XGBoost, KAN, TDNN, and LSTM-GRU Hybrid RNN with Attention for SPX and NDX European Call
+    Option Pricing
+  authors:
+  - Boris Ter-Avanesov
+  - Homayoon Beigi
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-ml-pricing
+  source_url: https://arxiv.org/abs/2409.06724v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2407.16813
+  path: arxiv/md/2407.16813.md
+  title: Short-maturity asymptotics for VIX and European options in local-stochastic volatility models
+  authors:
+  - Dan Pirjol
+  - Xiaoyu Wang
+  - Lingjiong Zhu
+  year: 2024
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2407.16813v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2206.09220
+  path: arxiv/md/2206.09220.md
+  title: Rough-Heston Local-Volatility Model
+  authors:
+  - Enrico Dall'Acqua
+  - Riccardo Longoni
+  - Andrea Pallavicini
+  year: 2022
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2206.09220v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2608.28397
+  path: arxiv/md/2608.28397.md
+  title: Market-Informed Valuation of GMMB Riders with Surrender Options under a Heston Stochastic-Local
+    Volatility Model
+  authors:
+  - Ludovic Goudenege
+  - Andrea Molent
+  - Xiao Wei
+  - Antonino Zanette
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2608.28397v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2512.19611
+  path: arxiv/md/2512.19611.md
+  title: Heston vol-of-vol and the VVIX
+  authors:
+  - Jherek Healy
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2512.19611v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1912.01387
+  path: arxiv/md/1912.01387.md
+  title: Pricing FX Options under Intermediate Currency
+  authors:
+  - S. Maurer
+  - T. E. Sharp
+  - M. V. Tretyakov
+  year: 2019
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/1912.01387v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1711.03023
+  path: arxiv/md/1711.03023.md
+  title: The Calibration of Stochastic-Local Volatility Models - An Inverse Problem Perspective
+  authors:
+  - Yuri F. Saporito
+  - Xu Yang
+  - Jorge P. Zubelli
+  year: 2017
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/1711.03023v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1507.08937
+  path: arxiv/md/1507.08937.md
+  title: Efficient and robust calibration of the Heston option pricing model for American options using
+    an improved Cuckoo Search Algorithm
+  authors:
+  - Stefan Haring
+  - Ronald Hochreiter
+  year: 2015
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/1507.08937v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2006.15823
+  path: arxiv/md/2006.15823.md
+  title: Robust Product Markovian Quantization
+  authors:
+  - Ralph Rudd
+  - Thomas A. McWalter
+  - Joerg Kienitz
+  - Eckhard Platen
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2006.15823v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1204.0453
+  path: arxiv/md/1204.0453.md
+  title: Pricing Variable Annuity Guarantees in a Local Volatility framework
+  authors:
+  - Griselda Deelstra
+  - Grégory Rayée
+  year: 2012
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/1204.0453v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2009.14764
+  path: arxiv/md/2009.14764.md
+  title: Calibrating Local Volatility Models with Stochastic Drift and Diffusion
+  authors:
+  - Orcan Ogetbil
+  - Narayan Ganesan
+  - Bernhard Hientzsch
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2009.14764v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2306.11061
+  path: arxiv/md/2306.11061.md
+  title: Deep calibration with random grids
+  authors:
+  - Fabio Baschetti
+  - Giacomo Bormetti
+  - Pietro Rossi
+  year: 2023
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2306.11061v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2507.11868
+  path: arxiv/md/2507.11868.md
+  title: Analytic estimation of parameters of stochastic volatility diffusion models with exponential-affine
+    characteristic function for currency option pricing
+  authors:
+  - Mikołaj Łabędzki
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2507.11868v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1010.1617
+  path: arxiv/md/1010.1617.md
+  title: FX Smile in the Heston Model
+  authors:
+  - Agnieszka Janek
+  - Tino Kluge
+  - Rafal Weron
+  - Uwe Wystup
+  year: 2010
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/1010.1617v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1301.3118
+  path: arxiv/md/1301.3118.md
+  title: A parallel implementation of a derivative pricing model incorporating SABR calibration and probability
+    lookup tables
+  authors:
+  - Qasim Nasar-Ullah
+  year: 2013
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/1301.3118v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2006.13521
+  path: arxiv/md/2006.13521.md
+  title: Fast calibration of the LIBOR Market Model with Stochastic Volatility based on analytical gradient
+  authors:
+  - Hervé Andres
+  - Pierre-Edouard Arrouy
+  - Paul Bonnefoy
+  - Alexandre Boumezoued
+  - Sophian Mehalla
+  year: 2020
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2006.13521v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2506.22888
+  path: arxiv/md/2506.22888.md
+  title: 'SABR-Informed Multitask Gaussian Process: A Synthetic-to-Real Framework for Implied Volatility
+    Surface Construction'
+  authors:
+  - Jirong Zhuang
+  - Xuan Wu
+  year: 2025
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2506.22888v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2602.01376
+  path: arxiv/md/2602.01376.md
+  title: 'Keeping Up with the Correlations: Stochastic Spot/Volatility Correlation and Exotic Pricing'
+  authors:
+  - Mark Higgins
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2602.01376v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2610.03076
+  path: arxiv/md/2610.03076.md
+  title: Shapley-based Structural Analysis of Neural Calibration for Stochastic Volatility Models
+  authors:
+  - Shaïn Afzali
+  - Serena Della Corte
+  - Antonis Papapantoleon
+  year: 2026
+  doc_type: research_paper
+  topic: numerical-calibration
+  source_url: https://arxiv.org/abs/2610.03076v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2005.10504
+  path: arxiv/md/2005.10504.md
+  title: A Computational Approach to Hedging Credit Valuation Adjustment in a Jump-Diffusion Setting
+  authors:
+  - T. van der Zwaard
+  - L. A. Grzelak
+  - C. W. Oosterlee
+  year: 2020
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2005.10504v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1811.08726
+  path: arxiv/md/1811.08726.md
+  title: 'Neural Network for CVA: Learning Future Values'
+  authors:
+  - Jian-Huang She
+  - Dan Grecu
+  year: 2018
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1811.08726v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2301.05886
+  path: arxiv/md/2301.05886.md
+  title: Efficient Risk Estimation for the Credit Valuation Adjustment
+  authors:
+  - Michael B. Giles
+  - Abdul-Lateef Haji-Ali
+  - Jonathan Spence
+  year: 2023
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2301.05886v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1412.3623
+  path: arxiv/md/1412.3623.md
+  title: Monte Carlo Calculation of Exposure Profiles and Greeks for Bermudan and Barrier Options under
+    the Heston Hull-White Model
+  authors:
+  - Q. Feng
+  - C. W. Oosterlee
+  year: 2014
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1412.3623v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1610.00256
+  path: arxiv/md/1610.00256.md
+  title: XVA at the Exercise Boundary
+  authors:
+  - Andrew Green
+  - Chris Kenyon
+  year: 2016
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1610.00256v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2403.14841
+  path: arxiv/md/2403.14841.md
+  title: On the Hull-White model with volatility smile for Valuation Adjustments
+  authors:
+  - T. van der Zwaard
+  - L. A. Grzelak
+  - C. W. Oosterlee
+  year: 2024
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2403.14841v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2407.18583
+  path: arxiv/md/2407.18583.md
+  title: CVA Sensitivities, Hedging and Risk
+  authors:
+  - Stéphane Crépey
+  - Botao Li
+  - Hoang Nguyen
+  - Bouazza Saadeddine
+  year: 2024
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2407.18583v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2107.10377
+  path: arxiv/md/2107.10377.md
+  title: Everything You Always Wanted to Know About XVA Model Risk but Were Afraid to Ask
+  authors:
+  - Lorenzo Silotto
+  - Marco Scaringi
+  - Marco Bianchetti
+  year: 2021
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2107.10377v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2401.13314
+  path: arxiv/md/2401.13314.md
+  title: An Explicit Scheme for Pathwise XVA Computations
+  authors:
+  - Lokman Abbas-Turki
+  - Stéphane Crépey
+  - Botao Li
+  - Bouazza Saadeddine
+  year: 2024
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2401.13314v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2502.14766
+  path: arxiv/md/2502.14766.md
+  title: 'Multi-Layer Deep xVA: Structural Credit Models, Measure Changes and Convergence Analysis'
+  authors:
+  - Kristoffer Andersson
+  - Alessandro Gnoatto
+  year: 2025
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2502.14766v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2209.12222
+  path: arxiv/md/2209.12222.md
+  title: Efficient Wrong-Way Risk Modelling for Funding Valuation Adjustments
+  authors:
+  - T. van der Zwaard
+  - L. A. Grzelak
+  - C. W. Oosterlee
+  year: 2022
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2209.12222v4
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2104.14319
+  path: arxiv/md/2104.14319.md
+  title: Sparse Grid Method for Highly Efficient Computation of Exposures for xVA
+  authors:
+  - Lech A. Grzelak
+  year: 2021
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2104.14319v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1901.11081
+  path: arxiv/md/1901.11081.md
+  title: Gaussian Process Regression for Derivative Portfolio Modeling and Application to CVA Computations
+  authors:
+  - Stéphane Crépey
+  - Matthew Dixon
+  year: 2019
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1901.11081v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2105.07061
+  path: arxiv/md/2105.07061.md
+  title: Efficient Least Squares Monte-Carlo Technique for PFE/EE Calculations
+  authors:
+  - Yuriy Krepkiy
+  - Asif Lakhany
+  - Amber Zhang
+  year: 2021
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2105.07061v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2003.01977
+  path: arxiv/md/2003.01977.md
+  title: A deep learning approach for computations of exposure profiles for high-dimensional Bermudan
+    options
+  authors:
+  - Kristoffer Andersson
+  - Cornelis Oosterlee
+  year: 2020
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2003.01977v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1907.12922
+  path: arxiv/md/1907.12922.md
+  title: CVA and vulnerable options in stochastic volatility models
+  authors:
+  - Elisa Alos
+  - Fabio Antonelli
+  - Alessandro Ramponi
+  - Sergio Scarlatti
+  year: 2019
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1907.12922v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1404.1180
+  path: arxiv/md/1404.1180.md
+  title: Parallel American Monte Carlo
+  authors:
+  - Calypso Herrera
+  - Louis Paulot
+  year: 2014
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1404.1180v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2105.00051
+  path: arxiv/md/2105.00051.md
+  title: A note on a PDE approach to option pricing under xVA
+  authors:
+  - Falko Baustian
+  - Martin Fencl
+  - Jan Pospíšil
+  - Vladimír Švígler
+  year: 2021
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2105.00051v2
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1912.01280
+  path: arxiv/md/1912.01280.md
+  title: Speed-up credit exposure calculations for pricing and risk management
+  authors:
+  - Kathrin Glau
+  - Ricardo Pachon
+  - Christian Pötz
+  year: 2019
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1912.01280v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2204.11554
+  path: arxiv/md/2204.11554.md
+  title: CVA in fractional and rough volatility models
+  authors:
+  - Elisa Alòs
+  - Fabio Antonelli
+  - Alessandro Ramponi
+  - Sergio Scarlatti
+  year: 2022
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/2204.11554v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1204.2638
+  path: arxiv/md/1204.2638.md
+  title: Perturbative Expansion Technique for Non-linear FBSDEs with Interacting Particle Method
+  authors:
+  - Masaaki Fujii
+  - Akihiko Takahashi
+  year: 2012
+  doc_type: research_paper
+  topic: cva-xva
+  source_url: https://arxiv.org/abs/1204.2638v2
   license: arXiv preprint; terms on the abs page
