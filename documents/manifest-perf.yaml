@@ -1,0 +1,76 @@
+# C++ / CUDA performance references for quant-modeling. Paths are relative to
+# AGX_PATHS_DOCUMENTS_DIR (host: /srv/knowledge/documents); the PDFs are not in the repo.
+# All are free downloads from their authors or vendors, kept local, not redistributed.
+#
+#   uv run kbase ingest --target documents/manifest-perf.yaml
+
+documents:
+  - doc_key: fog-optimizing-cpp
+    path: perf/optimizing_cpp.pdf
+    title: "Optimizing software in C++: An optimization guide for Windows, Linux, and Mac platforms"
+    authors: [Agner Fog]
+    year: 2024
+    doc_type: book
+    topic: performance-cpp
+    source_url: https://www.agner.org/optimize/optimizing_cpp.pdf
+    license: free download from the author; local copy, not redistributed
+
+  - doc_key: fog-microarchitecture
+    path: perf/microarchitecture.pdf
+    title: "The microarchitecture of Intel, AMD and VIA CPUs: An optimization guide for assembly programmers and compiler makers"
+    authors: [Agner Fog]
+    year: 2024
+    doc_type: book
+    topic: performance-cpu
+    source_url: https://www.agner.org/optimize/microarchitecture.pdf
+    license: free download from the author; local copy, not redistributed
+
+  - doc_key: drepper-cpu-memory
+    path: perf/cpumemory.pdf
+    title: What Every Programmer Should Know About Memory
+    authors: [Ulrich Drepper]
+    year: 2007
+    doc_type: research_paper
+    topic: performance-cpu
+    source_url: https://www.akkadia.org/drepper/cpumemory.pdf
+    license: free download from the author; local copy, not redistributed
+
+  - doc_key: bakhvalov-perf-analysis-tuning-2e
+    path: perf/perf-book-2e.pdf
+    title: Performance Analysis and Tuning on Modern CPUs (2nd ed.)
+    authors: [Denis Bakhvalov]
+    year: 2024
+    doc_type: book
+    topic: performance-cpu
+    source_url: https://github.com/dendibakh/perf-book
+    license: free download from the author; local copy, not redistributed
+
+  - doc_key: intel-optimization-reference-manual-vol1
+    path: perf/intel-opt.pdf
+    title: Intel 64 and IA-32 Architectures Optimization Reference Manual, Volume 1
+    authors: [Intel Corporation]
+    year: 2024
+    doc_type: documentation
+    topic: performance-cpu
+    source_url: https://cdrdv2-public.intel.com/930021/248966-051-optimization-reference-manual-vol1.pdf
+    license: Intel documentation, free download; local copy, not redistributed
+
+  - doc_key: nvidia-cuda-best-practices-guide
+    path: perf/CUDA_C_Best_Practices_Guide.pdf
+    title: CUDA C++ Best Practices Guide
+    authors: [NVIDIA]
+    year: 2025
+    doc_type: documentation
+    topic: performance-cuda
+    source_url: https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/
+    license: NVIDIA documentation, free download; local copy, not redistributed
+
+  - doc_key: nvidia-cuda-programming-guide
+    path: perf/CUDA_C_Programming_Guide.pdf
+    title: CUDA C++ Programming Guide
+    authors: [NVIDIA]
+    year: 2025
+    doc_type: documentation
+    topic: performance-cuda
+    source_url: https://docs.nvidia.com/cuda/cuda-c-programming-guide/
+    license: NVIDIA documentation, free download; local copy, not redistributed

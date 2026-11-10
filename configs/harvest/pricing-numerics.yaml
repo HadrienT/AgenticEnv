@@ -109,3 +109,9 @@ exclude_ids:
   - '2011.07319'
   - '2607.12990'
   - '2203.04924'
+  # Removed on 2026-11-10 after review: HEP trigger streaming, electricity price forecasting,
+  # neural quantum states in Python, likelihood-free inference. No transferable technique.
+  - '2610.01761'
+  - '2605.09061'
+  - '2108.03409'
+  - '1506.03693'
