@@ -7,13 +7,16 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Literal
 
+from corelib.errors import ValidationError
+from corelib.time import utc_now
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery, RetrievalResult
-from kbase.schemas import RetrievedChunk
+from kbase.schemas import Collection, RetrievedChunk
 
 
 def build_query(
     *,
     text: str,
+    collections: list[Collection],
     k: int,
     strategy: Literal["hybrid", "vector", "lexical"],
     rerank: bool,
@@ -26,8 +29,17 @@ def build_query(
     has_equations: bool | None,
     valid_at: date | None,
 ) -> RetrievalQuery:
-    """Maps flat `kb.search` tool args to a `RetrievalQuery` (allowlisted filters, WP05 §3)."""
+    """Maps flat `kb.search` tool args to a `RetrievalQuery` (allowlisted filters, WP05 §3).
+    The agent always names the collections it searches (WP20 §4); regulatory text is
+    searched as in force today unless `valid_at` says otherwise (WP20 §5.3)."""
+    if not collections:
+        raise ValidationError(
+            "collections must name at least one collection", details={"collections": []}
+        )
+    if valid_at is None and "regulation" in collections:
+        valid_at = utc_now().date()
     filters = RetrievalFilters(
+        collections=list(dict.fromkeys(collections)),
         doc_types=doc_types,
         topics=topics,
         asset_classes=asset_classes,

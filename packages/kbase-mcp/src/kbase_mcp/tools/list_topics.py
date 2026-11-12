@@ -2,19 +2,24 @@ from __future__ import annotations
 
 from typing import Any
 
+from corelib.config import get_settings
 from corelib.db import session_scope
+from kbase.config import load_kbase_config
 from kbase.lookup import list_topics as run_list_topics
 
 from kbase_mcp.tools.dispatch import dispatch
 
 
 def list_topics() -> dict[str, Any]:
-    """Topics, asset classes and year range covered by the base — call before searching
-    blindly, to know what filters are worth using."""
+    """Collections of the base with their description, topics (document counts), doc
+    types and year range — call before searching blindly, to know which collection and
+    filters are worth using."""
 
     def _run(timeout_s: int) -> tuple[dict[str, Any], dict[str, Any]]:
+        get_settings()
+        descriptions = {name: c.description for name, c in load_kbase_config().collections.items()}
         with session_scope() as session:
-            summary = run_list_topics(session)
+            summary = run_list_topics(session, descriptions=descriptions)
         return summary.model_dump(mode="json"), {}
 
     return dispatch("kb.list_topics", _run)

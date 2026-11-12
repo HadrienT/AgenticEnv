@@ -65,11 +65,17 @@ With iterative scans, HNSW keeps walking the graph until it has `LIMIT` rows tha
 the filter. `relaxed_order` can return rows slightly out of order, so the vector query
 is wrapped in a materialized CTE and sorted again on the distance.
 
+`retrieval.hnsw_iterative_scan` / `hnsw_max_scan_tuples` in the kbase config turn it on
+(set in `kbase-v2.yaml`). The retriever reads `extversion` once: on pgvector < 0.8 it
+sets nothing, search keeps working as before, and every filtered result carries a
+warning, so the code can ship before the database is upgraded.
+
 Upgrade procedure, **done by the maintainer**, not by an agent (issue #8: recreating a
 container tears down a veth on `docker0`):
 
 1. `just backup` (dump checked).
-2. Pin `--branch v0.8.1` in `infra/docker/postgres/Dockerfile`, rebuild the image.
+2. Rebuild the image (`infra/docker/postgres/Dockerfile` pins `v0.8.7`, released
+   2026-10-01).
 3. Recreate **only** `agenticenv-postgres` (`docker compose -f infra/docker/compose.yaml
    up -d postgres`). The data volume is kept.
 4. `ALTER EXTENSION vector UPDATE;` in each database (`agenticenv`, `agenticenv_test`).
@@ -117,6 +123,14 @@ thin `search_quant` / `search_regulation` wrappers without changing the engine.
 | EBA RTS/ITS/GL tied to the above (FRTB-SA, IMA, SA-CCR, IRRBB) | PDF | |
 | Model risk: Fed/OCC SR 11-7, ECB guide to internal models, PRA SS1/23 | PDF | The texts closest to code review (§7) |
 
+What the Basel Framework site gives (checked 2026-11-12): one page per chapter at
+`/committees/bcbs/basel-framework/standard/<std>/<nn>/inforce/<date>/published/<date>`,
+so the in-force date is in the URL; each paragraph is a `div.framework-paragraph` whose
+`id` is its number (`21.4`), headings are `h4`, footnotes are a table after the
+paragraph. **Formulas are SVG images of glyph outlines, with no text or `alt`**: the HTML
+cannot give them. The converter writes a `[formula: <image>]` placeholder; the formulas
+need the per-standard PDF through MinerU (step 5b, §9).
+
 Licences: BIS and EUR-Lex allow reproduction with attribution; each entry records its
 terms in `license`, checked per source before ingestion. English only: bge-m3 is
 multilingual, so French questions still match English text.
@@ -130,46 +144,47 @@ multilingual, so French questions still match English text.
 
 ### 5.3 Versions
 
-Each document version carries `valid_from` / `valid_until` (already in the schema and
-the manifest). The BCBS framework publishes several versions of a chapter with their
-effective dates: each becomes a version, not an overwrite. For the `regulation`
+Each document carries `valid_from` / `valid_until` (already in the schema and the
+manifest). Re-ingesting a `doc_key` replaces its previous version (WP19), so versions of
+a chapter that must coexist get their own `doc_key`: `bcbs-mar21` for the version in
+force, `bcbs-mar21-2019-01-01` (with `valid_until`) for an older one kept for history. For the `regulation`
 collection, `kb.search` defaults `valid_at` to today; the agent passes another date to
 ask what applied then. Citations show the validity range.
 
 ## 6. Chunking and citations for regulatory text
 
-### 6.1 Paragraph ids
+### 6.1 Paragraph ids (`kbase/regulatory.py`)
 
-The heading parser (`ingestion/parsers/headings.py`) recognises regulatory numbering in
-addition to `2.1.1`:
+The regulation converters write **each paragraph as its own heading** (`### MAR21.4`),
+under the chapter's own headings. A section whose title is a paragraph id makes the
+chunks covering it carry that id:
 
-- BCBS: `MAR21`, `MAR21.4`, footnotes `MAR21.4 FN3`
-- EU: `Article 325c`, `Article 325c(2)`, `point (a)`
+- Basel: `MAR21.4`, `CRE52.12a` (the 14 standards of the framework)
+- EU: `Article 325c` (points and sub-paragraphs stay in the text)
 
-A parsed paragraph id is normalised (`MAR21.4`, `CRR:325c(2)`) and stored on the chunk:
 `paragraph_ids text[]` on `kb.chunks` (migration `0008`), with a GIN index.
 
-### 6.2 `regulatory` chunking strategy
+### 6.2 Chunking: the `section` strategy, unchanged
 
-`ChunkPolicy.strategy: regulatory`, selected per manifest entry (default for the
-`regulation` collection):
+Implemented without a new strategy: with paragraphs as sections, `SectionChunker`
+already does what was asked. A paragraph's heading opens its first chunk; a section
+boundary closes a chunk once it has `min_tokens`, so short paragraphs merge with the
+next one and a long paragraph is split at sentences, every part keeping its id.
+Footnotes are written inside the paragraph that calls them. Only the first chunk of a
+split paragraph holds the id in its text; all its chunks hold it in `paragraph_ids`.
 
-- A chunk is one numbered paragraph, or several consecutive short paragraphs of the same
-  section up to the target (400 tokens). A paragraph is never split unless it exceeds
-  the max (700); a long one is split on its points `(a)`, `(b)`.
-- Footnotes go with the paragraph that calls them, and tables with the paragraph that
-  introduces them.
-- The chunk text starts with its ids (`[MAR21.4–MAR21.6]`), so lexical search finds
-  them. Queries are normalised the same way (`paragraph 21.4 of MAR` → `MAR21.4`)
-  before lexical search.
+Lexical search normalises spelled-out references first (`paragraph 21.4 of MAR`,
+`MAR 21.4` → `MAR21.4`), the token the heading puts in the index. The embedding and the
+reranker still see the question as written.
 
 ### 6.3 Citations and enumeration
 
 - `Citation` gains `paragraph_ids`, and `kb.search` results show them first. The id is
   stable across re-ingestion; UUIDs are not.
-- `kb.list_paragraphs(doc_key, prefix=None, valid_at=None)` returns every paragraph
-  of a document in order (id, first line, validity) and fetches one paragraph's full
-  text with `kb.list_paragraphs(doc_key, prefix="MAR21.4")`. Search returns the top-k;
+- `kb.list_paragraphs(doc_key, prefix=None)` returns every paragraph of a document in
+  order (id, section path, first line) with the document's validity, and the full text
+  of the chunks holding the paragraphs that match `prefix` (`MAR21.4`, or `MAR21` for a
+  chapter; at most 40 chunks, `truncated` says when there were more). Search returns the top-k;
   a review must see **all** the requirements of a chapter (§7).
 
 ## 7. Target use: compliance review of a codebase

@@ -16,6 +16,9 @@ def to_sql_predicate(filters: RetrievalFilters) -> tuple[str, dict[str, Any]]:
     clauses: list[str] = []
     params: dict[str, Any] = {}
 
+    if filters.collections:
+        clauses.append("d.collection = ANY(:collections)")
+        params["collections"] = list(filters.collections)
     if filters.doc_types:
         clauses.append("d.doc_type = ANY(:doc_types)")
         params["doc_types"] = list(filters.doc_types)

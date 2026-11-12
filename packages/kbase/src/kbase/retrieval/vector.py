@@ -22,9 +22,12 @@ def search(
     predicate_params: dict[str, Any],
     candidates_n: int,
 ) -> list[RankedHit]:
-    """Top-`candidates_n` chunks by cosine distance (ascending: smaller is closer)."""
+    """Top-`candidates_n` chunks by cosine distance (ascending: smaller is closer).
+    Sorted again outside the index scan: with `hnsw.iterative_scan = relaxed_order`
+    (pgvector 0.8, WP20 §3.2) the scan may return rows slightly out of order."""
     rows = session.execute(
         text(
+            "WITH hits AS MATERIALIZED ("
             "SELECT c.id, ce.embedding <=> CAST(:embedding AS vector) AS distance "
             "FROM kb.chunks c "
             "JOIN kb.chunk_embeddings ce ON ce.chunk_id = c.id "
@@ -33,6 +36,7 @@ def search(
             "WHERE ce.model_name = :model_name AND ce.model_version = :model_version"
             + predicate_sql
             + " ORDER BY distance ASC LIMIT :candidates_n"
+            ") SELECT id, distance FROM hits ORDER BY distance ASC"
         ),
         {
             "embedding": format_vector(embedding),

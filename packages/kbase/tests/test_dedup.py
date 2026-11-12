@@ -26,8 +26,8 @@ def test_already_ingested_finds_existing_document_version() -> None:
     with session_scope() as session:
         doc_id = session.execute(
             text(
-                "INSERT INTO kb.documents (id, doc_key, title, doc_type) "
-                "VALUES (gen_random_uuid(), :doc_key, 'T', 'notes') RETURNING id"
+                "INSERT INTO kb.documents (id, doc_key, title, doc_type, collection) "
+                "VALUES (gen_random_uuid(), :doc_key, 'T', 'notes', 'quant') RETURNING id"
             ),
             {"doc_key": doc_key},
         ).scalar_one()

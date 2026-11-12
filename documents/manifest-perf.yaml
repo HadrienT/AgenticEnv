@@ -4,6 +4,8 @@
 #
 #   uv run kbase ingest --target documents/manifest-perf.yaml
 
+collection: quant
+
 documents:
   - doc_key: fog-optimizing-cpp
     path: perf/optimizing_cpp.pdf

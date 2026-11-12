@@ -10,6 +10,10 @@ from pydantic import BaseModel, Field
 
 DocType = Literal["research_paper", "book", "documentation", "standard", "notes"]
 ChunkKind = Literal["text", "equation", "table", "caption"]
+# Separate corpora the agent picks from when it searches (WP20 §2). Adding one means a
+# value here, a description under `collections:` in the kbase config, and a manifest.
+Collection = Literal["quant", "regulation"]
+COLLECTIONS: tuple[Collection, ...] = ("quant", "regulation")
 
 
 class DocumentMeta(BaseModel):
@@ -22,6 +26,8 @@ class DocumentMeta(BaseModel):
     license: str | None = None
     topic: str | None = None
     asset_class: str | None = None
+    # Manifests must state it (`sources.resolve`); the default only serves ad hoc paths.
+    collection: Collection = "quant"
 
 
 class Section(BaseModel):
@@ -97,6 +103,8 @@ class Chunk(BaseModel):
     equation_context_before: str | None = None
     equation_context_after: str | None = None
     equations: list[ChunkEquation] = Field(default_factory=list)
+    # Regulatory paragraph ids the chunk covers (`MAR21.4`), from its section titles.
+    paragraph_ids: list[str] = Field(default_factory=list)
 
 
 class Citation(BaseModel):
@@ -112,6 +120,11 @@ class Citation(BaseModel):
     ingested_at: datetime
     # Readable section titles, outermost first (`section` holds the section's id).
     section_path: str | None = None
+    # Regulatory paragraph ids (`MAR21.4`): stable across re-ingestion, unlike `section`.
+    paragraph_ids: list[str] = Field(default_factory=list)
+    collection: Collection = "quant"
+    valid_from: date | None = None
+    valid_until: date | None = None
 
 
 class RetrievedChunk(BaseModel):

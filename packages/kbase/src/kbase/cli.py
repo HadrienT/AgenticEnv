@@ -27,7 +27,7 @@ from kbase.ingestion.parsers.pdf import PdfParser
 from kbase.ingestion.pipeline import ingest as run_ingest
 from kbase.retrieval.factory import build_embedder, build_retriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
-from kbase.schemas import ChunkPolicy, IngestionRequest
+from kbase.schemas import COLLECTIONS, ChunkPolicy, IngestionRequest
 
 
 def _build_parsers(config: IngestionConfig) -> list[Parser]:
@@ -113,7 +113,11 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     queries = load_queries(repo_root() / args.queries)
     try:
         report = evaluate(
-            build_retriever(load_kbase_config()), queries, args.label, details=args.details
+            build_retriever(load_kbase_config()),
+            queries,
+            args.label,
+            details=args.details,
+            collections=args.collection,
         )
     except AppError as exc:
         print(f"eval failed: {exc.code}: {exc.message}")
@@ -162,7 +166,7 @@ def _cmd_search(args: argparse.Namespace) -> int:
     query = RetrievalQuery(
         text=args.query,
         k=args.k or config.retrieval.default_k,
-        filters=RetrievalFilters(),
+        filters=RetrievalFilters(collections=args.collection),
         strategy=args.strategy,
         rerank=not args.no_rerank,
     )
@@ -252,6 +256,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--strategy", choices=["hybrid", "vector", "lexical"], default="hybrid"
     )
     search_parser.add_argument("--no-rerank", action="store_true")
+    search_parser.add_argument(
+        "--collection", action="append", choices=COLLECTIONS, help="Repeatable; default: all"
+    )
     search_parser.set_defaults(func=_cmd_search)
 
     eval_parser = subparsers.add_parser("eval", help="Measure search on the reference queries")
@@ -259,6 +266,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     eval_parser.add_argument("--label", required=True)
     eval_parser.add_argument("--output", help="JSON report, relative to the repo root")
     eval_parser.add_argument("--details", action="store_true", help="Per-query ranks in the report")
+    eval_parser.add_argument(
+        "--collection",
+        action="append",
+        choices=COLLECTIONS,
+        help="Search only these (repeatable); default: each query's own, else all (WP20 §8)",
+    )
     eval_parser.set_defaults(func=_cmd_eval)
 
     harvest_parser = subparsers.add_parser(

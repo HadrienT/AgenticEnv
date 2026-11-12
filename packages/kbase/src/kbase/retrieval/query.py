@@ -7,12 +7,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from kbase.schemas import RetrievedChunk
+from kbase.schemas import Collection, RetrievedChunk
 
 
 class RetrievalFilters(BaseModel):
     """Allowlisted metadata filters; see `retrieval.filters.to_sql_predicate`."""
 
+    # None searches every collection (CLI, eval); the MCP tool always names some (WP20 §4).
+    collections: list[Collection] | None = None
     doc_types: list[str] | None = None
     topics: list[str] | None = None
     asset_classes: list[str] | None = None

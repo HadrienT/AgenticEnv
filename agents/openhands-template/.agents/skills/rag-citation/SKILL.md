@@ -30,6 +30,11 @@ source of truth, not the model's training data.
    `blueprint/wp/WP08-openhands-integration.md` §13).
 4. If two sources disagree, report the contradiction rather than silently
    picking one.
+5. `kb.search` needs `collections`: `quant` for pricing and numerics,
+   `regulation` for prudential rules (Basel Framework, CRR/CRD, EBA), both
+   when the question spans them. Cite regulatory text by paragraph id
+   (`MAR21.4`); `kb.list_paragraphs` lists every paragraph of a chapter when a
+   review must cover all its requirements.
 
 ## Common Patterns
 

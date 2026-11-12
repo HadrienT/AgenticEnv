@@ -69,8 +69,12 @@ def build_entry(entry: ArxivEntry, query: HarvestQuery, *, md_dir: str) -> dict[
     return document
 
 
-def append_entries(manifest: Path, entries: list[dict[str, Any]]) -> int:
-    """Appends entries whose doc_key is not there yet; returns how many were added."""
+def append_entries(manifest: Path, entries: list[dict[str, Any]], collection: str = "quant") -> int:
+    """Appends entries whose doc_key is not there yet; returns how many were added. The
+    manifest's collection (WP20) is kept if it has one, else set to `collection`."""
+    raw = yaml.safe_load(manifest.read_text(encoding="utf-8")) if manifest.is_file() else None
+    if isinstance(raw, dict) and isinstance(raw.get("collection"), str):
+        collection = raw["collection"]
     documents = _load_documents(manifest)
     present = {d.get("doc_key") for d in documents}
     added = [e for e in entries if e["doc_key"] not in present]
@@ -78,7 +82,10 @@ def append_entries(manifest: Path, entries: list[dict[str, Any]]) -> int:
         return 0
     manifest.parent.mkdir(parents=True, exist_ok=True)
     body = yaml.safe_dump(
-        {"documents": documents + added}, sort_keys=False, allow_unicode=True, width=100
+        {"collection": collection, "documents": documents + added},
+        sort_keys=False,
+        allow_unicode=True,
+        width=100,
     )
     manifest.write_text(_HEADER + "\n" + body, encoding="utf-8")
     return len(added)

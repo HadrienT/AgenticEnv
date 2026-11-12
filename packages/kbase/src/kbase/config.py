@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import os
+from typing import Literal
 
 from corelib.config import load_yaml_config
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
+
+from kbase.schemas import COLLECTIONS
 
 
 class EmbeddingsConfig(BaseModel):
@@ -67,6 +70,36 @@ class RetrievalConfig(BaseModel):
     max_chunks_per_document: int | None = None
     # pgvector's default (40) caps an HNSW scan below `candidates_vector`.
     hnsw_ef_search: int | None = None
+    # pgvector >= 0.8: keep scanning the HNSW graph until enough rows pass the filters.
+    # Without it a selective filter (one collection, one topic) silently loses recall,
+    # because the filter is applied after a scan of `ef_search` neighbours (WP20 §3.2).
+    # Ignored, with a warning in the result, on an older pgvector.
+    hnsw_iterative_scan: Literal["relaxed_order", "strict_order"] | None = None
+    hnsw_max_scan_tuples: int | None = None
+
+
+class CollectionConfig(BaseModel):
+    """One corpus the agent can search (WP20 §2); `description` is what the model reads
+    when it picks one."""
+
+    description: str
+
+
+_DEFAULT_COLLECTIONS: dict[str, CollectionConfig] = {
+    "quant": CollectionConfig(
+        description=(
+            "derivatives pricing and its numerical methods: stochastic and rough volatility, "
+            "Monte Carlo/QMC, PDE, Fourier, AAD, calibration, XVA pricing, C++/CUDA performance"
+        )
+    ),
+    "regulation": CollectionConfig(
+        description=(
+            "prudential regulation and supervisory texts: Basel Framework (BCBS), CRR/CRD, "
+            "EBA; capital rules for market risk (FRTB), counterparty credit risk (SA-CCR, "
+            "IMM), CVA capital, credit risk, liquidity, model risk"
+        )
+    ),
+}
 
 
 class CurationConfig(BaseModel):
@@ -117,6 +150,15 @@ class KbaseConfig(BaseModel):
     ingestion: IngestionConfig
     curation: CurationConfig = CurationConfig()
     harvest: HarvestConfig = HarvestConfig()
+    collections: dict[str, CollectionConfig] = _DEFAULT_COLLECTIONS
+
+    @field_validator("collections")
+    @classmethod
+    def _known_collections(cls, value: dict[str, CollectionConfig]) -> dict[str, CollectionConfig]:
+        unknown = sorted(set(value) - set(COLLECTIONS))
+        if unknown:
+            raise ValueError(f"unknown collection(s) {unknown}: declare them in kbase.schemas")
+        return value
 
 
 def load_kbase_config() -> KbaseConfig:

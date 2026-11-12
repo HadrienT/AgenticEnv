@@ -18,6 +18,8 @@ class StatsReport(BaseModel):
     equations: int
     tables: int
     last_ingestion_at: datetime | None
+    # Documents per collection (WP20).
+    documents_by_collection: dict[str, int] = {}
 
 
 def stats(session: Session) -> StatsReport:
@@ -28,7 +30,11 @@ def stats(session: Session) -> StatsReport:
     last_ingestion_at = session.execute(
         text("SELECT max(finished_at) FROM kb.ingestion_runs WHERE status <> 'running'")
     ).scalar_one()
+    by_collection = session.execute(
+        text("SELECT collection, count(*) FROM kb.documents GROUP BY collection ORDER BY 1")
+    ).all()
     return StatsReport(
+        documents_by_collection={row[0]: row[1] for row in by_collection},
         documents=documents,
         chunks=chunks,
         equations=equations,
