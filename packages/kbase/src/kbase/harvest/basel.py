@@ -15,6 +15,7 @@ page lists every chapter of the framework, so discovery starts from one.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -23,9 +24,10 @@ from typing import Protocol
 import yaml
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, PageElement, Tag
-from corelib.errors import DependencyError
+from corelib.errors import AppError, DependencyError
 from pydantic import BaseModel
 
+from kbase.harvest.basel_formulas import merge_formulas
 from kbase.harvest.http import RawResponse
 
 BIS_ROOT = "https://www.bis.org"
@@ -486,4 +488,87 @@ def harvest_basel(
         report.formulas += conversion.formulas
     report.manifest_added, report.manifest_replaced = upsert_manifest(manifest, entries)
     report.requests = client.requests_made
+    return report
+
+
+_PDF_HREF_RE = re.compile(
+    r'href="(/committees/bcbs/basel-framework/\d+/chapter-no-footnotes\.pdf)"'
+)
+_PLACEHOLDER = "[formula"
+
+
+class FormulaReport(BaseModel):
+    chapters_with_formulas: list[str] = []
+    pdfs_fetched: list[str] = []
+    merged: dict[str, str] = {}  # code -> "placed/placeholders (listed)"
+    failed: dict[str, str] = {}
+    requests: int = 0
+
+
+def chapter_pdf_url(html: str) -> str | None:
+    """The chapter's PDF without footnotes and FAQs: the HTML keeps those, and a PDF
+    without them lines up better with the paragraphs."""
+    match = _PDF_HREF_RE.search(html)
+    return BIS_ROOT + match.group(1) if match else None
+
+
+def chapters_with_formulas(documents_dir: Path, md_dir: str) -> list[str]:
+    folder = documents_dir / md_dir
+    return sorted(p.stem for p in folder.glob("*.md") if _PLACEHOLDER in p.read_text("utf-8"))
+
+
+def fetch_chapter_pdfs(
+    client: _Getter, *, documents_dir: Path, html_dir: str, pdf_dir: str, codes: list[str]
+) -> FormulaReport:
+    """Downloads the PDF of each chapter in `codes` not downloaded yet."""
+    report = FormulaReport(chapters_with_formulas=codes)
+    for code in codes:
+        target = documents_dir / pdf_dir / f"{code}.pdf"
+        if target.is_file():
+            continue
+        html_path = documents_dir / html_dir / f"{code}.html"
+        url = chapter_pdf_url(html_path.read_text("utf-8")) if html_path.is_file() else None
+        if url is None:
+            report.failed[code] = "no PDF link in the saved chapter page"
+            continue
+        response = client.get(url)
+        if response.status != 200 or not response.body.startswith(b"%PDF"):
+            report.failed[code] = f"HTTP {response.status} for {url}"
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(response.body)
+        report.pdfs_fetched.append(code)
+    report.requests = client.requests_made
+    return report
+
+
+def apply_formulas(
+    *,
+    documents_dir: Path,
+    html_dir: str,
+    md_dir: str,
+    pdf_dir: str,
+    codes: list[str],
+    to_markdown: Callable[[Path], Path],
+    report: FormulaReport,
+) -> FormulaReport:
+    """Rebuilds each chapter's Markdown from its saved page and fills in the formulas
+    from its PDF (MinerU). Always starts from the page, so running it twice is safe."""
+
+    for code in codes:
+        html_path = documents_dir / html_dir / f"{code}.html"
+        pdf_path = documents_dir / pdf_dir / f"{code}.pdf"
+        if not html_path.is_file() or not pdf_path.is_file():
+            report.failed.setdefault(code, "page or PDF missing")
+            continue
+        try:
+            html = html_path.read_text("utf-8")
+            pristine = convert_chapter(html, code).markdown
+            pdf_markdown = to_markdown(pdf_path).read_text("utf-8")
+        except (ValueError, AppError) as exc:
+            report.failed[code] = str(exc)
+            continue
+        merged, stats = merge_formulas(pristine, pdf_markdown)
+        (documents_dir / md_dir / f"{code}.md").write_text(merged, encoding="utf-8")
+        report.merged[code] = f"{stats.placed}/{stats.placeholders} ({stats.listed} listed)"
     return report

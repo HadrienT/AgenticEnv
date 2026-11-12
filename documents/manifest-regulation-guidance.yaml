@@ -1,0 +1,54 @@
+# Supervisory guidance for the regulation collection (WP20 step 5d), hand-written.
+# PDFs under AGX_PATHS_DOCUMENTS_DIR/regulation/pdf, converted by MinerU at ingestion.
+# Free public downloads from the issuing authority, kept local, not redistributed.
+#
+#   uv run kbase ingest --target documents/manifest-regulation-guidance.yaml
+
+collection: regulation
+
+documents:
+  - doc_key: fed-sr-11-7-model-risk
+    path: regulation/pdf/sr1107a1.pdf
+    title: "SR 11-7 attachment: Supervisory Guidance on Model Risk Management"
+    authors: [Board of Governors of the Federal Reserve System, Office of the Comptroller of the Currency]
+    year: 2011
+    doc_type: standard
+    topic: reg-model-risk
+    source_url: https://www.federalreserve.gov/boarddocs/srletters/2011/sr1107a1.pdf
+    license: US government work, public domain
+    valid_from: 2011-04-04
+    valid_until: 2026-04-16      # superseded by SR 26-2
+
+  - doc_key: fed-sr-26-2-model-risk
+    path: regulation/pdf/SR2602.pdf
+    title: "SR 26-2: Revised Guidance on Model Risk Management"
+    authors: [Board of Governors of the Federal Reserve System]
+    year: 2026
+    doc_type: standard
+    topic: reg-model-risk
+    source_url: https://www.federalreserve.gov/supervisionreg/srletters/SR2602.pdf
+    license: US government work, public domain
+    valid_from: 2026-04-17
+
+  - doc_key: pra-ss1-23-model-risk
+    path: regulation/pdf/pra-ss123.pdf
+    title: "PRA SS1/23: Model risk management principles for banks"
+    authors: [Prudential Regulation Authority]
+    year: 2023
+    doc_type: standard
+    topic: reg-model-risk
+    source_url: https://www.bankofengland.co.uk/-/media/boe/files/prudential-regulation/supervisory-statement/2023/ss123.pdf
+    license: "(c) Bank of England; free download, kept local, not redistributed"
+    valid_from: 2024-05-17       # implementation date set by PS6/23
+
+  - doc_key: ecb-guide-internal-models-2024
+    path: regulation/pdf/ecb-guide-internal-models-2024.pdf
+    title: ECB guide to internal models (February 2024)
+    authors: [European Central Bank]
+    year: 2024
+    doc_type: standard
+    topic: reg-model-risk
+    asset_class: null
+    source_url: https://www.bankingsupervision.europa.eu/ecb/pub/pdf/ssm.supervisory_guides202402_internalmodels.en.pdf
+    license: "(c) European Central Bank; reproduction permitted with the source acknowledged"
+    valid_from: 2024-02-01       # publication month

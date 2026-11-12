@@ -568,3 +568,916 @@ documents:
   license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
     Kept local, not redistributed.
   valid_from: '2023-01-01'
+- doc_key: bcbs-sco10
+  path: basel/md/SCO10.md
+  title: SCO10 Introduction
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-scope
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/sco/10/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-sco30
+  path: basel/md/SCO30.md
+  title: SCO30 Banking, securities and other financial subsidiaries
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-scope
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/sco/30/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-sco40
+  path: basel/md/SCO40.md
+  title: SCO40 Global systemically important banks
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2021
+  doc_type: standard
+  topic: reg-scope
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/sco/40/inforce/2021-11-09/published/2021-11-09
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2021-11-09'
+- doc_key: bcbs-sco50
+  path: basel/md/SCO50.md
+  title: SCO50 Domestic systemically important banks
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-scope
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/sco/50/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-sco60
+  path: basel/md/SCO60.md
+  title: SCO60 Cryptoasset exposures
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-scope
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/sco/60/inforce/2026-01-01/published/2024-11-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2026-01-01'
+- doc_key: bcbs-rbc20
+  path: basel/md/RBC20.md
+  title: RBC20 Calculation of minimum risk-based capital requirements
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-capital-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/rbc/20/inforce/2023-01-01/published/2020-11-26
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-rbc25
+  path: basel/md/RBC25.md
+  title: RBC25 Boundary between the banking book and the trading book
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-capital-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/rbc/25/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-rbc30
+  path: basel/md/RBC30.md
+  title: RBC30 Buffers above the regulatory minimum
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-capital-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/rbc/30/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-rbc40
+  path: basel/md/RBC40.md
+  title: RBC40 Systemically important bank buffers
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-gsib
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/rbc/40/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-rbc90
+  path: basel/md/RBC90.md
+  title: RBC90 Transitional arrangements
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-capital-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/rbc/90/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-ope10
+  path: basel/md/OPE10.md
+  title: OPE10 Definitions and application
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-op-risk
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/ope/10/inforce/2023-01-01/published/2024-07-05
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-ope25
+  path: basel/md/OPE25.md
+  title: OPE25 Standardised approach
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-op-risk
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/ope/25/inforce/2023-01-01/published/2024-07-05
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lev10
+  path: basel/md/LEV10.md
+  title: LEV10 Definitions and application
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-leverage
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lev/10/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lev20
+  path: basel/md/LEV20.md
+  title: LEV20 Calculation
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-leverage
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lev/20/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lev30
+  path: basel/md/LEV30.md
+  title: LEV30 Exposure measurement
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-leverage
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lev/30/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lev40
+  path: basel/md/LEV40.md
+  title: LEV40 Leverage ratio requirements for global systemically important banks
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-leverage
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lev/40/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lev90
+  path: basel/md/LEV90.md
+  title: LEV90 Transition
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-leverage
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lev/90/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lcr10
+  path: basel/md/LCR10.md
+  title: LCR10 Definitions and application
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/10/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lcr20
+  path: basel/md/LCR20.md
+  title: LCR20 Calculation
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2022
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/20/inforce/2019-12-15/published/2022-12-08
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lcr30
+  path: basel/md/LCR30.md
+  title: LCR30 High-quality liquid assets
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/30/inforce/2019-12-15/published/2020-06-05
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lcr31
+  path: basel/md/LCR31.md
+  title: LCR31 Alternative liquidity approaches
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/31/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lcr40
+  path: basel/md/LCR40.md
+  title: LCR40 Cash inflows and outflows
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2023
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/40/inforce/2019-12-15/published/2023-03-30
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lcr90
+  path: basel/md/LCR90.md
+  title: LCR90 Transition
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/90/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lcr99
+  path: basel/md/LCR99.md
+  title: LCR99 Application guidance
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lcr/99/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-nsf10
+  path: basel/md/NSF10.md
+  title: NSF10 Definitions and applications
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/nsf/10/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-nsf20
+  path: basel/md/NSF20.md
+  title: NSF20 Calculation and reporting
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/nsf/20/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-nsf30
+  path: basel/md/NSF30.md
+  title: NSF30 Available and required stable funding
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/nsf/30/inforce/2019-12-15/published/2024-07-05
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-nsf99
+  path: basel/md/NSF99.md
+  title: NSF99 Application guidance
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-liquidity
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/nsf/99/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lex10
+  path: basel/md/LEX10.md
+  title: LEX10 Definitions and application
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-large-exposures
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lex/10/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lex20
+  path: basel/md/LEX20.md
+  title: LEX20 Requirements
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-large-exposures
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lex/20/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-lex30
+  path: basel/md/LEX30.md
+  title: LEX30 Exposure measurement
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-large-exposures
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lex/30/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-lex40
+  path: basel/md/LEX40.md
+  title: LEX40 Large exposure rules for global systemically important banks
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-large-exposures
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/lex/40/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-mgn10
+  path: basel/md/MGN10.md
+  title: MGN10 Definitions and application
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-margin-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/mgn/10/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-mgn20
+  path: basel/md/MGN20.md
+  title: MGN20 Requirements
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-margin-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/mgn/20/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-mgn90
+  path: basel/md/MGN90.md
+  title: MGN90 Transition
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-margin-requirements
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/mgn/90/inforce/2020-04-03/published/2020-04-03
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2020-04-03'
+- doc_key: bcbs-srp10
+  path: basel/md/SRP10.md
+  title: SRP10 Importance of supervisory review
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/10/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp20
+  path: basel/md/SRP20.md
+  title: SRP20 Four key principles
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/20/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp30
+  path: basel/md/SRP30.md
+  title: SRP30 Risk management
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/30/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp31
+  path: basel/md/SRP31.md
+  title: SRP31 Interest rate risk in the banking book
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/31/inforce/2026-01-01/published/2024-07-16
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2026-01-01'
+- doc_key: bcbs-srp32
+  path: basel/md/SRP32.md
+  title: SRP32 Credit risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/32/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-srp33
+  path: basel/md/SRP33.md
+  title: SRP33 Market risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/33/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-srp35
+  path: basel/md/SRP35.md
+  title: SRP35 Compensation practices
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/35/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp36
+  path: basel/md/SRP36.md
+  title: SRP36 Risk data aggregation and risk reporting
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/36/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp50
+  path: basel/md/SRP50.md
+  title: SRP50 Liquidity monitoring metrics
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/50/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp90
+  path: basel/md/SRP90.md
+  title: SRP90 Transition
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/90/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-srp98
+  path: basel/md/SRP98.md
+  title: SRP98 Application guidance on interest rate risk in the banking book
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/98/inforce/2026-01-01/published/2024-07-16
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2026-01-01'
+- doc_key: bcbs-srp99
+  path: basel/md/SRP99.md
+  title: SRP99 Application guidance
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-supervisory-review
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/srp/99/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis10
+  path: basel/md/DIS10.md
+  title: DIS10 Definitions and applications
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/10/inforce/2026-01-01/published/2024-07-17
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2026-01-01'
+- doc_key: bcbs-dis20
+  path: basel/md/DIS20.md
+  title: DIS20 Overview of risk management, key prudential metrics and RWA
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/20/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis21
+  path: basel/md/DIS21.md
+  title: DIS21 Comparison of modelled and standardised RWA
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/21/inforce/2023-01-01/published/2020-11-26
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis25
+  path: basel/md/DIS25.md
+  title: DIS25 Composition of capital and TLAC
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/25/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis26
+  path: basel/md/DIS26.md
+  title: DIS26 Capital distribution constraints
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/26/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis30
+  path: basel/md/DIS30.md
+  title: DIS30 Links between financial statements and regulatory exposures
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/30/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis31
+  path: basel/md/DIS31.md
+  title: DIS31 Asset encumbrance
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/31/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis35
+  path: basel/md/DIS35.md
+  title: DIS35 Remuneration
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/35/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis40
+  path: basel/md/DIS40.md
+  title: DIS40 Credit risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/40/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis42
+  path: basel/md/DIS42.md
+  title: DIS42 Counterparty credit risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/42/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis43
+  path: basel/md/DIS43.md
+  title: DIS43 Securitisation
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/43/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis45
+  path: basel/md/DIS45.md
+  title: DIS45 Sovereign exposures
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2021
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/45/inforce/2023-01-01/published/2021-11-11
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis50
+  path: basel/md/DIS50.md
+  title: DIS50 Market risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2021
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/50/inforce/2023-01-01/published/2021-11-11
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis51
+  path: basel/md/DIS51.md
+  title: DIS51 Credit valuation adjustment risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/51/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis55
+  path: basel/md/DIS55.md
+  title: DIS55 Cryptoasset exposures
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/55/inforce/2026-01-01/published/2024-07-17
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2026-01-01'
+- doc_key: bcbs-dis60
+  path: basel/md/DIS60.md
+  title: DIS60 Operational risk
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/60/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis70
+  path: basel/md/DIS70.md
+  title: DIS70 Interest rate risk in the banking book
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/70/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis75
+  path: basel/md/DIS75.md
+  title: DIS75 Macroprudential supervisory measures
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/75/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis80
+  path: basel/md/DIS80.md
+  title: DIS80 Leverage ratio
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2020
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/80/inforce/2023-01-01/published/2020-03-27
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-dis85
+  path: basel/md/DIS85.md
+  title: DIS85 Liquidity
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2019
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/85/inforce/2019-12-15/published/2019-12-15
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2019-12-15'
+- doc_key: bcbs-dis99
+  path: basel/md/DIS99.md
+  title: DIS99 Worked examples
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2021
+  doc_type: standard
+  topic: reg-disclosure
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/dis/99/inforce/2023-01-01/published/2021-11-11
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2023-01-01'
+- doc_key: bcbs-bcp01
+  path: basel/md/BCP01.md
+  title: BCP01 Foreword
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/01/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp02
+  path: basel/md/BCP02.md
+  title: BCP02 Introduction to the Core Principles
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/02/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp10
+  path: basel/md/BCP10.md
+  title: BCP10 Explanation of certain terms used in the Core Principles
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/10/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp20
+  path: basel/md/BCP20.md
+  title: BCP20 Assessment methodology
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/20/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp30
+  path: basel/md/BCP30.md
+  title: BCP30 Preconditions for effective banking supervision
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/30/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp40
+  path: basel/md/BCP40.md
+  title: BCP40 The Core Principles and assessment criteria
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/40/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp98
+  path: basel/md/BCP98.md
+  title: BCP98 Update on Committee standards, guidelines and sound practices
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/98/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'
+- doc_key: bcbs-bcp99
+  path: basel/md/BCP99.md
+  title: BCP99 Structure and guidance for assessment reports prepared by the International Monetary Fund
+    and World Bank
+  authors:
+  - Basel Committee on Banking Supervision
+  year: 2024
+  doc_type: standard
+  topic: reg-core-principles
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/bcp/99/inforce/2024-04-25/published/2024-04-25
+  license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
+    Kept local, not redistributed.
+  valid_from: '2024-04-25'

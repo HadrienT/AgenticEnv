@@ -37,6 +37,10 @@ class PdfParser:
     def parse(self, path: Path, meta: DocumentMeta) -> ParsedDocument:
         return self._markdown.parse(self._to_markdown(path), meta)
 
+    def to_markdown(self, path: Path) -> Path:
+        """The MinerU Markdown of a PDF (cached by content hash), without parsing it."""
+        return self._to_markdown(path)
+
     def _to_markdown(self, path: Path) -> Path:
         cached = self._cache_dir / f"{sha256_file(path)}.md"
         if cached.is_file():

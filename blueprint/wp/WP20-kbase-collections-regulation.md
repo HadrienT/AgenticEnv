@@ -278,13 +278,22 @@ Steps 1–5a shipped together in one PR (#67); `kbase eval` before and after.
 5. a. **Basel Framework, MAR + CRE + CAP**: `kbase harvest-basel`, 47 chapters, 1,846
       paragraphs, 1,968 chunks, ingested 2026-11-12; `queries-regulation.yaml`;
       results §8.1.
-   b. **Formulas** (409 placeholders; MAR21 alone has 188, then CRE99, MAR50, CRE52,
-      CRE31: the chapters a code review needs). Per-chapter PDF
-      (`/committees/bcbs/basel-framework/<id>/chapter.pdf`) through MinerU, formulas
-      matched to the placeholders in reading order.
-   c. Remaining standards (`RBC`, `SRP`, `OPE`, `LEV`, `LEX`, `LCR`, `NSF`, `DIS`, …):
-      one `harvest-basel --standard …` run each.
-   d. Model risk texts (SR 11-7, ECB guide to internal models, PRA SS1/23): PDF.
+   b. **Formulas**: `kbase basel-formulas` (`harvest/basel_formulas.py`). The chapter
+      PDF without footnotes goes through MinerU; the HTML text is kept and each
+      placeholder takes the PDF formula of the same paragraph whose surrounding words
+      match (words before, and after when both sides have some; the order of the
+      paragraph's formulas is kept). A placeholder with no convincing match stays, and
+      the paragraph's unplaced PDF formulas are listed after it. Measured on MAR21:
+      137 of 188 placed, 32 listed, none misplaced in the paragraphs checked by hand.
+      The Markdown is always rebuilt from the saved page, so a rerun is safe.
+   c. **Remaining standards**: harvested 2026-11-12 (76 chapters, 1,614 paragraphs;
+      `SCO95` has no numbered paragraph and is skipped). 123 of 124 chapters in
+      `manifest-regulation.yaml`; 34 have formulas, their PDFs are downloaded.
+   d. **Model risk**: `manifest-regulation-guidance.yaml`: SR 11-7 (valid until SR 26-2
+      replaced it on 2026-04-17), SR 26-2, PRA SS1/23, ECB guide to internal models
+      (2024). PDFs, MinerU at ingestion.
+   5b–5d run as one night batch: `infra/scripts/kbase-regulation-ingest.sh` (MinerU,
+   ingestion, verify, the two evaluation gates, a summary comment on #66).
 6. CRR3/EBA wave once step 5 holds.
 
 ## 10. Open questions

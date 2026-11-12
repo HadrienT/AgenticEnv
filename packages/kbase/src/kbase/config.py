@@ -155,6 +155,7 @@ class BaselHarvestConfig(BaseModel):
     )
     html_dir: str = "basel/html"
     md_dir: str = "basel/md"
+    pdf_dir: str = "basel/pdf"
     manifest: str = "documents/manifest-regulation.yaml"
 
 
