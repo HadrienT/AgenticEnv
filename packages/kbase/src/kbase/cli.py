@@ -15,7 +15,12 @@ from pydantic import ValidationError as PydanticValidationError
 
 from kbase.config import IngestionConfig, load_kbase_config
 from kbase.evaluation import evaluate, load_queries
-from kbase.harvest.basel import harvest_basel
+from kbase.harvest.basel import (
+    apply_formulas,
+    chapters_with_formulas,
+    fetch_chapter_pdfs,
+    harvest_basel,
+)
 from kbase.harvest.http import PoliteClient
 from kbase.harvest.runner import HarvestSettings, harvest
 from kbase.harvest.schemas import HarvestProfile
@@ -247,6 +252,41 @@ def _cmd_harvest_basel(args: argparse.Namespace) -> int:
     return 0 if not report.failed else 1
 
 
+def _cmd_basel_formulas(args: argparse.Namespace) -> int:
+    kbase_config = load_kbase_config()
+    config = kbase_config.basel
+    documents_dir = get_settings().paths.documents_dir
+    codes = args.chapter or chapters_with_formulas(documents_dir, config.md_dir)
+    client = PoliteClient(
+        user_agent=config.user_agent,
+        min_interval_s=config.min_interval_s,
+        max_attempts=config.max_attempts,
+        timeout_s=config.timeout_s,
+    )
+    report = fetch_chapter_pdfs(
+        client,
+        documents_dir=documents_dir,
+        html_dir=config.html_dir,
+        pdf_dir=config.pdf_dir,
+        codes=codes,
+    )
+    if not args.fetch_only:
+        pdf_parser = next(
+            p for p in _build_parsers(kbase_config.ingestion) if isinstance(p, PdfParser)
+        )
+        apply_formulas(
+            documents_dir=documents_dir,
+            html_dir=config.html_dir,
+            md_dir=config.md_dir,
+            pdf_dir=config.pdf_dir,
+            codes=codes,
+            to_markdown=pdf_parser.to_markdown,
+            report=report,
+        )
+    print(report.model_dump_json(indent=2))
+    return 0 if not report.failed else 1
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kbase")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -312,6 +352,16 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     basel_parser.add_argument("--chapter", action="append", help="MAR21… (repeatable)")
     basel_parser.add_argument("--dry-run", action="store_true", help="List the chapters only")
     basel_parser.set_defaults(func=_cmd_harvest_basel)
+
+    formulas_parser = subparsers.add_parser(
+        "basel-formulas",
+        help="Fill Basel chapter formulas from their PDFs through MinerU (WP20 step 5b)",
+    )
+    formulas_parser.add_argument("--chapter", action="append", help="MAR21… (default: all)")
+    formulas_parser.add_argument(
+        "--fetch-only", action="store_true", help="Download the PDFs, run no MinerU"
+    )
+    formulas_parser.set_defaults(func=_cmd_basel_formulas)
 
     harvest_parser = subparsers.add_parser(
         "harvest", help="Fetch arXiv papers into Markdown and a manifest for `ingest`"
