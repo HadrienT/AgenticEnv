@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import math
 import statistics
+from datetime import date
 from pathlib import Path
 
 import yaml
@@ -12,7 +13,7 @@ from pydantic import BaseModel
 
 from kbase.retrieval.hybrid import HybridRetriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
-from kbase.schemas import RetrievedChunk
+from kbase.schemas import Collection, RetrievedChunk
 
 _K_RECALL = (5, 10)
 _K_NDCG = 10
@@ -26,6 +27,13 @@ class ReferenceQuery(BaseModel):
     # passage, not only the document. A hit is a chunk of an expected document whose
     # section path or content carries one of these titles.
     expected_sections: list[str] = []
+    # Regulatory paragraph ids that answer the query (`MAR21.4`): an exact match on the
+    # chunk's `paragraph_ids`, scored like `expected_sections` (WP20 §8).
+    expected_paragraphs: list[str] = []
+    # Searched as the agent would: these collections, the text in force at `valid_at`.
+    # A `--collection` given to `kbase eval` overrides `collections`.
+    collections: list[Collection] | None = None
+    valid_at: date | None = None
 
 
 class Metrics(BaseModel):
@@ -85,8 +93,16 @@ def _ndcg(ranked: list[str], expected: set[str]) -> float:
 def _section_hit(query: ReferenceQuery, chunk: RetrievedChunk) -> bool:
     if chunk.citation.doc_key not in query.expected:
         return False
+    if query.expected_paragraphs and set(query.expected_paragraphs) & set(
+        chunk.citation.paragraph_ids
+    ):
+        return True
     haystack = f"{chunk.citation.section_path or ''}\n{chunk.chunk.content}".lower()
     return any(title.lower() in haystack for title in query.expected_sections)
+
+
+def _has_passages(query: ReferenceQuery) -> bool:
+    return bool(query.expected_sections or query.expected_paragraphs)
 
 
 def _score(query: ReferenceQuery, chunks: list[RetrievedChunk], latency_ms: float) -> _Scored:
@@ -95,7 +111,7 @@ def _score(query: ReferenceQuery, chunks: list[RetrievedChunk], latency_ms: floa
     hit_rank = next((i for i, doc in enumerate(ranked, start=1) if doc in expected), None)
     section_hit_rank = (
         next((i for i, c in enumerate(chunks, start=1) if _section_hit(query, c)), None)
-        if query.expected_sections
+        if _has_passages(query)
         else None
     )
     return _Scored(
@@ -104,7 +120,7 @@ def _score(query: ReferenceQuery, chunks: list[RetrievedChunk], latency_ms: floa
         ndcg=_ndcg(ranked, expected),
         latency_ms=latency_ms,
         section_hit_rank=section_hit_rank,
-        has_sections=bool(query.expected_sections),
+        has_sections=_has_passages(query),
     )
 
 
@@ -147,13 +163,22 @@ def _aggregate(scored: list[_Scored]) -> Metrics:
 
 
 def evaluate(
-    retriever: HybridRetriever, queries: list[ReferenceQuery], label: str, *, details: bool = False
+    retriever: HybridRetriever,
+    queries: list[ReferenceQuery],
+    label: str,
+    *,
+    details: bool = False,
+    collections: list[Collection] | None = None,
 ) -> EvalReport:
+    """`collections` overrides every query's own (None: each query's, else the whole base)."""
     scored: list[_Scored] = []
     rows: list[QueryDetail] = []
     for query in queries:
+        filters = RetrievalFilters(
+            collections=collections or query.collections, valid_at=query.valid_at
+        )
         result = retriever.retrieve(
-            RetrievalQuery(text=query.text, k=20, filters=RetrievalFilters(), strategy="hybrid")
+            RetrievalQuery(text=query.text, k=20, filters=filters, strategy="hybrid")
         )
         item = _score(query, result.chunks, float(result.latency_ms))
         scored.append(item)

@@ -10,6 +10,7 @@ from typing import Protocol
 from corelib.hashing import sha256_obj
 from corelib.ids import new_id
 
+from kbase.regulatory import paragraph_id
 from kbase.schemas import Chunk, ChunkEquation, ChunkPolicy, ContentBlock, ParsedDocument
 
 
@@ -215,6 +216,9 @@ class SectionChunker:
 
     def chunk(self, doc: ParsedDocument, policy: ChunkPolicy) -> list[Chunk]:
         sections = {s.section_id: s for s in doc.sections}
+        paragraph_of = {
+            s.section_id: pid for s in doc.sections if (pid := paragraph_id(s.title)) is not None
+        }
 
         def chapter_of(section_id: str | None) -> str | None:
             current = sections.get(section_id) if section_id else None
@@ -266,6 +270,13 @@ class SectionChunker:
                     valid_until=None,
                     sha256=sha256_obj(content),
                     equations=equations,
+                    paragraph_ids=list(
+                        dict.fromkeys(
+                            paragraph_of[b.section_id]
+                            for b in blocks
+                            if b.section_id in paragraph_of
+                        )
+                    ),
                 )
             )
             last_text = next(

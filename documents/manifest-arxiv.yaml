@@ -2,6 +2,7 @@
 # to AGX_PATHS_DOCUMENTS_DIR. Removing an entry is fine; edit the harvest profiles
 # (configs/harvest/) to change what gets harvested.
 
+collection: quant
 documents:
 - doc_key: arxiv-1403.5309
   path: arxiv/md/1403.5309.md

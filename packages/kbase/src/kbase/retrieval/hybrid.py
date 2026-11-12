@@ -12,10 +12,12 @@ from corelib.errors import DependencyError
 from corelib.ids import new_id
 from corelib.logging import get_logger
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from kbase.contextual import PATH_SEPARATOR
 from kbase.embeddings.base import Embedder
 from kbase.provenance import assert_complete, build_citation
+from kbase.regulatory import normalize_paragraph_refs
 from kbase.retrieval import fusion, lexical, logs, store, vector
 from kbase.retrieval.filters import to_sql_predicate
 from kbase.retrieval.query import RetrievalQuery, RetrievalResult
@@ -23,6 +25,13 @@ from kbase.retrieval.rerank import Reranker
 from kbase.schemas import RetrievedChunk
 
 logger = get_logger(__name__)
+
+# First pgvector release with `hnsw.iterative_scan`.
+_ITERATIVE_SCAN_SINCE = (0, 8)
+
+
+def _version_tuple(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in version.split(".") if part.isdigit())
 
 
 class HybridRetriever:
@@ -42,9 +51,14 @@ class HybridRetriever:
         lexical_fallback: bool = False,
         max_chunks_per_document: int | None = None,
         hnsw_ef_search: int | None = None,
+        hnsw_iterative_scan: str | None = None,
+        hnsw_max_scan_tuples: int | None = None,
     ) -> None:
         self._max_per_document = max_chunks_per_document
         self._hnsw_ef_search = hnsw_ef_search
+        self._hnsw_iterative_scan = hnsw_iterative_scan
+        self._hnsw_max_scan_tuples = hnsw_max_scan_tuples
+        self._iterative_scan_supported: bool | None = None  # probed on first use
         self._embedder = embedder
         self._reranker = reranker
         self._candidates_vector = candidates_vector
@@ -77,6 +91,10 @@ class HybridRetriever:
                 if self._hnsw_ef_search:
                     # SET cannot take a bind parameter; the value is a validated int.
                     session.execute(text(f"SET LOCAL hnsw.ef_search = {int(self._hnsw_ef_search)}"))
+                if predicate_sql:
+                    warning = self._enable_iterative_scan(session)
+                    if warning:
+                        warnings.append(warning)
                 vector_hits = vector.search(
                     session,
                     embedding=embedding,
@@ -88,9 +106,11 @@ class HybridRetriever:
                 )
 
             if query.strategy in ("hybrid", "lexical"):
+                # `paragraph 21.4 of MAR` -> `MAR21.4`, the token regulatory chunks carry.
+                lexical_text = normalize_paragraph_refs(query.text)
                 lexical_hits = lexical.search(
                     session,
-                    query_text=query.text,
+                    query_text=lexical_text,
                     fts_config=self._fts_config,
                     predicate_sql=predicate_sql,
                     predicate_params=predicate_params,
@@ -102,7 +122,7 @@ class HybridRetriever:
                         hit
                         for hit in lexical.search(
                             session,
-                            query_text=query.text,
+                            query_text=lexical_text,
                             fts_config=self._fts_config,
                             predicate_sql=predicate_sql,
                             predicate_params=predicate_params,
@@ -173,6 +193,37 @@ class HybridRetriever:
             logs.record(session, result)
 
         return result
+
+    def _enable_iterative_scan(self, session: Session) -> str | None:
+        """Turns on pgvector's iterative HNSW scan for this transaction when configured
+        and supported; returns a warning when it is configured but cannot be used."""
+        if not self._hnsw_iterative_scan:
+            return None
+        if self._iterative_scan_supported is None:
+            version = session.execute(
+                text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")
+            ).scalar_one_or_none()
+            self._iterative_scan_supported = (
+                version is not None and _version_tuple(version) >= _ITERATIVE_SCAN_SINCE
+            )
+            if not self._iterative_scan_supported:
+                logger.warning(
+                    "pgvector %s has no hnsw.iterative_scan: filtered vector search may miss "
+                    "results until pgvector is upgraded to 0.8",
+                    version,
+                )
+        if not self._iterative_scan_supported:
+            return (
+                "pgvector < 0.8: filtered vector search may miss results "
+                "(hnsw.iterative_scan unavailable)"
+            )
+        # Validated values only: a Literal from the config and an int.
+        session.execute(text(f"SET LOCAL hnsw.iterative_scan = {self._hnsw_iterative_scan}"))
+        if self._hnsw_max_scan_tuples:
+            session.execute(
+                text(f"SET LOCAL hnsw.max_scan_tuples = {int(self._hnsw_max_scan_tuples)}")
+            )
+        return None
 
     def _diversify(self, ranked: list[RetrievedChunk], k: int) -> list[RetrievedChunk]:
         """The top `k`, with at most `max_chunks_per_document` from any one document;

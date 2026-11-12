@@ -23,6 +23,10 @@ def build_citation(chunk: Chunk, meta: DocumentMeta, *, source_url: str | None =
         sha256=chunk.sha256,
         doc_key=meta.doc_key,
         ingested_at=utc_now(),
+        paragraph_ids=list(chunk.paragraph_ids),
+        collection=meta.collection,
+        valid_from=chunk.valid_from,
+        valid_until=chunk.valid_until,
     )
 
 
@@ -51,7 +55,9 @@ def format_citation(citation: Citation, style: Literal["short", "full"]) -> str:
     if style == "short":
         return f"({author}, {year})"
     parts = [f"{author} ({year}). {citation.document}."]
-    if citation.section:
+    if citation.paragraph_ids:
+        parts.append(f"{', '.join(citation.paragraph_ids)}.")
+    elif citation.section:
         parts.append(f"§{citation.section}.")
     if citation.page is not None:
         parts.append(f"p. {citation.page}.")

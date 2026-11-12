@@ -1,0 +1,32 @@
+{
+  "label": "wp20-after-all-queries-sections",
+  "overall": {
+    "queries": 143,
+    "recall_at_5": 0.958041958041958,
+    "recall_at_10": 0.986013986013986,
+    "mrr": 0.8784576534576535,
+    "ndcg_at_10": 0.904257556885372,
+    "latency_p50_ms": 2715.0,
+    "latency_p95_ms": 3159.0,
+    "section_queries": 143,
+    "section_recall_at_5": 0.8811188811188811,
+    "section_recall_at_10": 0.9230769230769231,
+    "section_mrr": 0.7921679197994987
+  },
+  "by_category": {
+    "section": {
+      "queries": 143,
+      "recall_at_5": 0.958041958041958,
+      "recall_at_10": 0.986013986013986,
+      "mrr": 0.8784576534576535,
+      "ndcg_at_10": 0.904257556885372,
+      "latency_p50_ms": 2715.0,
+      "latency_p95_ms": 3159.0,
+      "section_queries": 143,
+      "section_recall_at_5": 0.8811188811188811,
+      "section_recall_at_10": 0.9230769230769231,
+      "section_mrr": 0.7921679197994987
+    }
+  },
+  "details": []
+}

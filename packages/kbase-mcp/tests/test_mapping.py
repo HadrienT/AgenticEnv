@@ -40,6 +40,7 @@ def _retrieved(chunk_id: str, doc_key: str, rank: int) -> RetrievedChunk:
 def test_build_query_maps_flat_args_to_a_retrieval_query_with_allowlisted_filters() -> None:
     query = build_query(
         text="Heston calibration",
+        collections=["quant"],
         k=8,
         strategy="hybrid",
         rerank=True,
@@ -83,3 +84,30 @@ def test_search_result_to_payload_shapes_results_and_meta() -> None:
     assert meta_extra["strategy_used"] == "hybrid"
     assert meta_extra["total_candidates"] == 5
     assert meta_extra["provenance"] == ["doc-a", "doc-b"]
+
+
+def _flat(**overrides: object) -> dict[str, object]:
+    args: dict[str, object] = {
+        "text": "x", "collections": ["quant"], "k": 8, "strategy": "hybrid", "rerank": True,
+        "doc_types": None, "topics": None, "asset_classes": None, "doc_keys": None,
+        "year_min": None, "year_max": None, "has_equations": None, "valid_at": None,
+    }  # fmt: skip
+    args.update(overrides)
+    return args
+
+
+def test_build_query_requires_a_collection() -> None:
+    import pytest
+    from corelib.errors import ValidationError
+
+    with pytest.raises(ValidationError):
+        build_query(**_flat(collections=[]))  # type: ignore[arg-type]
+
+
+def test_regulation_is_searched_as_in_force_today_unless_dated() -> None:
+    quant = build_query(**_flat())  # type: ignore[arg-type]
+    assert quant.filters.collections == ["quant"] and quant.filters.valid_at is None
+    regulation = build_query(**_flat(collections=["regulation", "quant"]))  # type: ignore[arg-type]
+    assert regulation.filters.valid_at == datetime.now(UTC).date()
+    dated = build_query(**_flat(collections=["regulation"], valid_at=date(2019, 1, 1)))  # type: ignore[arg-type]
+    assert dated.filters.valid_at == date(2019, 1, 1)

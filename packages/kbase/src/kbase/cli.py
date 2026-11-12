@@ -15,6 +15,7 @@ from pydantic import ValidationError as PydanticValidationError
 
 from kbase.config import IngestionConfig, load_kbase_config
 from kbase.evaluation import evaluate, load_queries
+from kbase.harvest.basel import harvest_basel
 from kbase.harvest.http import PoliteClient
 from kbase.harvest.runner import HarvestSettings, harvest
 from kbase.harvest.schemas import HarvestProfile
@@ -27,7 +28,7 @@ from kbase.ingestion.parsers.pdf import PdfParser
 from kbase.ingestion.pipeline import ingest as run_ingest
 from kbase.retrieval.factory import build_embedder, build_retriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
-from kbase.schemas import ChunkPolicy, IngestionRequest
+from kbase.schemas import COLLECTIONS, ChunkPolicy, IngestionRequest
 
 
 def _build_parsers(config: IngestionConfig) -> list[Parser]:
@@ -113,7 +114,11 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     queries = load_queries(repo_root() / args.queries)
     try:
         report = evaluate(
-            build_retriever(load_kbase_config()), queries, args.label, details=args.details
+            build_retriever(load_kbase_config()),
+            queries,
+            args.label,
+            details=args.details,
+            collections=args.collection,
         )
     except AppError as exc:
         print(f"eval failed: {exc.code}: {exc.message}")
@@ -162,7 +167,7 @@ def _cmd_search(args: argparse.Namespace) -> int:
     query = RetrievalQuery(
         text=args.query,
         k=args.k or config.retrieval.default_k,
-        filters=RetrievalFilters(),
+        filters=RetrievalFilters(collections=args.collection),
         strategy=args.strategy,
         rerank=not args.no_rerank,
     )
@@ -215,6 +220,33 @@ def _cmd_harvest(args: argparse.Namespace) -> int:
     return 0 if report.failed == 0 or report.converted > 0 else 1
 
 
+def _cmd_harvest_basel(args: argparse.Namespace) -> int:
+    config = load_kbase_config().basel
+    client = PoliteClient(
+        user_agent=config.user_agent,
+        min_interval_s=config.min_interval_s,
+        max_attempts=config.max_attempts,
+        timeout_s=config.timeout_s,
+    )
+    try:
+        report = harvest_basel(
+            client,
+            seed_url=config.seed_url,
+            standards=args.standard or ([] if args.chapter else ["MAR", "CRE", "CAP"]),
+            chapters=args.chapter or [],
+            documents_dir=get_settings().paths.documents_dir,
+            html_dir=config.html_dir,
+            md_dir=config.md_dir,
+            manifest=repo_root() / config.manifest,
+            dry_run=args.dry_run,
+        )
+    except AppError as exc:
+        print(f"harvest-basel failed: {exc.code}: {exc.message}")
+        return 1
+    print(report.model_dump_json(indent=2))
+    return 0 if not report.failed else 1
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kbase")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -252,6 +284,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--strategy", choices=["hybrid", "vector", "lexical"], default="hybrid"
     )
     search_parser.add_argument("--no-rerank", action="store_true")
+    search_parser.add_argument(
+        "--collection", action="append", choices=COLLECTIONS, help="Repeatable; default: all"
+    )
     search_parser.set_defaults(func=_cmd_search)
 
     eval_parser = subparsers.add_parser("eval", help="Measure search on the reference queries")
@@ -259,7 +294,24 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     eval_parser.add_argument("--label", required=True)
     eval_parser.add_argument("--output", help="JSON report, relative to the repo root")
     eval_parser.add_argument("--details", action="store_true", help="Per-query ranks in the report")
+    eval_parser.add_argument(
+        "--collection",
+        action="append",
+        choices=COLLECTIONS,
+        help="Search only these (repeatable); default: each query's own, else all (WP20 §8)",
+    )
     eval_parser.set_defaults(func=_cmd_eval)
+
+    basel_parser = subparsers.add_parser(
+        "harvest-basel",
+        help="Fetch Basel Framework chapters (bis.org) into Markdown and a manifest (WP20)",
+    )
+    basel_parser.add_argument(
+        "--standard", action="append", help="MAR, CRE, CAP… (repeatable; default MAR CRE CAP)"
+    )
+    basel_parser.add_argument("--chapter", action="append", help="MAR21… (repeatable)")
+    basel_parser.add_argument("--dry-run", action="store_true", help="List the chapters only")
+    basel_parser.set_defaults(func=_cmd_harvest_basel)
 
     harvest_parser = subparsers.add_parser(
         "harvest", help="Fetch arXiv papers into Markdown and a manifest for `ingest`"

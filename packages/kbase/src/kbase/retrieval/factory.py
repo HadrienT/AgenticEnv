@@ -69,4 +69,6 @@ def build_retriever(config: KbaseConfig) -> HybridRetriever:
         lexical_fallback=config.retrieval.lexical_fallback,
         max_chunks_per_document=config.retrieval.max_chunks_per_document,
         hnsw_ef_search=config.retrieval.hnsw_ef_search,
+        hnsw_iterative_scan=config.retrieval.hnsw_iterative_scan,
+        hnsw_max_scan_tuples=config.retrieval.hnsw_max_scan_tuples,
     )

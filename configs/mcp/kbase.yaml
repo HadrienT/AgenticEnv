@@ -12,10 +12,12 @@ tools_allowlist:
   - kb.get_document
   - kb.get_equation
   - kb.list_topics
+  - kb.list_paragraphs
   - kb.stats
 per_tool_timeout_s:
   kb.search: 30
   kb.get_document: 10
   kb.get_equation: 10
   kb.list_topics: 5
+  kb.list_paragraphs: 10
   kb.stats: 5

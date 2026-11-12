@@ -4,7 +4,7 @@ SQL here, so there is no allowlist to enforce (unlike `retrieval.filters`)."""
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from corelib.errors import NotFoundError, ValidationError
 from corelib.time import utc_now
@@ -12,6 +12,9 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from kbase.contextual import PATH_SEPARATOR
+from kbase.regulatory import matches_prefix
+from kbase.retrieval.store import load_section_paths
 from kbase.schemas import Citation, DocumentMeta, Equation, Section
 
 
@@ -33,6 +36,15 @@ class EquationDetail(BaseModel):
     citation: Citation
 
 
+class CollectionSummary(BaseModel):
+    description: str | None
+    document_count: int
+    topics: dict[str, int]  # topic -> document count
+    doc_types: list[str]
+    year_min: int | None
+    year_max: int | None
+
+
 class TopicsSummary(BaseModel):
     topics: list[str]
     asset_classes: list[str]
@@ -40,6 +52,33 @@ class TopicsSummary(BaseModel):
     year_min: int | None
     year_max: int | None
     document_count: int
+    collections: dict[str, CollectionSummary] = {}
+
+
+class ParagraphEntry(BaseModel):
+    paragraph_id: str
+    section_path: str
+    first_line: str
+
+
+class ParagraphText(BaseModel):
+    paragraph_ids: list[str]
+    section_path: str
+    content: str
+
+
+class ParagraphListing(BaseModel):
+    """Every regulatory paragraph of one document, in reading order (WP20 §6.3).
+    `texts` holds the chunks of the paragraphs matching `prefix`, when one is given."""
+
+    doc_key: str
+    title: str
+    collection: str
+    valid_from: date | None
+    valid_until: date | None
+    paragraphs: list[ParagraphEntry]
+    texts: list[ParagraphText] = []
+    truncated: bool = False
 
 
 def get_document(
@@ -56,7 +95,7 @@ def get_document(
     base_query = (
         "SELECT dv.id, dv.version, dv.sha256, dv.page_count, dv.ingestion_date, "
         " d.doc_key, d.title, d.authors, d.year, d.doc_type, d.source_url, d.license, "
-        " d.topic, d.asset_class "
+        " d.topic, d.asset_class, d.collection "
         "FROM kb.document_versions dv JOIN kb.documents d ON d.id = dv.document_id "
     )
     if document_version_id is not None:
@@ -106,6 +145,7 @@ def get_document(
         license=row.license,
         topic=row.topic,
         asset_class=row.asset_class,
+        collection=row.collection,
     )
     return DocumentDetail(
         meta=meta,
@@ -197,8 +237,9 @@ def get_equation(
     )
 
 
-def list_topics(session: Session) -> TopicsSummary:
-    """Lets the caller discover what the base contains before searching (WP06 §1)."""
+def list_topics(session: Session, *, descriptions: dict[str, str] | None = None) -> TopicsSummary:
+    """Lets the caller discover what the base contains before searching (WP06 §1),
+    collection by collection (WP20 §4); `descriptions` come from the kbase config."""
     topics = (
         session.execute(
             text("SELECT DISTINCT topic FROM kb.documents WHERE topic IS NOT NULL ORDER BY topic")
@@ -223,7 +264,43 @@ def list_topics(session: Session) -> TopicsSummary:
     )
     row = session.execute(text("SELECT min(year), max(year), count(*) FROM kb.documents")).one()
 
+    collections: dict[str, CollectionSummary] = {}
+    for name, count, doc_type_list, year_min, year_max in session.execute(
+        text(
+            "SELECT collection, count(*), array_agg(DISTINCT doc_type ORDER BY doc_type), "
+            " min(year), max(year) FROM kb.documents GROUP BY collection ORDER BY collection"
+        )
+    ).all():
+        collections[name] = CollectionSummary(
+            description=(descriptions or {}).get(name),
+            document_count=count,
+            topics={},
+            doc_types=list(doc_type_list),
+            year_min=year_min,
+            year_max=year_max,
+        )
+    for name, topic, count in session.execute(
+        text(
+            "SELECT collection, topic, count(*) FROM kb.documents WHERE topic IS NOT NULL "
+            "GROUP BY collection, topic ORDER BY collection, topic"
+        )
+    ).all():
+        collections[name].topics[topic] = count
+    for name, description in (descriptions or {}).items():
+        collections.setdefault(
+            name,
+            CollectionSummary(
+                description=description,
+                document_count=0,
+                topics={},
+                doc_types=[],
+                year_min=None,
+                year_max=None,
+            ),
+        )
+
     return TopicsSummary(
+        collections=collections,
         topics=list(topics),
         asset_classes=list(asset_classes),
         doc_types=list(doc_types),
@@ -231,3 +308,97 @@ def list_topics(session: Session) -> TopicsSummary:
         year_max=row[1],
         document_count=row[2],
     )
+
+
+_MAX_PARAGRAPH_TEXTS = 40
+
+
+def list_paragraphs(
+    session: Session, *, doc_key: str, prefix: str | None = None
+) -> ParagraphListing:
+    """Every paragraph id of the latest version of `doc_key`, in reading order, with
+    its section path and first line. With `prefix` (`MAR21.4`, or `MAR21` for a whole
+    chapter), also the full text of the chunks holding the matching paragraphs. A
+    review needs the whole list: a search only returns its top k (WP20 §6.3, §7)."""
+    head = session.execute(
+        text(
+            "SELECT dv.id, d.title, d.collection FROM kb.document_versions dv "
+            "JOIN kb.documents d ON d.id = dv.document_id WHERE d.doc_key = :doc_key "
+            "ORDER BY dv.ingestion_date DESC LIMIT 1"
+        ),
+        {"doc_key": doc_key},
+    ).first()
+    if head is None:
+        raise NotFoundError("document not found", details={"doc_key": doc_key})
+
+    rows = session.execute(
+        text(
+            "SELECT c.ordinal, c.paragraph_ids, c.content, c.section_id, c.valid_from, "
+            " c.valid_until FROM kb.chunks c WHERE c.document_version_id = :dv_id "
+            "ORDER BY c.ordinal"
+        ),
+        {"dv_id": head.id},
+    ).all()
+
+    paths = load_section_paths(session, [str(r.section_id) for r in rows if r.section_id])
+
+    def path_of(section_id: object) -> str:
+        return PATH_SEPARATOR.join(paths.get(str(section_id), [])) if section_id else ""
+
+    paragraphs: list[ParagraphEntry] = []
+    seen: set[str] = set()
+    texts: list[ParagraphText] = []
+    truncated = False
+    for row in rows:
+        ids = list(row.paragraph_ids or [])
+        for pid in ids:
+            if pid in seen:
+                continue
+            seen.add(pid)
+            paragraphs.append(
+                ParagraphEntry(
+                    paragraph_id=pid,
+                    section_path=path_of(row.section_id),
+                    first_line=_first_line_after(row.content, pid),
+                )
+            )
+        if prefix and any(matches_prefix(pid, prefix) for pid in ids):
+            if len(texts) < _MAX_PARAGRAPH_TEXTS:
+                texts.append(
+                    ParagraphText(
+                        paragraph_ids=ids, section_path=path_of(row.section_id), content=row.content
+                    )
+                )
+            else:
+                truncated = True
+
+    if prefix and not texts:
+        raise NotFoundError(
+            f"no paragraph matching {prefix!r} in {doc_key}",
+            details={"doc_key": doc_key, "prefix": prefix},
+        )
+    return ParagraphListing(
+        doc_key=doc_key,
+        title=head.title,
+        collection=head.collection,
+        valid_from=rows[0].valid_from if rows else None,
+        valid_until=rows[0].valid_until if rows else None,
+        paragraphs=paragraphs,
+        texts=texts,
+        truncated=truncated,
+    )
+
+
+def _first_line_after(content: str, paragraph: str, limit: int = 160) -> str:
+    """The first line of prose under the paragraph's heading in a chunk."""
+    lines = content.splitlines()
+    start = 0
+    for i, line in enumerate(lines):
+        if line.lstrip("#").strip() == paragraph:
+            start = i + 1
+            break
+    for line in lines[start:]:
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#"):
+            return stripped if len(stripped) <= limit else stripped[: limit - 1] + "…"
+    return ""

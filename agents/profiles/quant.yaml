@@ -16,6 +16,7 @@ mcp_tools:                      # allowlist stricte
   - code.outline
   - code.signature
   - kb.search
+  - kb.list_paragraphs
   - kb.get_equation
   - mem.recall
 

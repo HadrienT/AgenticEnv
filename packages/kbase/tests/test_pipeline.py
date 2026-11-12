@@ -18,7 +18,7 @@ pytestmark = pytest.mark.integration
 def _manifest(tmp_path: Path, doc_key: str, source_relpath: str) -> Path:
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text(
-        f"documents:\n"
+        f"collection: quant\ndocuments:\n"
         f"  - doc_key: {doc_key}\n"
         f"    path: {source_relpath}\n"
         f"    title: Integration Test Doc\n"
@@ -117,7 +117,7 @@ def test_isolation_one_bad_document_does_not_abort_run(
     good_key = f"itest-good-{uuid.uuid4().hex[:8]}"
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text(
-        f"documents:\n"
+        f"collection: quant\ndocuments:\n"
         f"  - doc_key: itest-missing\n"
         f"    path: raw/does-not-exist.md\n"
         f"    title: Missing\n"

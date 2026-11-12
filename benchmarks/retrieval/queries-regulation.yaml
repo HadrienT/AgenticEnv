@@ -1,0 +1,39 @@
+# Reference queries for the regulation collection (WP20 §8). Written from the Basel
+# Framework chapters (documents/manifest-regulation.yaml) without looking at what the
+# search returns. `expected_paragraphs` scores the passage by exact paragraph id.
+#
+# category: exact-id (the id as people write it) | paraphrase (an agent's words) |
+# french | cross-domain-trap (words shared by both collections, searched in both:
+# the right corpus must still win, in each direction)
+#
+#   uv run kbase eval --queries benchmarks/retrieval/queries-regulation.yaml --label …
+queries:
+  - {category: exact-id, collections: [regulation], text: "What does MAR33.3 require?", expected: [bcbs-mar33], expected_paragraphs: [MAR33.3]}
+  - {category: exact-id, collections: [regulation], text: "paragraph 52.48 of CRE", expected: [bcbs-cre52], expected_paragraphs: [CRE52.48]}
+  - {category: exact-id, collections: [regulation], text: "MAR 21.6 correlation scenarios", expected: [bcbs-mar21], expected_paragraphs: [MAR21.6]}
+  - {category: exact-id, collections: [regulation], text: "CAP10.2", expected: [bcbs-cap10], expected_paragraphs: [CAP10.2]}
+
+  - {category: paraphrase, collections: [regulation], text: "confidence level for expected shortfall in the internal models approach", expected: [bcbs-mar33], expected_paragraphs: [MAR33.3]}
+  - {category: paraphrase, collections: [regulation], text: "liquidity horizons used to scale expected shortfall by risk factor category", expected: [bcbs-mar33], expected_paragraphs: [MAR33.12, MAR33.4]}
+  - {category: paraphrase, collections: [regulation], text: "alpha multiplier applied to the SA-CCR exposure at default", expected: [bcbs-cre52], expected_paragraphs: [CRE52.1]}
+  - {category: paraphrase, collections: [regulation], text: "maturity factor of a margined transaction using the margin period of risk", expected: [bcbs-cre52], expected_paragraphs: [CRE52.52]}
+  - {category: paraphrase, collections: [regulation], text: "supervisory factors and option volatilities by asset class for the SA-CCR add-on", expected: [bcbs-cre52], expected_paragraphs: [CRE52.72]}
+  - {category: paraphrase, collections: [regulation], text: "time risk horizon of an unmargined derivative floored at ten business days", expected: [bcbs-cre52], expected_paragraphs: [CRE52.48]}
+  - {category: paraphrase, collections: [regulation], text: "upward and downward shocks to compute the curvature risk charge", expected: [bcbs-mar21], expected_paragraphs: [MAR21.5]}
+  - {category: paraphrase, collections: [regulation], text: "high, medium and low correlation scenarios in the sensitivities-based method", expected: [bcbs-mar21], expected_paragraphs: [MAR21.6]}
+  - {category: paraphrase, collections: [regulation], text: "reduced basic approach for CVA with a discount scalar of 0.65", expected: [bcbs-mar50], expected_paragraphs: [MAR50.14]}
+  - {category: paraphrase, collections: [regulation], text: "which instruments are subject to the residual risk add-on", expected: [bcbs-mar23], expected_paragraphs: [MAR23.2]}
+  - {category: paraphrase, collections: [regulation], text: "scaling jump-to-default for exposures shorter than one year", expected: [bcbs-mar22], expected_paragraphs: [MAR22.15]}
+  - {category: paraphrase, collections: [regulation], text: "definition of a trading desk for market risk capital", expected: [bcbs-mar12], expected_paragraphs: [MAR12.1]}
+  - {category: paraphrase, collections: [regulation], text: "hypothetical and risk-theoretical P&L must use the same pricing models in the PLA test", expected: [bcbs-mar32], expected_paragraphs: [MAR32.29]}
+  - {category: paraphrase, collections: [regulation], text: "IRB risk-weight function for exposures not in default", expected: [bcbs-cre31], expected_paragraphs: [CRE31.5]}
+  - {category: paraphrase, collections: [regulation], text: "total regulatory capital made of CET1, additional tier 1 and tier 2", expected: [bcbs-cap10], expected_paragraphs: [CAP10.2]}
+
+  - {category: french, collections: [regulation], text: "niveau de confiance de l'expected shortfall dans le modèle interne de risque de marché", expected: [bcbs-mar33], expected_paragraphs: [MAR33.3]}
+  - {category: french, collections: [regulation], text: "facteur de maturité des transactions avec appel de marge en SA-CCR", expected: [bcbs-cre52], expected_paragraphs: [CRE52.52]}
+  - {category: french, collections: [regulation], text: "chocs de courbure à la hausse et à la baisse sur chaque facteur de risque", expected: [bcbs-mar21], expected_paragraphs: [MAR21.5]}
+
+  - {category: cross-domain-trap, collections: [quant, regulation], text: "capital requirement for CVA risk under the basic approach", expected: [bcbs-mar50], expected_paragraphs: [MAR50.14]}
+  - {category: cross-domain-trap, collections: [quant, regulation], text: "internal models method for counterparty credit risk exposure at default", expected: [bcbs-cre53], expected_paragraphs: [CRE53.6]}
+  - {category: cross-domain-trap, collections: [quant, regulation], text: "Monte Carlo simulation of counterparty exposure for CVA pricing", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-unified-csa-initial-margin, xva-fixed-point-collateral]}
+  - {category: cross-domain-trap, collections: [quant, regulation], text: "credit valuation adjustment exposure", expected: [xva-counterparty-risk-faq, xva-bilateral-counterparty-risk, xva-unified-csa-initial-margin, xva-fixed-point-collateral]}

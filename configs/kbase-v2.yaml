@@ -47,6 +47,21 @@ retrieval:
   min_score: 0.0
   max_chunks_per_document: 3
   hnsw_ef_search: 200
+  # pgvector >= 0.8 (WP20 §3.2): a filtered search keeps scanning until it has enough
+  # rows. On 0.7.4 it is skipped and results carry a warning.
+  hnsw_iterative_scan: relaxed_order
+  hnsw_max_scan_tuples: 20000
+
+collections:
+  quant:
+    description: >-
+      derivatives pricing and its numerical methods: stochastic and rough volatility,
+      Monte Carlo/QMC, PDE, Fourier, AAD, calibration, XVA pricing, C++/CUDA performance
+  regulation:
+    description: >-
+      prudential regulation and supervisory texts: Basel Framework (BCBS), CRR/CRD, EBA;
+      capital rules for market risk (FRTB), counterparty credit risk (SA-CCR, IMM),
+      CVA capital, credit risk, liquidity, model risk
 
 curation:
   # Whole-title regexes (case-insensitive), matched once a leading "12.8" is removed.

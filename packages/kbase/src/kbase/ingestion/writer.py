@@ -68,7 +68,8 @@ def _upsert_document_id(session: Session, doc: ParsedDocument) -> uuid.UUID:
             text(
                 "UPDATE kb.documents SET title = :title, authors = :authors, year = :year, "
                 "doc_type = :doc_type, topic = :topic, asset_class = :asset_class, "
-                "source_url = :source_url, license = :license WHERE id = :id"
+                "collection = :collection, source_url = :source_url, license = :license "
+                "WHERE id = :id"
             ),
             {
                 "id": row[0],
@@ -78,6 +79,7 @@ def _upsert_document_id(session: Session, doc: ParsedDocument) -> uuid.UUID:
                 "doc_type": doc.meta.doc_type,
                 "topic": doc.meta.topic,
                 "asset_class": doc.meta.asset_class,
+                "collection": doc.meta.collection,
                 "source_url": doc.meta.source_url,
                 "license": doc.meta.license,
             },
@@ -88,9 +90,9 @@ def _upsert_document_id(session: Session, doc: ParsedDocument) -> uuid.UUID:
         text(
             "INSERT INTO kb.documents "
             "(id, doc_key, title, authors, year, doc_type, topic, asset_class, "
-            " source_url, license) "
+            " collection, source_url, license) "
             "VALUES (:id, :doc_key, :title, :authors, :year, :doc_type, :topic, "
-            " :asset_class, :source_url, :license)"
+            " :asset_class, :collection, :source_url, :license)"
         ),
         {
             "id": document_id,
@@ -101,6 +103,7 @@ def _upsert_document_id(session: Session, doc: ParsedDocument) -> uuid.UUID:
             "doc_type": doc.meta.doc_type,
             "topic": doc.meta.topic,
             "asset_class": doc.meta.asset_class,
+            "collection": doc.meta.collection,
             "source_url": doc.meta.source_url,
             "license": doc.meta.license,
         },
@@ -190,10 +193,11 @@ def upsert(
             text(
                 "INSERT INTO kb.chunks "
                 "(id, document_version_id, section_id, ordinal, kind, content, n_tokens, "
-                " page_start, page_end, has_equations, valid_from, valid_until, sha256) "
+                " page_start, page_end, has_equations, valid_from, valid_until, sha256, "
+                " paragraph_ids) "
                 "VALUES (:id, :document_version_id, :section_id, :ordinal, :kind, :content, "
                 " :n_tokens, :page_start, :page_end, :has_equations, :valid_from, :valid_until, "
-                " :sha256)"
+                " :sha256, :paragraph_ids)"
             ),
             {
                 "id": chunk_id,
@@ -209,6 +213,7 @@ def upsert(
                 "valid_from": valid_from,
                 "valid_until": valid_until,
                 "sha256": chunk.sha256,
+                "paragraph_ids": chunk.paragraph_ids,
             },
         )
         session.execute(

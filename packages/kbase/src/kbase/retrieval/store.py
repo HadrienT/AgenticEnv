@@ -18,11 +18,11 @@ def load_candidates(
         text(
             "SELECT c.id, c.document_version_id, c.section_id, c.ordinal, c.kind, "
             " c.content, c.n_tokens, c.page_start, c.page_end, c.has_equations, "
-            " c.valid_from, c.valid_until, c.sha256, "
+            " c.valid_from, c.valid_until, c.sha256, c.paragraph_ids, "
             " eq.latex, eq.equation_number, eq.symbols, eq.context_before, eq.context_after, "
             " tb.caption, tb.content_md, "
             " d.doc_key, d.title, d.authors, d.year, d.doc_type, d.source_url, d.license, "
-            " d.topic, d.asset_class "
+            " d.topic, d.asset_class, d.collection "
             "FROM kb.chunks c "
             "JOIN kb.document_versions dv ON dv.id = c.document_version_id "
             "JOIN kb.documents d ON d.id = dv.document_id "
@@ -64,6 +64,7 @@ def load_candidates(
             table_content_md=row.content_md,
             equation_context_before=row.context_before,
             equation_context_after=row.context_after,
+            paragraph_ids=list(row.paragraph_ids or []),
         )
         meta = DocumentMeta(
             doc_key=row.doc_key,
@@ -75,6 +76,7 @@ def load_candidates(
             license=row.license,
             topic=row.topic,
             asset_class=row.asset_class,
+            collection=row.collection,
         )
         result[str(row.id)] = (chunk, meta)
     return result

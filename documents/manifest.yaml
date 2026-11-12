@@ -2,6 +2,8 @@
 # Les fichiers référencés par `path` vivent sous AGX_PATHS_DOCUMENTS_DIR
 # (host: /srv/knowledge/documents), pas dans le dépôt.
 
+collection: quant
+
 documents:
   # --- Volatilité stochastique : SABR / Heston / vol locale ---
   - doc_key: sabr-paulot-second-order-asymptotic

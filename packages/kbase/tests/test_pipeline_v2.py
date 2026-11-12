@@ -55,7 +55,8 @@ def _run(tmp_path: Path, doc_key: str, body: str, embedder: HashingEmbedder) -> 
     (tmp_path / "book.md").write_text(body + f"\n<!-- {doc_key} -->\n")
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text(
-        f"documents:\n  - doc_key: {doc_key}\n    path: book.md\n    title: A Book\n"
+        f"collection: quant\ndocuments:\n  - doc_key: {doc_key}\n    path: book.md\n"
+        "    title: A Book\n"
         "    doc_type: book\n"
     )
     return ingest(
