@@ -198,3 +198,10 @@ def test_iterative_scan_off_does_nothing() -> None:
     session = _FakeSession("0.8.1")
     assert _retriever()._enable_iterative_scan(session) is None  # type: ignore[arg-type]
     assert session.statements == []
+
+
+def test_paragraph_tokens_are_kept_for_the_any_term_fallback() -> None:
+    from kbase.regulatory import paragraph_tokens
+
+    assert paragraph_tokens("What does MAR33.3 require, and cre52.1?") == ["mar33.3", "cre52.1"]
+    assert paragraph_tokens("Heston 2.1 calibration") == []

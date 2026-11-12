@@ -1,0 +1,84 @@
+{
+  "label": "wp20-after-all-queries",
+  "overall": {
+    "queries": 84,
+    "recall_at_5": 0.8095238095238095,
+    "recall_at_10": 0.8690476190476191,
+    "mrr": 0.623043920365349,
+    "ndcg_at_10": 0.5564476717939533,
+    "latency_p50_ms": 2447.0,
+    "latency_p95_ms": 3704.0,
+    "section_queries": 0,
+    "section_recall_at_5": null,
+    "section_recall_at_10": null,
+    "section_mrr": null
+  },
+  "by_category": {
+    "equation": {
+      "queries": 8,
+      "recall_at_5": 0.625,
+      "recall_at_10": 0.625,
+      "mrr": 0.4791666666666667,
+      "ndcg_at_10": 0.2744130506310375,
+      "latency_p50_ms": 3827.0,
+      "latency_p95_ms": 4109.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "exact": {
+      "queries": 20,
+      "recall_at_5": 0.95,
+      "recall_at_10": 0.95,
+      "mrr": 0.7791666666666667,
+      "ndcg_at_10": 0.7096764965526068,
+      "latency_p50_ms": 2405.0,
+      "latency_p95_ms": 2932.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "french": {
+      "queries": 12,
+      "recall_at_5": 0.9166666666666666,
+      "recall_at_10": 1.0,
+      "mrr": 0.8452380952380952,
+      "ndcg_at_10": 0.703961535808766,
+      "latency_p50_ms": 2394.0,
+      "latency_p95_ms": 2995.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "numerics": {
+      "queries": 24,
+      "recall_at_5": 0.625,
+      "recall_at_10": 0.75,
+      "mrr": 0.42678467365967365,
+      "ndcg_at_10": 0.4306760543208361,
+      "latency_p50_ms": 2451.0,
+      "latency_p95_ms": 2862.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "paraphrase": {
+      "queries": 20,
+      "recall_at_5": 0.9,
+      "recall_at_10": 0.95,
+      "mrr": 0.6266666666666667,
+      "ndcg_at_10": 0.5784503180593188,
+      "latency_p50_ms": 2423.0,
+      "latency_p95_ms": 2921.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    }
+  },
+  "details": []
+}

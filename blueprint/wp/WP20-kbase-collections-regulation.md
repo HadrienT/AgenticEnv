@@ -219,26 +219,78 @@ location → status matrix, stored and versioned), and linking to `codeintel` an
 - **Routing**: a handful of agent-bench prompts check that the local model picks the
   right collection. If it often picks wrong, add the two wrapper tools (§4).
 
+### 8.1 Results (2026-11-12, `kbase-v2.yaml`, pgvector 0.7.4)
+
+Quant sets, before and after ingesting the 47 Basel chapters (1,968 chunks, ~4% of
+the base). Files in `benchmarks/retrieval/results/2026-11-12-wp20-*.json`.
+
+| Set | Run | recall@5 | recall@10 | MRR | nDCG@10 | passage recall@10 | passage MRR |
+|---|---|---|---|---|---|---|---|
+| `queries.yaml` (84) | before | 0.810 | 0.893 | 0.629 | 0.565 | | |
+| | after, `collections=[quant]` | 0.810 | **0.893** | 0.629 | 0.565 | | |
+| | after, no filter | 0.810 | **0.869** | 0.623 | 0.556 | | |
+| `queries-sections.yaml` (143) | before | 0.958 | 0.986 | 0.878 | 0.904 | 0.923 | 0.792 |
+| | after, `collections=[quant]` | 0.958 | 0.986 | 0.878 | 0.904 | 0.923 | 0.792 |
+| | after, no filter | 0.958 | 0.986 | 0.878 | 0.904 | 0.923 | 0.792 |
+
+- **Gate met**: with the collection filter, the quant scores are unchanged.
+- **The interference is real**: without a filter, 47 chapters already cost 2.4 points
+  of recall@10 on the document-level set (questions on CVA, exposure, Monte Carlo, the
+  shared vocabulary of §1). The passage-level set, made of narrow numerical questions,
+  is not affected.
+- Still on pgvector 0.7.4: `quant` is 96% of the base, so post-filtering loses little
+  here. The upgrade matters for the small collection (`regulation`) and narrow topics.
+
+`queries-regulation.yaml` (26 queries):
+
+| Category | n | recall@10 | MRR | paragraph recall@10 | paragraph MRR |
+|---|---|---|---|---|---|
+| exact-id | 4 | 1.00 | 1.00 | 1.00 | 0.88 |
+| paraphrase | 15 | 1.00 | 0.91 | 0.80 | 0.68 |
+| french | 3 | 1.00 | 0.57 | 0.33 | 0.36 |
+| cross-domain-trap | 4 | 1.00 | 0.65 | 0.50 (2 with paragraphs) | 0.50 |
+| overall | 26 | 1.00 | 0.85 | 0.75 | 0.66 |
+
+- The right chapter is always in the top 10, in the top 5 for 96% of the queries.
+- The two traps that expect quant papers (CVA pricing, CVA exposure) return quant
+  papers first, never Basel text, even when both collections are searched.
+- An id written inside a sentence (`What does MAR33.3 require?`) was lost: the
+  any-term lexical fallback only kept alphabetic words. Fixed (`paragraph_tokens`);
+  exact-id passage recall went from 0.75 to 1.00.
+- What is left: (1) paragraphs that are mostly formulas (`CRE31.5`, the IRB risk-weight
+  function, is four placeholders): step 5b; (2) the per-document cap (3 chunks) leaves
+  little room to pick the right paragraph inside the one chapter a regulatory question
+  is about; (3) French questions rank the passage lower (bge-m3 across languages, the
+  reranker on English text).
+
 ## 9. Delivery order
 
-One PR each, `kbase eval` before and after each step.
+Steps 1–5a shipped together in one PR (#67); `kbase eval` before and after.
 
-1. **pgvector 0.8 + iterative scan** (§3.2). Independent; fixes the existing `topics`
-   filter. Needs the maintainer for the container.
-2. **Collections**: migration `0008` (`collection`, `paragraph_ids`), config, manifest,
-   filter, `stats`.
-3. **MCP**: required `collections`, `list_topics` by collection, agent profile line.
-4. **Regulatory chunking**: heading patterns, `regulatory` strategy, citation
-   `paragraph_ids`, query normalisation, `list_paragraphs`.
-5. **First regulation wave**: the BCBS framework (`MAR`, `CRE`, `CAP` first) + model
-   risk texts, `queries-regulation.yaml`, non-regression gate.
+1. **pgvector 0.8 + iterative scan** (§3.2). Code done (probe + warning on 0.7.4,
+   Dockerfile pins v0.8.7). **Left: image rebuild and container recreation, by the
+   maintainer.**
+2. **Collections**: done; migration `0008` applied to the real database on 2026-11-12
+   (after a dump), the 525 existing documents in `quant`.
+3. **MCP**: done (required `collections`, `list_topics` by collection, `list_paragraphs`,
+   agent profiles and prompts).
+4. **Paragraph ids**: done (§6), without a new chunking strategy.
+5. a. **Basel Framework, MAR + CRE + CAP**: `kbase harvest-basel`, 47 chapters, 1,846
+      paragraphs, 1,968 chunks, ingested 2026-11-12; `queries-regulation.yaml`;
+      results §8.1.
+   b. **Formulas** (409 placeholders; MAR21 alone has 188, then CRE99, MAR50, CRE52,
+      CRE31: the chapters a code review needs). Per-chapter PDF
+      (`/committees/bcbs/basel-framework/<id>/chapter.pdf`) through MinerU, formulas
+      matched to the placeholders in reading order.
+   c. Remaining standards (`RBC`, `SRP`, `OPE`, `LEV`, `LEX`, `LCR`, `NSF`, `DIS`, …):
+      one `harvest-basel --standard …` run each.
+   d. Model risk texts (SR 11-7, ECB guide to internal models, PRA SS1/23): PDF.
 6. CRR3/EBA wave once step 5 holds.
 
 ## 10. Open questions
 
-- BCBS framework ingestion: scrape the HTML chapter pages (clean structure, versions) or
-  use the PDF export (one file, MinerU)? HTML is preferred if the pages can be fetched
-  reliably.
+- ~~BCBS framework: HTML or PDF?~~ HTML for the text and structure (done); the PDF only
+  for the formulas (step 5b).
 - Should `quant` stay one collection, or should `performance-*` (C++/CUDA) become its
   own once it grows?
 - Default `valid_at = today` for regulation: right for compliance, wrong for "what did

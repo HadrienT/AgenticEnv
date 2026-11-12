@@ -1,0 +1,410 @@
+{
+  "label": "wp20-regulation",
+  "overall": {
+    "queries": 26,
+    "recall_at_5": 0.9615384615384616,
+    "recall_at_10": 1.0,
+    "mrr": 0.8452991452991453,
+    "ndcg_at_10": 0.8608308097808907,
+    "latency_p50_ms": 1697.0,
+    "latency_p95_ms": 2041.0,
+    "section_queries": 24,
+    "section_recall_at_5": 0.75,
+    "section_recall_at_10": 0.75,
+    "section_mrr": 0.6576388888888889
+  },
+  "by_category": {
+    "cross-domain-trap": {
+      "queries": 4,
+      "recall_at_5": 0.75,
+      "recall_at_10": 1.0,
+      "mrr": 0.6527777777777778,
+      "ndcg_at_10": 0.5909546233742893,
+      "latency_p50_ms": 2041.0,
+      "latency_p95_ms": 2134.0,
+      "section_queries": 2,
+      "section_recall_at_5": 0.5,
+      "section_recall_at_10": 0.5,
+      "section_mrr": 0.5
+    },
+    "exact-id": {
+      "queries": 4,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "latency_p50_ms": 1666.0,
+      "latency_p95_ms": 1685.0,
+      "section_queries": 4,
+      "section_recall_at_5": 1.0,
+      "section_recall_at_10": 1.0,
+      "section_mrr": 0.875
+    },
+    "french": {
+      "queries": 3,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.5666666666666667,
+      "ndcg_at_10": 0.6725941869353331,
+      "latency_p50_ms": 1597.0,
+      "latency_p95_ms": 1800.0,
+      "section_queries": 3,
+      "section_recall_at_5": 0.3333333333333333,
+      "section_recall_at_10": 0.3333333333333333,
+      "section_mrr": 0.3611111111111111
+    },
+    "paraphrase": {
+      "queries": 15,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.9111111111111111,
+      "ndcg_at_10": 0.9333333333333333,
+      "latency_p50_ms": 1697.0,
+      "latency_p95_ms": 1960.0,
+      "section_queries": 15,
+      "section_recall_at_5": 0.8,
+      "section_recall_at_10": 0.8,
+      "section_mrr": 0.6799999999999999
+    }
+  },
+  "details": [
+    {
+      "text": "What does MAR33.3 require?",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar33",
+        "bcbs-mar31",
+        "bcbs-mar30",
+        "bcbs-mar32",
+        "bcbs-mar90"
+      ]
+    },
+    {
+      "text": "paragraph 52.48 of CRE",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-cre52",
+        "bcbs-cre99",
+        "bcbs-cre51",
+        "bcbs-cre36",
+        "bcbs-cre54"
+      ]
+    },
+    {
+      "text": "MAR 21.6 correlation scenarios",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bcbs-mar21",
+        "bcbs-mar20",
+        "bcbs-mar30",
+        "bcbs-mar31",
+        "bcbs-mar23"
+      ]
+    },
+    {
+      "text": "CAP10.2",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-cap10",
+        "bcbs-cap90",
+        "bcbs-cre35",
+        "bcbs-cap99",
+        "bcbs-cap30"
+      ]
+    },
+    {
+      "text": "confidence level for expected shortfall in the internal models approach",
+      "category": "paraphrase",
+      "hit_rank": 3,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-mar32",
+        "bcbs-mar30",
+        "bcbs-mar33",
+        "bcbs-mar31",
+        "bcbs-cre32"
+      ]
+    },
+    {
+      "text": "liquidity horizons used to scale expected shortfall by risk factor category",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar33",
+        "bcbs-mar21",
+        "bcbs-mar32",
+        "bcbs-mar31",
+        "bcbs-mar30"
+      ]
+    },
+    {
+      "text": "alpha multiplier applied to the SA-CCR exposure at default",
+      "category": "paraphrase",
+      "hit_rank": 3,
+      "section_hit_rank": 5,
+      "top_documents": [
+        "bcbs-cre54",
+        "bcbs-cre60",
+        "bcbs-cre52",
+        "bcbs-mar50",
+        "bcbs-cre99"
+      ]
+    },
+    {
+      "text": "maturity factor of a margined transaction using the margin period of risk",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bcbs-cre52",
+        "bcbs-cre99",
+        "bcbs-cre53",
+        "bcbs-mar50",
+        "bcbs-cre32"
+      ]
+    },
+    {
+      "text": "supervisory factors and option volatilities by asset class for the SA-CCR add-on",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-cre52",
+        "bcbs-cre99",
+        "bcbs-mar33",
+        "bcbs-cre53",
+        "bcbs-mar30"
+      ]
+    },
+    {
+      "text": "time risk horizon of an unmargined derivative floored at ten business days",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-cre52",
+        "bcbs-cre54",
+        "bcbs-cre99",
+        "bcbs-cre32",
+        "bcbs-cre22"
+      ]
+    },
+    {
+      "text": "upward and downward shocks to compute the curvature risk charge",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar21",
+        "bcbs-mar20",
+        "bcbs-mar10",
+        "bcbs-mar40",
+        "bcbs-mar50"
+      ]
+    },
+    {
+      "text": "high, medium and low correlation scenarios in the sensitivities-based method",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar21",
+        "bcbs-mar20",
+        "bcbs-cre52",
+        "bcbs-mar50",
+        "bcbs-mar30"
+      ]
+    },
+    {
+      "text": "reduced basic approach for CVA with a discount scalar of 0.65",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar50",
+        "bcbs-cre51",
+        "bcbs-cre60",
+        "bcbs-mar22",
+        "bcbs-cre54"
+      ]
+    },
+    {
+      "text": "which instruments are subject to the residual risk add-on",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-mar23",
+        "bcbs-mar21",
+        "bcbs-mar50",
+        "bcbs-mar20",
+        "bcbs-mar40"
+      ]
+    },
+    {
+      "text": "scaling jump-to-default for exposures shorter than one year",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "bcbs-mar22",
+        "bcbs-cre32",
+        "bcbs-mar32",
+        "bcbs-cre53",
+        "bcbs-mar33"
+      ]
+    },
+    {
+      "text": "definition of a trading desk for market risk capital",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar12",
+        "bcbs-mar10",
+        "bcbs-mar30",
+        "bcbs-mar11",
+        "bcbs-mar33"
+      ]
+    },
+    {
+      "text": "hypothetical and risk-theoretical P&L must use the same pricing models in the PLA test",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar32",
+        "bcbs-mar31",
+        "bcbs-mar30",
+        "bcbs-mar10",
+        "bcbs-mar33"
+      ]
+    },
+    {
+      "text": "IRB risk-weight function for exposures not in default",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-cre31",
+        "bcbs-cre34",
+        "bcbs-cre99",
+        "bcbs-cre33",
+        "bcbs-cre32"
+      ]
+    },
+    {
+      "text": "total regulatory capital made of CET1, additional tier 1 and tier 2",
+      "category": "paraphrase",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-cap10",
+        "bcbs-cap99",
+        "bcbs-cap30",
+        "bcbs-cap90",
+        "bcbs-cre20"
+      ]
+    },
+    {
+      "text": "niveau de confiance de l'expected shortfall dans le modèle interne de risque de marché",
+      "category": "french",
+      "hit_rank": 5,
+      "section_hit_rank": 12,
+      "top_documents": [
+        "bcbs-mar10",
+        "bcbs-cre32",
+        "bcbs-mar30",
+        "bcbs-mar31",
+        "bcbs-mar33"
+      ]
+    },
+    {
+      "text": "facteur de maturité des transactions avec appel de marge en SA-CCR",
+      "category": "french",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-cre99",
+        "bcbs-cre52",
+        "bcbs-cre53",
+        "bcbs-cre54",
+        "bcbs-mar50"
+      ]
+    },
+    {
+      "text": "chocs de courbure à la hausse et à la baisse sur chaque facteur de risque",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar21",
+        "bcbs-mar10",
+        "bcbs-mar33",
+        "bcbs-mar50",
+        "bcbs-mar31"
+      ]
+    },
+    {
+      "text": "capital requirement for CVA risk under the basic approach",
+      "category": "cross-domain-trap",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "bcbs-mar50",
+        "arxiv-2305.09166",
+        "bcbs-cre51",
+        "arxiv-2301.05886",
+        "bcbs-cre60"
+      ]
+    },
+    {
+      "text": "internal models method for counterparty credit risk exposure at default",
+      "category": "cross-domain-trap",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-cre53",
+        "bcbs-cre32",
+        "bcbs-cre51",
+        "xva-counterparty-risk-faq",
+        "bcbs-cre22"
+      ]
+    },
+    {
+      "text": "Monte Carlo simulation of counterparty exposure for CVA pricing",
+      "category": "cross-domain-trap",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "arxiv-1901.11081",
+        "xva-unified-csa-initial-margin",
+        "arxiv-2606.24309",
+        "hull-options-futures-other-derivatives-11e",
+        "arxiv-1504.02896"
+      ]
+    },
+    {
+      "text": "credit valuation adjustment exposure",
+      "category": "cross-domain-trap",
+      "hit_rank": 9,
+      "section_hit_rank": null,
+      "top_documents": [
+        "arxiv-1412.3623",
+        "arxiv-2606.24309",
+        "arxiv-1912.01280",
+        "bcbs-cre51",
+        "bcbs-cre54"
+      ]
+    }
+  ]
+}

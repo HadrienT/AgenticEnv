@@ -8,6 +8,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from kbase.regulatory import paragraph_tokens
 from kbase.retrieval.fusion import RankedHit
 
 _WORD_RE = re.compile(r"[^\W\d_]{3,}", re.UNICODE)
@@ -35,6 +36,8 @@ def search(
     satisfies; this keeps the content words of the query and takes any of them."""
     if any_term:
         words = [w for w in _WORD_RE.findall(query_text.lower()) if w not in _STOP_WORDS]
+        # `MAR33.3` is no word to `_WORD_RE`, yet the most precise term a question holds.
+        words += paragraph_tokens(query_text)
         if not words:
             return []
         rows = session.execute(

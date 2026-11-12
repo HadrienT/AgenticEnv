@@ -34,6 +34,15 @@ _OF_RE = re.compile(
 )
 
 
+# A canonical Basel paragraph id inside free text (`MAR33.3`), any case.
+_ID_TOKEN_RE = re.compile(rf"\b(?:{_STANDARD})\d{{1,3}}\.\d{{1,3}}[a-z]?\b", re.IGNORECASE)
+
+
+def paragraph_tokens(text: str) -> list[str]:
+    """Canonical paragraph ids in `text`, lower-cased as the full-text index stores them."""
+    return [m.group(0).lower() for m in _ID_TOKEN_RE.finditer(text)]
+
+
 def paragraph_id(title: str) -> str | None:
     """The paragraph id a section title names, normalised, or None for an ordinary title."""
     match = _TITLE_ID_RE.match(title.strip())
