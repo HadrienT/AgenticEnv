@@ -140,6 +140,24 @@ class HarvestConfig(BaseModel):
     known_manifests: list[str] = ["documents/manifest.yaml"]
 
 
+class BaselHarvestConfig(BaseModel):
+    """Basel Framework chapters from bis.org (WP20 §5.1). A generic user agent: nothing
+    identifying the maintainer goes to a third-party site."""
+
+    user_agent: str = "kbase-harvest/0.1 (local research index; low request rate)"
+    min_interval_s: float = 3.0
+    max_attempts: int = 4
+    timeout_s: float = 60.0
+    # Any chapter page lists every chapter; robots.txt disallows the standard index pages.
+    seed_url: str = (
+        "https://www.bis.org/committees/bcbs/basel-framework/standard/sco/10"
+        "/inforce/2019-12-15/published/2019-12-15"
+    )
+    html_dir: str = "basel/html"
+    md_dir: str = "basel/md"
+    manifest: str = "documents/manifest-regulation.yaml"
+
+
 class KbaseConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -150,6 +168,7 @@ class KbaseConfig(BaseModel):
     ingestion: IngestionConfig
     curation: CurationConfig = CurationConfig()
     harvest: HarvestConfig = HarvestConfig()
+    basel: BaselHarvestConfig = BaselHarvestConfig()
     collections: dict[str, CollectionConfig] = _DEFAULT_COLLECTIONS
 
     @field_validator("collections")
