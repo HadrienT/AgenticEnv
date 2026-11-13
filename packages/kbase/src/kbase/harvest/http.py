@@ -1,8 +1,10 @@
-"""Polite HTTP for arXiv: one request per `min_interval_s` across hosts, retries on
-429/5xx with backoff, `Retry-After` honoured (arXiv API terms: one request every 3 s)."""
+"""Polite HTTP for the harvesters (arXiv, bis.org, eCFR, Cellar, PRA Rulebook): one
+request per `min_interval_s` across hosts, retries on 429/5xx with backoff, `Retry-After`
+honoured (arXiv API terms: one request every 3 s)."""
 
 from __future__ import annotations
 
+import gzip
 import time
 import urllib.error
 import urllib.request
@@ -34,7 +36,11 @@ class UrllibTransport:
         request = urllib.request.Request(url, headers=headers)
         try:
             with urllib.request.urlopen(request, timeout=timeout_s) as response:  # noqa: S310
-                return RawResponse(status=response.status, url=response.url, body=response.read())
+                body = response.read()
+                # Asked for by some APIs (eCFR refuses uncompressed responses).
+                if response.headers.get("Content-Encoding", "").lower() == "gzip":
+                    body = gzip.decompress(body)
+                return RawResponse(status=response.status, url=response.url, body=body)
         except urllib.error.HTTPError as exc:
             return RawResponse(
                 status=exc.code,
@@ -74,15 +80,17 @@ class PoliteClient:
             if remaining > 0:
                 self._sleep(remaining)
 
-    def get(self, url: str) -> RawResponse:
-        """The final response; non-retryable statuses (404…) are returned as they are."""
+    def get(self, url: str, headers: dict[str, str] | None = None) -> RawResponse:
+        """The final response; non-retryable statuses (404…) are returned as they are.
+        `headers` are added to the user agent for this request (Accept, Accept-Encoding)."""
+        request_headers = {**self._headers, **(headers or {})}
         last_error = ""
         for attempt in range(self._max_attempts):
             self._wait_turn()
             self.requests_made += 1
             try:
                 response = self._transport.fetch(
-                    url, headers=self._headers, timeout_s=self._timeout_s
+                    url, headers=request_headers, timeout_s=self._timeout_s
                 )
             except (urllib.error.URLError, TimeoutError, OSError) as exc:
                 self._last_request_at = self._clock()

@@ -11,7 +11,7 @@ and calendar, and the rules a bank must implement are those of its jurisdiction:
 
 | | Binding market/credit/CCR/CVA rules | Calendar (checked 2026-11-13) |
 |---|---|---|
-| EU | CRR (Regulation 575/2013 as amended by CRR3, 2024/1623) + EBA RTS/ITS adopted as Commission Delegated Regulations | CRR3 applies since 2025-01-01; FRTB own funds requirements from 2027-01-01 after two postponements (Delegated Regulations 2024/2795, 2025/1496); CRR2 methods until then |
+| EU | CRR (Regulation 575/2013 as amended by CRR3, 2024/1623) + EBA RTS/ITS adopted as Commission Delegated Regulations | CRR3 applies since 2025-01-01; FRTB own funds requirements from 2027-01-01 after two postponements (Delegated Regulations 2024/2795, 2025/1496), with targeted multipliers and operational relief (Delegated Regulation 2026/1221 of 2026-06-04); CRR2 methods until then |
 | UK | PRA Rulebook, CRR firms (Basel 3.1 rules restated as PRA rule parts) | Basel 3.1 from 2027-01-01 (PS1/26); market risk IMA from 2028-01-01; CP9/26 consults on IMA changes |
 | US | 12 CFR 217 (Fed, Regulation Q; OCC 12 CFR 3 and FDIC 12 CFR 324 are the same rule) | 2013 rule still binding; Basel III endgame re-proposal of 2026-03-19 (expanded risk-based approach) pending, comments closed 2026-06-18 |
 
@@ -180,6 +180,31 @@ the Federal Register API for proposals.
 
 Not collected: ISDA SIMM methodology and ISDA CDM (licence: ISDA members), national
 transpositions outside the three jurisdictions.
+
+### 5.5 Harvest (step 3, as built)
+
+`kbase harvest-regulation --catalog configs/harvest/regulation-wave1.yaml` reads a
+catalogue (source, selector, manifest metadata per document), fetches politely (3 s
+between requests, generic user agent), keeps the raw source under
+`$AGX_PATHS_DOCUMENTS_DIR/regulation/<jurisdiction>/raw/`, writes Markdown under `md/`
+and one manifest per jurisdiction (`documents/manifest-regulation-<jurisdiction>.yaml`).
+A consolidated EU text shared by several entries is fetched once.
+
+- **eCFR**: the latest issue of each title (`titles.json`) unless the catalogue pins
+  `ecfr_date`; paragraph paths read from the CFR markers, the `(i)` letter/roman
+  ambiguity resolved by the expected next label.
+- **EU**: the EU SPARQL endpoint lists consolidated versions. On 2026-11-13 the
+  2027-01-01 consolidation of the CRR existed, but Cellar answered HTTP 500 for all its
+  formats; market risk is taken from the consolidation in force (2026-06-26), which
+  already holds Articles 325c–325bp, with titles that say the FRTB applies from
+  2027-01-01. Switch the catalogue once Cellar serves it.
+- **EU formulas** are JPEG images: saved under `img/`, placeholder `[formula: <file>]`,
+  then `kbase regulation-formulas` runs MinerU once over the pending images (GPU, night
+  batch), writes a LaTeX sidecar per image and puts `$…$` in place. A new harvest
+  re-applies the sidecars without MinerU (`--apply-only`).
+- **PRA** formulas are LaTeX in the page (`\[…\]`) and become `$$` equation blocks.
+- Deferred from wave 1: UK EMIR margin RTS (legislation.gov.uk, another format), the
+  BCBS/IOSCO margin framework (PDF, through the guidance manifest).
 
 ## 6. Topics
 

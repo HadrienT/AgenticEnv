@@ -159,6 +159,20 @@ class BaselHarvestConfig(BaseModel):
     manifest: str = "documents/manifest-regulation.yaml"
 
 
+class RegulationHarvestConfig(BaseModel):
+    """EU, UK and US rules (WP21 §5): eCFR, Cellar, PRA Rulebook. A generic user agent:
+    nothing identifying the maintainer goes to a third-party site."""
+
+    user_agent: str = "kbase-harvest/0.1 (local research index; low request rate)"
+    min_interval_s: float = 3.0
+    max_attempts: int = 4
+    timeout_s: float = 120.0
+    # Under AGX_PATHS_DOCUMENTS_DIR: <root_dir>/<jurisdiction>/{raw,md,img}/.
+    root_dir: str = "regulation"
+    # manifest-regulation-<jurisdiction>.yaml, relative to the repository.
+    manifest_dir: str = "documents"
+
+
 class KbaseConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -170,6 +184,7 @@ class KbaseConfig(BaseModel):
     curation: CurationConfig = CurationConfig()
     harvest: HarvestConfig = HarvestConfig()
     basel: BaselHarvestConfig = BaselHarvestConfig()
+    regulation_harvest: RegulationHarvestConfig = RegulationHarvestConfig()
     collections: dict[str, CollectionConfig] = _DEFAULT_COLLECTIONS
     # What the base holds for each jurisdiction of the regulatory collection (WP21 §3).
     # The agent reads it in the `kb.search` description: keep it true to what is ingested.
