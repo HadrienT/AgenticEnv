@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from kbase.schemas import Collection, RetrievedChunk
+from kbase.schemas import Collection, Jurisdiction, RetrievedChunk
 
 
 class RetrievalFilters(BaseModel):
@@ -15,6 +15,8 @@ class RetrievalFilters(BaseModel):
 
     # None searches every collection (CLI, eval); the MCP tool always names some (WP20 §4).
     collections: list[Collection] | None = None
+    # Restricts regulatory documents only; other collections pass through (WP21 §3).
+    jurisdictions: list[Jurisdiction] | None = None
     doc_types: list[str] | None = None
     topics: list[str] | None = None
     asset_classes: list[str] | None = None
@@ -23,6 +25,8 @@ class RetrievalFilters(BaseModel):
     year_max: int | None = None
     has_equations: bool | None = None
     valid_at: date | None = None
+    # Not expired on that date: in force or applying later (WP21 §2.2). `valid_at` wins.
+    not_expired_at: date | None = None
 
 
 class RetrievalQuery(BaseModel):

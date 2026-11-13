@@ -22,7 +22,7 @@ def load_candidates(
             " eq.latex, eq.equation_number, eq.symbols, eq.context_before, eq.context_after, "
             " tb.caption, tb.content_md, "
             " d.doc_key, d.title, d.authors, d.year, d.doc_type, d.source_url, d.license, "
-            " d.topic, d.asset_class, d.collection "
+            " d.topic, d.asset_class, d.collection, d.jurisdiction "
             "FROM kb.chunks c "
             "JOIN kb.document_versions dv ON dv.id = c.document_version_id "
             "JOIN kb.documents d ON d.id = dv.document_id "
@@ -77,6 +77,7 @@ def load_candidates(
             topic=row.topic,
             asset_class=row.asset_class,
             collection=row.collection,
+            jurisdiction=row.jurisdiction,
         )
         result[str(row.id)] = (chunk, meta)
     return result

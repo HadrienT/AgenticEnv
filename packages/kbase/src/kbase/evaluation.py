@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from kbase.retrieval.hybrid import HybridRetriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
-from kbase.schemas import Collection, RetrievedChunk
+from kbase.schemas import Collection, Jurisdiction, RetrievedChunk
 
 _K_RECALL = (5, 10)
 _K_NDCG = 10
@@ -34,6 +34,9 @@ class ReferenceQuery(BaseModel):
     # A `--collection` given to `kbase eval` overrides `collections`.
     collections: list[Collection] | None = None
     valid_at: date | None = None
+    # Restricts regulatory results to these jurisdictions (WP21 §7); `--jurisdiction`
+    # given to `kbase eval` overrides it.
+    jurisdictions: list[Jurisdiction] | None = None
 
 
 class Metrics(BaseModel):
@@ -169,13 +172,17 @@ def evaluate(
     *,
     details: bool = False,
     collections: list[Collection] | None = None,
+    jurisdictions: list[Jurisdiction] | None = None,
 ) -> EvalReport:
-    """`collections` overrides every query's own (None: each query's, else the whole base)."""
+    """`collections` and `jurisdictions` override every query's own (None: each query's,
+    else no filter)."""
     scored: list[_Scored] = []
     rows: list[QueryDetail] = []
     for query in queries:
         filters = RetrievalFilters(
-            collections=collections or query.collections, valid_at=query.valid_at
+            collections=collections or query.collections,
+            jurisdictions=jurisdictions or query.jurisdictions,
+            valid_at=query.valid_at,
         )
         result = retriever.retrieve(
             RetrievalQuery(text=query.text, k=20, filters=filters, strategy="hybrid")

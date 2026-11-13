@@ -8,6 +8,7 @@ mcp_tools:                      # allowlist stricte
   - kb.get_equation
   - kb.list_topics
   - kb.list_paragraphs
+  - kb.list_documents
   - kb.stats
   - mem.recall
 

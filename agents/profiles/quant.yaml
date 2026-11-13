@@ -17,6 +17,7 @@ mcp_tools:                      # allowlist stricte
   - code.signature
   - kb.search
   - kb.list_paragraphs
+  - kb.list_documents
   - kb.get_equation
   - mem.recall
 

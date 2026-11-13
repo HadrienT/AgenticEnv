@@ -17,9 +17,13 @@ def list_topics() -> dict[str, Any]:
 
     def _run(timeout_s: int) -> tuple[dict[str, Any], dict[str, Any]]:
         get_settings()
-        descriptions = {name: c.description for name, c in load_kbase_config().collections.items()}
+        config = load_kbase_config()
+        descriptions = {name: c.description for name, c in config.collections.items()}
+        jurisdictions = {name: c.description for name, c in config.jurisdictions.items()}
         with session_scope() as session:
-            summary = run_list_topics(session, descriptions=descriptions)
+            summary = run_list_topics(
+                session, descriptions=descriptions, jurisdiction_descriptions=jurisdictions
+            )
         return summary.model_dump(mode="json"), {}
 
     return dispatch("kb.list_topics", _run)

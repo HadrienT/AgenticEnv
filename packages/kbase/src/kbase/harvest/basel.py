@@ -405,7 +405,7 @@ def upsert_manifest(path: Path, entries: list[dict[str, object]]) -> tuple[int, 
             replaced += 1
     path.parent.mkdir(parents=True, exist_ok=True)
     body = yaml.safe_dump(
-        {"collection": "regulation", "documents": documents},
+        {"collection": "regulation", "jurisdiction": "intl", "documents": documents},
         sort_keys=False,
         allow_unicode=True,
         width=100,

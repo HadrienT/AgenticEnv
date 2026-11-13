@@ -25,6 +25,8 @@ def build_citation(chunk: Chunk, meta: DocumentMeta, *, source_url: str | None =
         ingested_at=utc_now(),
         paragraph_ids=list(chunk.paragraph_ids),
         collection=meta.collection,
+        jurisdiction=meta.jurisdiction,
+        doc_type=meta.doc_type,
         valid_from=chunk.valid_from,
         valid_until=chunk.valid_until,
     )
@@ -55,6 +57,9 @@ def format_citation(citation: Citation, style: Literal["short", "full"]) -> str:
     if style == "short":
         return f"({author}, {year})"
     parts = [f"{author} ({year}). {citation.document}."]
+    if citation.jurisdiction:
+        kind = f", {citation.doc_type}" if citation.doc_type else ""
+        parts.insert(0, f"[{citation.jurisdiction.upper()}{kind}]")
     if citation.paragraph_ids:
         parts.append(f"{', '.join(citation.paragraph_ids)}.")
     elif citation.section:

@@ -3,6 +3,7 @@
 # chapter, the version in force; re-running replaces an entry by its doc_key.
 
 collection: regulation
+jurisdiction: intl
 documents:
 - doc_key: bcbs-cap10
   path: basel/md/CAP10.md

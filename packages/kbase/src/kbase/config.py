@@ -8,7 +8,7 @@ from typing import Literal
 from corelib.config import load_yaml_config
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from kbase.schemas import COLLECTIONS
+from kbase.schemas import COLLECTIONS, JURISDICTIONS
 
 
 class EmbeddingsConfig(BaseModel):
@@ -94,9 +94,9 @@ _DEFAULT_COLLECTIONS: dict[str, CollectionConfig] = {
     ),
     "regulation": CollectionConfig(
         description=(
-            "prudential regulation and supervisory texts: Basel Framework (BCBS), CRR/CRD, "
-            "EBA; capital rules for market risk (FRTB), counterparty credit risk (SA-CCR, "
-            "IMM), CVA capital, credit risk, liquidity, model risk"
+            "prudential regulation and supervisory texts, by jurisdiction (see "
+            "`jurisdictions`): capital rules for market risk (FRTB), counterparty credit risk "
+            "(SA-CCR, IMM), CVA, credit risk, margin, liquidity, model risk"
         )
     ),
 }
@@ -171,6 +171,9 @@ class KbaseConfig(BaseModel):
     harvest: HarvestConfig = HarvestConfig()
     basel: BaselHarvestConfig = BaselHarvestConfig()
     collections: dict[str, CollectionConfig] = _DEFAULT_COLLECTIONS
+    # What the base holds for each jurisdiction of the regulatory collection (WP21 §3).
+    # The agent reads it in the `kb.search` description: keep it true to what is ingested.
+    jurisdictions: dict[str, CollectionConfig] = {}
 
     @field_validator("collections")
     @classmethod
@@ -178,6 +181,16 @@ class KbaseConfig(BaseModel):
         unknown = sorted(set(value) - set(COLLECTIONS))
         if unknown:
             raise ValueError(f"unknown collection(s) {unknown}: declare them in kbase.schemas")
+        return value
+
+    @field_validator("jurisdictions")
+    @classmethod
+    def _known_jurisdictions(
+        cls, value: dict[str, CollectionConfig]
+    ) -> dict[str, CollectionConfig]:
+        unknown = sorted(set(value) - set(JURISDICTIONS))
+        if unknown:
+            raise ValueError(f"unknown jurisdiction(s) {unknown}: declare them in kbase.schemas")
         return value
 
 

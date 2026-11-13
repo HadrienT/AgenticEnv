@@ -8,12 +8,20 @@ from typing import Literal
 from corelib.errors import ErrorDTO
 from pydantic import BaseModel, Field
 
-DocType = Literal["research_paper", "book", "documentation", "standard", "notes"]
+# `standard`: international standard (Basel); `law`: binding rules; `guidance`: supervisory
+# expectations; `proposal`: consultation or proposed rule, not in force (WP21 §2.1).
+DocType = Literal[
+    "research_paper", "book", "documentation", "standard", "notes", "law", "guidance", "proposal"
+]
 ChunkKind = Literal["text", "equation", "table", "caption"]
 # Separate corpora the agent picks from when it searches (WP20 §2). Adding one means a
 # value here, a description under `collections:` in the kbase config, and a manifest.
 Collection = Literal["quant", "regulation"]
 COLLECTIONS: tuple[Collection, ...] = ("quant", "regulation")
+# Whose text a regulatory document is (WP21 §2): `intl` for BCBS and other international
+# standards. Required in the `regulation` collection, absent elsewhere.
+Jurisdiction = Literal["intl", "eu", "us", "uk"]
+JURISDICTIONS: tuple[Jurisdiction, ...] = ("intl", "eu", "us", "uk")
 
 
 class DocumentMeta(BaseModel):
@@ -28,6 +36,7 @@ class DocumentMeta(BaseModel):
     asset_class: str | None = None
     # Manifests must state it (`sources.resolve`); the default only serves ad hoc paths.
     collection: Collection = "quant"
+    jurisdiction: Jurisdiction | None = None
 
 
 class Section(BaseModel):
@@ -123,6 +132,8 @@ class Citation(BaseModel):
     # Regulatory paragraph ids (`MAR21.4`): stable across re-ingestion, unlike `section`.
     paragraph_ids: list[str] = Field(default_factory=list)
     collection: Collection = "quant"
+    jurisdiction: Jurisdiction | None = None
+    doc_type: DocType | None = None
     valid_from: date | None = None
     valid_until: date | None = None
 

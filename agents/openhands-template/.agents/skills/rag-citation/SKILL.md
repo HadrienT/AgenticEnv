@@ -31,10 +31,13 @@ source of truth, not the model's training data.
 4. If two sources disagree, report the contradiction rather than silently
    picking one.
 5. `kb.search` needs `collections`: `quant` for pricing and numerics,
-   `regulation` for prudential rules (Basel Framework, CRR/CRD, EBA), both
-   when the question spans them. Cite regulatory text by paragraph id
-   (`MAR21.4`); `kb.list_paragraphs` lists every paragraph of a chapter when a
-   review must cover all its requirements.
+   `regulation` for prudential rules, both when the question spans them.
+   Regulatory rules differ by jurisdiction: pass `jurisdictions` (`eu`, `us`,
+   `uk`, plus `intl` for Basel) and state the jurisdiction and document type of
+   every rule you cite. Cite by paragraph id (`MAR21.4`, `Article 274(2)`,
+   `§ 217.132(c)(1)`); `kb.list_documents` gives the doc_keys and
+   `kb.list_paragraphs` lists every paragraph of a document when a review must
+   cover all its requirements.
 
 ## Common Patterns
 

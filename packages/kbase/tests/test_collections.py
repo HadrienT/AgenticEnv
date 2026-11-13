@@ -90,7 +90,7 @@ def test_manifest_default_collection_and_entry_override(tmp_path: Path) -> None:
     (tmp_path / "a.md").write_text("# A\n")
     manifest = _write(
         tmp_path / "m.yaml",
-        "collection: regulation\ndocuments:\n"
+        "collection: regulation\njurisdiction: intl\ndocuments:\n"
         "  - {doc_key: a, path: a.md, title: A, doc_type: standard}\n"
         "  - {doc_key: b, path: a.md, title: B, doc_type: notes, collection: quant}\n",
     )
