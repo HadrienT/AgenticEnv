@@ -419,6 +419,8 @@ class BaselReport(BaseModel):
     chapters_selected: list[str]
     converted: list[str] = []
     failed: dict[str, str] = {}
+    # Chapters with no numbered paragraph (SCO95): nothing to cite, left out on purpose.
+    skipped: dict[str, str] = {}
     paragraphs: int = 0
     formulas: int = 0
     manifest_added: int = 0
@@ -474,7 +476,7 @@ def harvest_basel(
             report.failed[ref.code] = str(exc)
             continue
         if conversion.paragraphs == 0:
-            report.failed[ref.code] = "no numbered paragraph found"
+            report.skipped[ref.code] = "no numbered paragraph"
             continue
         html_path = documents_dir / html_dir / f"{ref.code}.html"
         md_rel = f"{md_dir.rstrip('/')}/{ref.code}.md"
