@@ -98,7 +98,7 @@ def _fake_session_type(harness: _Harness, *, read_only: bool) -> type:
         def final_text(self) -> str:
             return ""
 
-        def fall_back_to_green(self) -> list[str]:
+        def fall_back_to_green(self, *, timed_out: bool = False) -> list[str]:
             return []
 
         def __enter__(self) -> FakeSession:

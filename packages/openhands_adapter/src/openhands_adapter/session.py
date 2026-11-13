@@ -18,6 +18,7 @@ Flow, matching the SDK's own behaviour (not re-implemented REST calls):
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
@@ -405,16 +406,18 @@ class AgentSession:
         except Exception:  # noqa: BLE001 - a missed warning must not disturb the run
             logger.warning("could not warn the agent of the iteration cap", exc_info=True)
 
-    def fall_back_to_green(self) -> list[str]:
-        """After the iteration cap the agent stopped mid-edit, and what it left may not even
-        compile: the copy returns to its last successful build, so that this is what reaches
-        the repository. Returns the paths put back, none after any other outcome."""
+    def fall_back_to_green(self, *, timed_out: bool = False) -> list[str]:
+        """After the iteration cap or the time limit the agent stopped mid-edit, and what it
+        left may not even compile: the copy returns to its last successful build, so that this
+        is what reaches the repository. Returns the paths put back, none after any other
+        outcome."""
         events = list(self.conversation.state.events)[-_CAP_LOOKBACK:]
         capped = any(
             isinstance(event, ConversationErrorEvent) and event.code == _CAP_EVENT_CODE
             for event in events
         )
-        return self._working_copy.restore_green() if capped and self._working_copy else []
+        stopped = capped or timed_out
+        return self._working_copy.restore_green() if stopped and self._working_copy else []
 
     def __enter__(self) -> AgentSession:
         # `with` skips `__exit__` when `__enter__` raises, and a container may be up by then.
@@ -556,9 +559,14 @@ class AgentSession:
         try:
             untyped_conversation.run(blocking=blocking, timeout=self.run_timeout_s)
         except ConversationRunError as exc:
-            restored = self.fall_back_to_green()
+            timed_out = isinstance(exc.original_exception, TimeoutError)
+            if timed_out:
+                # The SDK only stops waiting: the agent would keep editing the restored copy.
+                with contextlib.suppress(Exception):
+                    untyped_conversation.pause()
+            restored = self.fall_back_to_green(timed_out=timed_out)
             if restored:
-                logger.warning("iteration cap: back to the last build", extra={"paths": restored})
+                logger.warning("run stopped: back to the last build", extra={"paths": restored})
             raise DependencyError(
                 f"agent-server run failed: {exc}",
                 details={"conversation_id": str(conversation.id)},

@@ -94,7 +94,7 @@ def _session_type(fake: _Fake) -> type:
         def final_text(self) -> str:
             return ""
 
-        def fall_back_to_green(self) -> list[str]:
+        def fall_back_to_green(self, *, timed_out: bool = False) -> list[str]:
             return fake.green_paths
 
         def __enter__(self) -> Any:
@@ -382,5 +382,25 @@ async def test_the_iteration_cap_is_reported_with_what_was_set_aside(
         finished = await _until(ws, "turn_finished")
 
     assert error["code"] == "ITERATION_LIMIT"
+    assert error["details"]["paths"] == ["a.cpp"]
+    assert finished["reason"] == "error"
+
+
+async def test_the_time_limit_is_reported_with_what_was_set_aside(
+    url: str, fake: _Fake, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def timed_out(*_: object) -> str:
+        return "timeout"
+
+    monkeypatch.setattr(srv, "_await_turn_terminal", timed_out)
+    fake.green_paths = ["a.cpp"]
+    async with connect(url) as ws:
+        await _start(ws)
+        await _begin_turn(ws)
+
+        error = await _until(ws, "error")
+        finished = await _until(ws, "turn_finished")
+
+    assert error["code"] == "TIME_LIMIT"
     assert error["details"]["paths"] == ["a.cpp"]
     assert finished["reason"] == "error"

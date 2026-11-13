@@ -9,6 +9,8 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from corelib.errors import DependencyError
+from openhands.sdk.conversation.exceptions import ConversationRunError
 from openhands.sdk.event.conversation_error import ConversationErrorEvent
 from openhands_adapter.session import AgentSession, _persisted_volumes
 
@@ -146,6 +148,42 @@ def test_another_error_leaves_the_copy_alone(monkeypatch: pytest.MonkeyPatch) ->
     other = ConversationErrorEvent(source="environment", code="ExecutionError", detail="x")
 
     assert _cap_session(monkeypatch, events=[other]).fall_back_to_green() == []
+
+
+def test_the_time_limit_sends_the_copy_back_to_the_last_build(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = _cap_session(monkeypatch, events=[])
+
+    assert session.fall_back_to_green(timed_out=True) == ["a.cpp"]
+
+
+def test_a_timed_out_run_is_stopped_before_the_copy_goes_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = _cap_session(monkeypatch, events=[])
+    calls: list[str] = []
+
+    def run(**_: object) -> None:
+        raise ConversationRunError(uuid.uuid4(), TimeoutError("Run timed out"))
+
+    def restore_green() -> list[str]:
+        calls.append("restore")
+        return ["a.cpp"]
+
+    session._conversation = SimpleNamespace(  # type: ignore[assignment]
+        id=uuid.uuid4(),
+        state=SimpleNamespace(events=[]),
+        send_message=lambda _message: None,
+        run=run,
+        pause=lambda: calls.append("pause"),
+    )
+    session._working_copy = SimpleNamespace(restore_green=restore_green)  # type: ignore[assignment]
+
+    with pytest.raises(DependencyError):
+        session.send("go")
+
+    assert calls == ["pause", "restore"]
 
 
 def test_the_agent_is_warned_once_before_the_cap(monkeypatch: pytest.MonkeyPatch) -> None:
