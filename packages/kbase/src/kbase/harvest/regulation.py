@@ -939,9 +939,18 @@ def latex_from_markdown(markdown: str) -> str:
     return clean_latex(match.group(1) or match.group(2) or "")
 
 
+def text_from_markdown(markdown: str) -> str:
+    """What MinerU read as plain text when it saw no formula (a one-line image it took for
+    a title, `## WSCV CVA = RWk·Sk SCVA`): a searchable fallback, short or nothing."""
+    lines = [line.lstrip("#").strip() for line in markdown.splitlines()]
+    text = _clean(" ".join(line for line in lines if line and not line.startswith("![")))
+    return text if 0 < len(text) <= 200 else ""
+
+
 def apply_image_formulas(markdown: str, img_dir: Path) -> tuple[str, int, int]:
-    """Replaces each `[formula: <image>]` whose sidecar holds LaTeX by `$<latex>$`;
-    returns (markdown, placed, placeholders)."""
+    """Replaces each `[formula: <image>]` whose sidecar holds LaTeX by `$<latex>$`, else
+    by MinerU's plain reading (`<image>.txt`) when it has one; returns (markdown,
+    placed, placeholders)."""
     placed = 0
     total = 0
 
@@ -950,18 +959,42 @@ def apply_image_formulas(markdown: str, img_dir: Path) -> tuple[str, int, int]:
         total += 1
         sidecar = img_dir / f"{match.group(1)}.tex"
         latex = sidecar.read_text(encoding="utf-8").strip() if sidecar.is_file() else ""
-        if not latex:
-            return match.group(0)
-        placed += 1
-        return f"${latex}$"
+        if latex:
+            placed += 1
+            return f"${latex}$"
+        fallback = img_dir / f"{match.group(1)}.txt"
+        text = fallback.read_text(encoding="utf-8").strip() if fallback.is_file() else ""
+        if text:
+            placed += 1
+            return text
+        return match.group(0)
 
     return _IMAGE_PLACEHOLDER_RE.sub(_sub, markdown), placed, total
 
 
+def _on_page(image: Path, target: Path) -> None:
+    """The image centred on a white page, enlarged when small. Alone, a one-line formula
+    image is laid out by MinerU as a title or text and never sent to formula
+    recognition; on a page it is detected as an equation."""
+    from PIL import Image
+
+    with Image.open(image) as raw:
+        picture = raw.convert("RGB")
+    width, height = picture.size
+    if height < 150:
+        picture = picture.resize((width * 2, height * 2), Image.Resampling.LANCZOS)
+        width, height = picture.size
+    page_width, page_height = max(1200, width + 400), max(900, height * 8)
+    page = Image.new("RGB", (page_width, page_height), "white")
+    page.paste(picture, ((page_width - width) // 2, (page_height - height) // 2))
+    page.save(target)
+
+
 def convert_images(images: list[Path], *, mineru: Path, timeout_s: float) -> dict[str, str]:
-    """One MinerU run over all `images` (loading its models once), then one LaTeX
-    sidecar per image, empty when MinerU found no formula. Returns name -> LaTeX."""
-    import shutil
+    """One MinerU run over all `images` (loading its models once), each placed on a page
+    first, then one LaTeX sidecar per image (`<image>.tex`, empty when MinerU found no
+    formula) and, without a formula, MinerU's plain reading (`<image>.txt`).
+    Returns name -> LaTeX."""
     import subprocess
     import tempfile
 
@@ -975,7 +1008,7 @@ def convert_images(images: list[Path], *, mineru: Path, timeout_s: float) -> dic
         out = Path(tmp) / "out"
         src.mkdir()
         for image in images:
-            shutil.copy2(image, src / image.name)
+            _on_page(image, src / f"{image.stem}.png")
         args = [str(mineru), "-p", str(src), "-o", str(out), "-b", "pipeline", "-m", "ocr"]
         try:
             result = subprocess.run(args, capture_output=True, text=True, timeout=timeout_s)
@@ -987,7 +1020,11 @@ def convert_images(images: list[Path], *, mineru: Path, timeout_s: float) -> dic
             )
         for image in images:
             outputs = sorted(out.rglob(f"{image.stem}.md"))
-            latex = latex_from_markdown(outputs[0].read_text("utf-8")) if outputs else ""
+            markdown = outputs[0].read_text("utf-8") if outputs else ""
+            latex = latex_from_markdown(markdown)
             image.with_name(image.name + ".tex").write_text(latex + "\n", encoding="utf-8")
+            text = "" if latex else text_from_markdown(markdown)
+            if text:
+                image.with_name(image.name + ".txt").write_text(text + "\n", encoding="utf-8")
             found[image.name] = latex
     return found
