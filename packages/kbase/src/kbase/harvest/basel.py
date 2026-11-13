@@ -95,7 +95,9 @@ def _classes(el: Tag) -> set[str]:
 
 
 def chapter_refs(html: str) -> list[ChapterRef]:
-    """Every chapter a Basel Framework page links to, in page order, once each."""
+    """Every chapter a Basel Framework page links to, in page order, once each. A page
+    may link two publications of the same chapter (CAP10: 2019-12-15 and a corrected
+    2020-06-05): the latest one is kept, so the result does not depend on the page."""
     soup = BeautifulSoup(html, "html.parser")
     refs: dict[str, ChapterRef] = {}
     for anchor in soup.find_all("a", href=True):
@@ -106,7 +108,8 @@ def chapter_refs(html: str) -> list[ChapterRef]:
             continue
         code = f"{match['std'].upper()}{match['num']}"
         label = anchor.select_one(".accordion-subitem__label")
-        if code in refs or label is None:
+        published = date.fromisoformat(match["published"])
+        if label is None or (code in refs and refs[code].published >= published):
             continue
         refs[code] = ChapterRef(
             code=code,
@@ -114,7 +117,7 @@ def chapter_refs(html: str) -> list[ChapterRef]:
             title=_clean(label.get_text(" ")),
             url=BIS_ROOT + str(anchor["href"]),
             in_force=date.fromisoformat(match["inforce"]),
-            published=date.fromisoformat(match["published"]),
+            published=published,
         )
     return list(refs.values())
 
@@ -419,6 +422,8 @@ class BaselReport(BaseModel):
     chapters_selected: list[str]
     converted: list[str] = []
     failed: dict[str, str] = {}
+    # Chapters with no numbered paragraph (SCO95): nothing to cite, left out on purpose.
+    skipped: dict[str, str] = {}
     paragraphs: int = 0
     formulas: int = 0
     manifest_added: int = 0
@@ -468,13 +473,23 @@ def harvest_basel(
             report.failed[ref.code] = f"HTTP {response.status}"
             continue
         html = response.body.decode("utf-8", errors="replace")
+        # The seed may link an older publication of the chapter than the chapter's own
+        # page does (CAP10: 2019-12-15 on the seed, 2020-06-05 on its page).
+        newer = next(
+            (r for r in chapter_refs(html) if r.code == ref.code and r.published > ref.published),
+            None,
+        )
+        if newer is not None and newer.in_force <= date.today():
+            again = client.get(newer.url)
+            if again.status == 200:
+                ref, html = newer, again.body.decode("utf-8", errors="replace")
         try:
             conversion = convert_chapter(html, ref.code, ref.url)
         except ValueError as exc:
             report.failed[ref.code] = str(exc)
             continue
         if conversion.paragraphs == 0:
-            report.failed[ref.code] = "no numbered paragraph found"
+            report.skipped[ref.code] = "no numbered paragraph"
             continue
         html_path = documents_dir / html_dir / f"{ref.code}.html"
         md_rel = f"{md_dir.rstrip('/')}/{ref.code}.md"

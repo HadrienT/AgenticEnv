@@ -10,10 +10,10 @@ documents:
   title: CAP10 Definition of eligible capital
   authors:
   - Basel Committee on Banking Supervision
-  year: 2020
+  year: 2019
   doc_type: standard
   topic: reg-capital-definition
-  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/cap/10/inforce/2019-12-15/published/2020-06-05
+  source_url: https://www.bis.org/committees/bcbs/basel-framework/standard/cap/10/inforce/2019-12-15/published/2019-12-15
   license: (c) Bank for International Settlements; excerpts may be reproduced with the source stated.
     Kept local, not redistributed.
   valid_from: '2019-12-15'
