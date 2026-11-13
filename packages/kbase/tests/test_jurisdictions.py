@@ -10,6 +10,12 @@ from corelib.errors import ValidationError
 from kbase.config import KbaseConfig, load_kbase_config
 from kbase.ingestion import sources
 from kbase.provenance import format_citation
+from kbase.regulatory import (
+    matches_prefix,
+    normalize_paragraph_refs,
+    paragraph_id,
+    paragraph_tokens,
+)
 from kbase.retrieval.filters import to_sql_predicate
 from kbase.retrieval.query import RetrievalFilters
 from kbase.schemas import Citation
@@ -105,3 +111,50 @@ def test_full_citation_starts_with_jurisdiction_and_type() -> None:
     text = format_citation(citation, "full")
     assert text.startswith("[EU, law] European Parliament and Council et al. (2024). CRR.")
     assert "Article 274(2)." in text
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        ("Article 274(2)", "Article 274(2)"),
+        ("Article 325c(2) The sum of three components", "Article 325c(2)"),
+        ("Article 274 Exposure value", "Article 274"),
+        ("Rule 2.1", "Rule 2.1"),
+        ("Rule 3.4A A firm must", "Rule 3.4A"),
+        ("§ 217.132(c)(1)", "§ 217.132(c)(1)"),
+        ("§ 217.132 Counterparty credit risk", "§ 217.132"),
+        ("§240.18a-3(c)(1)(ii)(A)", "§ 240.18a-3(c)(1)(ii)(A)"),
+        ("2.1 Bias", None),
+        ("Rules of thumb", None),
+    ],
+)
+def test_paragraph_ids_of_eu_uk_and_us_texts(title: str, expected: str | None) -> None:
+    assert paragraph_id(title) == expected
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ("what does Art. 274(2) CRR require", "what does Article 274(2) CRR require"),
+        ("article 274 paragraph 2", "Article 274(2)"),
+        ("12 CFR 217.132(c)(5) netting", "§ 217.132(c)(5) netting"),
+        ("12 C.F.R. § 217.132", "§ 217.132"),
+        ("see section 217.201 of Regulation Q", "see § 217.201 of Regulation Q"),
+        ("Heston calibration 2.5 of the book", "Heston calibration 2.5 of the book"),
+    ],
+)
+def test_spelled_out_eu_and_us_references_are_normalised(query: str, expected: str) -> None:
+    assert normalize_paragraph_refs(query) == expected
+
+
+def test_lexical_tokens_for_articles_and_cfr_sections() -> None:
+    tokens = paragraph_tokens("Article 274(2), § 217.132(c) and MAR21.4")
+    assert tokens == ["mar21.4", "article <-> 274", "217.132"]
+
+
+def test_prefix_covers_paragraphs_of_an_article_or_cfr_section() -> None:
+    assert matches_prefix("Article 274(2)", "Article 274")
+    assert not matches_prefix("Article 2745", "Article 274")
+    assert matches_prefix("§ 217.132(c)(1)", "§ 217.132(c)")
+    assert matches_prefix("§ 217.132(c)(1)", "§ 217.132")
+    assert not matches_prefix("§ 217.1320", "§ 217.132")

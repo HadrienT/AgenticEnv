@@ -252,3 +252,9 @@ def test_list_documents_and_topics_by_jurisdiction(corpus: dict[str, str]) -> No
     assert by_jurisdiction["eu"].doc_types.get("law", 0) >= 1
     assert by_jurisdiction["intl"].topics.get("reg-frtb-sa", 0) >= 1
     assert summary.collections["quant"].jurisdictions == {}
+
+
+def test_spelled_out_article_reference_finds_the_article(corpus: dict[str, str]) -> None:
+    for text in ("what does Art. 325c(2) require", "article 325c paragraph 2 own funds"):
+        keys = _keys(RetrievalFilters(collections=["regulation"], jurisdictions=["eu"]), text=text)
+        assert keys and keys[0] == corpus["eu"], text
