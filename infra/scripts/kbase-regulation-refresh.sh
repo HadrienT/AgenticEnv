@@ -3,9 +3,12 @@
 # Framework, EU Cellar, PRA Rulebook, eCFR, legislation.gov.uk, Federal Register, PDFs),
 # read new formula images through MinerU, re-ingest what changed (ingestion skips a
 # document whose file is unchanged, by sha256), check, evaluate, and comment the result
-# on issue #71. Runs from the deployed checkout (`kbase-regulation-refresh.timer`).
+# on issue #71. Runs from the deployed checkout. Scheduled by Airflow in ~/data-ingest
+# (DAG `kbase_regulation_refresh`), which reaches the host over SSH with a key whose
+# forced command is this script (infra/scripts/install-refresh-access.sh); the summary
+# goes to standard output, so it shows in the Airflow task log.
 #
-#   systemctl --user start kbase-regulation-refresh.service   # run it now
+#   bash ~/AgenticEnv/infra/scripts/kbase-regulation-refresh.sh   # run it by hand
 #
 # Network: polite fetching (3 s between requests, generic user agent), a few hundred
 # requests in all. GPU: MinerU on new formula images and Basel chapter PDFs only.
@@ -22,6 +25,7 @@ stamp="$(date +%Y-%m-%dT%H%M)"
 logs="$AGX_PATHS_DOCUMENTS_DIR/logs"
 mkdir -p "$logs"
 log="$logs/regulation-refresh-$stamp.log"
+exec 3>&1            # the caller's output (Airflow's SSH task): the summary goes there
 exec >>"$log" 2>&1
 
 status=0
@@ -102,4 +106,5 @@ body="Monthly regulation refresh \`$stamp\` (infra/scripts/kbase-regulation-refr
 $summary
 Log: \`$log\`"
 gh issue comment 71 --repo HadrienT/AgenticEnv --body "$body" || echo "could not comment on #71"
+printf '%s\n' "$body" >&3
 exit $status
