@@ -101,6 +101,8 @@ class Conversion:
     formulas: int = 0
     # Formula images to write next to the Markdown: file name -> bytes.
     images: dict[str, bytes] = field(default_factory=dict)
+    # Formula images to download next to the Markdown: file name -> URL (eCFR graphics).
+    image_urls: dict[str, str] = field(default_factory=dict)
 
 
 class _Writer:
@@ -232,8 +234,14 @@ def _ecfr_inline(node: PageElement) -> str:
     if name in {"su", "sup"}:
         return f"^{{{_clean(inner)}}}"
     if name == "img":
-        return "[formula: image]"
+        # `/graphics/er24ja20.025.gif`: a Federal Register graphic, unique by name.
+        src = str(node.get("src") or "")
+        graphic = src.rsplit("/", 1)[-1]
+        return f" [formula: {graphic}] " if _GRAPHIC_RE.fullmatch(graphic) else "[formula: image]"
     return inner
+
+
+_GRAPHIC_RE = re.compile(r"[A-Za-z0-9_.-]{1,80}\.(?:gif|png|jpg)")
 
 
 def _plain(text: str) -> str:
@@ -251,7 +259,7 @@ def _ecfr_paragraph(out: _Writer, p: Tag, number: str, path: _CfrPath) -> None:
     """A `<P>`: its leading markers set the paragraph path; `(a) Heading—(1) text`
     gives (a) its heading and the text to (a)(1)."""
     text = _ecfr_inline(p)
-    out.formulas += text.count("[formula: image]")
+    out.formulas += text.count("[formula:")
     pid = ""
     stripped = text.lstrip()
     while True:
@@ -289,7 +297,7 @@ def _ecfr_walk(out: _Writer, node: Tag, number: str, path: _CfrPath, quoted: boo
             _ecfr_paragraph(out, child, number, path)
         elif name in {"p", "fp", "fp-1", "fp-2", "ftnt"}:
             text = _ecfr_inline(child)
-            out.formulas += text.count("[formula: image]")
+            out.formulas += text.count("[formula:")
             out.text(_plain(text))
         else:
             # Containers (DIV, EXTRACT): an EXTRACT quotes text, its markers are not ours.
@@ -311,7 +319,12 @@ def convert_ecfr(xml: str, *, title: str) -> Conversion:
         heading = _clean(head.get_text(" ")) if isinstance(head, Tag) else f"§ {number}"
         out.paragraph(f"§ {number}", heading.removeprefix(f"§ {number}").strip())
         _ecfr_walk(out, section, number, _CfrPath(), quoted=False)
-    return out.result()
+    result = out.result()
+    result.image_urls = {
+        name: f"{ECFR_ROOT}/graphics/{name}"
+        for name in _IMAGE_PLACEHOLDER_RE.findall(result.markdown)
+    }
+    return result
 
 
 # ------------------------------------------------------------------------ Cellar (EU)
@@ -511,8 +524,13 @@ def _pra_inline(node: PageElement) -> str:
     if node.name == "sup":
         return f"^{{{_clean(inner)}}}"
     if node.name == "img":
-        return "[formula: image]"
+        # `-/media/<hash>.ashx`: a formula image served by the Rulebook (JPEG).
+        media = _PRA_MEDIA_RE.search(str(node.get("src") or ""))
+        return f" [formula: pra-{media.group(1)}.jpg] " if media else "[formula: image]"
     return inner
+
+
+_PRA_MEDIA_RE = re.compile(r"-/media/([0-9a-f]{32})\.ashx")
 
 
 def _pra_blocks(out: _Writer, node: Tag) -> None:
@@ -541,7 +559,7 @@ def _pra_blocks(out: _Writer, node: Tag) -> None:
             if display is not None:
                 out.equation(display.group(1))
                 continue
-            out.formulas += text.count("[formula: image]")
+            out.formulas += text.count("[formula:")
             out.text(text)
         else:
             _pra_blocks(out, child)
@@ -595,7 +613,13 @@ def convert_pra(html: str, *, title: str) -> Conversion:
         elif label:
             out.text(label)
         _pra_blocks(out, body)
-    return out.result()
+    result = out.result()
+    result.image_urls = {
+        name: f"{PRA_ROOT}/-/media/{name.removeprefix('pra-').removesuffix('.jpg')}.ashx"
+        for name in _IMAGE_PLACEHOLDER_RE.findall(result.markdown)
+        if name.startswith("pra-")
+    }
+    return result
 
 
 # ----------------------------------------------------------------- catalogue and runs
@@ -845,10 +869,17 @@ def harvest_regulation(
         md_rel = f"{root_dir}/{entry.jurisdiction}/md/{entry.doc_key}.md"
         (documents_dir / md_rel).parent.mkdir(parents=True, exist_ok=True)
         (documents_dir / md_rel).write_text(conversion.markdown, encoding="utf-8")
-        if conversion.images:
+        if conversion.images or conversion.image_urls:
             (base / "img").mkdir(parents=True, exist_ok=True)
             for name, data in conversion.images.items():
                 (base / "img" / name).write_bytes(data)
+            for name, url in conversion.image_urls.items():
+                target = base / "img" / name
+                if target.exists():
+                    continue
+                response = client.get(url)
+                if response.status == 200:
+                    target.write_bytes(response.body)
         entries.setdefault(entry.jurisdiction, []).append(manifest_entry(entry, md_rel))
         report.converted.append(
             DocumentReport(
@@ -856,7 +887,7 @@ def harvest_regulation(
                 paragraphs=conversion.paragraphs,
                 tables=conversion.tables,
                 formulas=conversion.formulas,
-                images=len(conversion.images),
+                images=len(conversion.images) + len(conversion.image_urls),
                 bytes_md=len(conversion.markdown.encode("utf-8")),
             )
         )
@@ -870,7 +901,7 @@ def harvest_regulation(
 
 # ------------------------------------------------------------- formula images (EU)
 
-_IMAGE_PLACEHOLDER_RE = re.compile(r"\[formula: ([A-Za-z0-9_.-]+\.(?:jpg|png))\]")
+_IMAGE_PLACEHOLDER_RE = re.compile(r"\[formula: ([A-Za-z0-9_.-]+\.(?:jpg|png|gif))\]")
 _MD_FORMULA_RE = re.compile(r"\$\$\s*(.+?)\s*\$\$|\$(.+?)\$", re.DOTALL)
 
 
@@ -881,7 +912,7 @@ def pending_images(img_dir: Path) -> list[Path]:
     return sorted(
         p
         for p in img_dir.iterdir()
-        if p.suffix in {".jpg", ".png"} and not p.with_name(p.name + ".tex").exists()
+        if p.suffix in {".jpg", ".png", ".gif"} and not p.with_name(p.name + ".tex").exists()
     )
 
 

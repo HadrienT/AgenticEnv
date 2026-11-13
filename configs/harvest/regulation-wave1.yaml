@@ -240,7 +240,10 @@ documents:
 
   # ======================================================================= UK
   # PRA Rulebook, CRR firms: Basel 3.1 parts as they apply from 2027-01-01 (PS1/26);
-  # the internal model approach from 2028-01-01.
+  # the internal model approach from 2028-01-01. Not here: the Rulebook's "Valuation"
+  # part (Solvency II insurers, not bank prudent valuation) and the current CVA (CRR)
+  # part (nearly empty: until 2026-12-31 UK CVA rules sit in the onshored CRR on
+  # legislation.gov.uk, a source for a later wave).
   - doc_key: uk-pra-mr-general
     source: pra
     jurisdiction: uk
@@ -318,17 +321,6 @@ documents:
     topic: reg-cva-capital
     license: *uk
     valid_from: 2027-01-01
-  - doc_key: uk-pra-cva
-    source: pra
-    jurisdiction: uk
-    pra_part: credit-valuation-adjustment-risk-crr
-    pra_date: 2026-11-13
-    title: "PRA Rulebook, Credit Valuation Adjustment Risk (CRR), until 2026-12-31"
-    authors: [Prudential Regulation Authority]
-    year: 2026
-    topic: reg-cva-capital
-    license: *uk
-    valid_until: 2026-12-31
   - doc_key: uk-pra-trading-book
     source: pra
     jurisdiction: uk
@@ -340,20 +332,6 @@ documents:
     topic: reg-trading-book-boundary
     license: *uk
     valid_from: 2027-01-01
-  - doc_key: uk-pra-valuation
-    source: pra
-    jurisdiction: uk
-    pra_part: valuation
-    pra_date: 2026-11-13
-    title: "PRA Rulebook, Valuation (prudent valuation)"
-    authors: [Prudential Regulation Authority]
-    year: 2026
-    topic: reg-prudent-valuation
-    license: *uk
-
-  # ======================================================================= US
-  # 12 CFR 217 (Federal Reserve, Regulation Q; OCC 12 CFR 3 and FDIC 12 CFR 324 are the
-  # same rule). The 2013 rule stays binding while the 2026 re-proposal is pending.
   - doc_key: us-cfr-217-f
     source: ecfr
     jurisdiction: us

@@ -290,7 +290,7 @@ def _cmd_regulation_formulas(args: argparse.Namespace) -> int:
     config = load_kbase_config()
     root = get_settings().paths.documents_dir / config.regulation_harvest.root_dir
     summary: dict[str, dict[str, int]] = {}
-    for jurisdiction in args.jurisdiction or ["eu"]:
+    for jurisdiction in args.jurisdiction or ["eu", "uk", "us"]:
         img_dir = root / jurisdiction / "img"
         pending = pending_images(img_dir)
         try:
@@ -445,10 +445,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
     reg_formulas_parser = subparsers.add_parser(
         "regulation-formulas",
-        help="Read formula images of harvested rules through MinerU into LaTeX (WP21)",
+        help="Read formula images of harvested rules (EU, UK, US) through MinerU into LaTeX (WP21)",
     )
     reg_formulas_parser.add_argument(
-        "--jurisdiction", action="append", choices=JURISDICTIONS, help="Default: eu"
+        "--jurisdiction", action="append", choices=JURISDICTIONS, help="Default: eu, uk, us"
     )
     reg_formulas_parser.add_argument(
         "--apply-only", action="store_true", help="Use the existing LaTeX sidecars, run no MinerU"

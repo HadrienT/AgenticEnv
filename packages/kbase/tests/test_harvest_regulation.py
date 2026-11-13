@@ -33,7 +33,7 @@ _ECFR = """<?xml version="1.0" encoding="UTF-8"?>
 <P>(b) <I>EAD for margin loans</I>—(1) <I>General.</I> An institution may recognize collateral.</P>
 <P>(2) <I>Haircuts.</I> (i) EAD equals:</P>
 <FP-2>max{0, [(ΣE − ΣC) + Σ(E<E T="52">s</E> × H<E T="52">s</E>)]}</FP-2>
-<P>(A) ΣE equals the value of the exposure;</P>
+<P>(A) ΣE equals the value of the exposure <img src="/graphics/er24ja20.025.gif">;</P>
 <P>(<I>1</I>) First italic level;</P>
 <P>(<I>2</I>)(<I>i</I>) Two markers at once.</P>
 <DIV><TABLE><TR><TH>Maturity</TH><TH colspan="2">Haircut</TH></TR>
@@ -97,6 +97,7 @@ _PRA = """<html><body>
   <div class="div-row__col-1"><p><span class="rule-number">7.</span></p></div>
   <div class="div-row__col-2 "><p>Weighted sensitivities are aggregated (<em>&rho;<sub>kl</sub></em>):</p>
   <p style="text-align: center;">\\[K_b=\\sqrt{\\sum_{k}{WS_k^2}}\\]</p>
+  <p><img src="-/media/27cc8d666e6a46d7967e6407cad7d37b.ashx" width="550"></p>
   <ol class="new-bullet"><li><span>(a) first item;</span></li></ol>
   <span class="visually-hidden">hidden</span></div>
 </div></div>
@@ -124,6 +125,8 @@ def test_ecfr_paragraph_paths_headings_formulas_and_tables() -> None:
     assert "Σ(E_{s} × H_{s})" in conv.markdown
     assert "| Maturity | Haircut |  |" in conv.markdown and conv.tables == 1
     assert "78 FR" not in conv.markdown
+    assert "[formula: er24ja20.025.gif]" in conv.markdown
+    assert conv.image_urls == {"er24ja20.025.gif": "https://www.ecfr.gov/graphics/er24ja20.025.gif"}
 
 
 def test_cfr_roman_numeral_after_h_is_a_letter() -> None:
@@ -164,7 +167,13 @@ def test_pra_rules_articles_latex_and_skipped_provisions() -> None:
     md = conv.markdown
     assert _ids(md) == [None, "Rule 2.1", "Article 325f", "Article 325f(7)"]
     assert "## 2 Level of Application" in md
-    assert "$$\nK_b=\\sqrt{\\sum_{k}{WS_k^2}}\n$$" in md and conv.formulas == 1
+    assert "$$\nK_b=\\sqrt{\\sum_{k}{WS_k^2}}\n$$" in md and conv.formulas == 2
+    assert "[formula: pra-27cc8d666e6a46d7967e6407cad7d37b.jpg]" in md
+    assert conv.image_urls == {
+        "pra-27cc8d666e6a46d7967e6407cad7d37b.jpg": (
+            "https://www.prarulebook.co.uk/-/media/27cc8d666e6a46d7967e6407cad7d37b.ashx"
+        )
+    }
     assert "ρ_{kl}" in md and "(a) first item;" in md
     assert "Provision left blank" not in md and "hidden" not in md and "01/01/2027" not in md
 
@@ -243,6 +252,7 @@ def test_harvest_writes_markdown_images_and_one_manifest_per_jurisdiction(tmp_pa
             "section=217.132": _ECFR,
             "celex/02013R0575-20260626": _EU,
             "pra-rules/market-risk/01-01-2027": _PRA,
+            "graphics/er24ja20.025.gif": "GIF89a",
         }
     )
     report = harvest_regulation(
@@ -261,6 +271,7 @@ def test_harvest_writes_markdown_images_and_one_manifest_per_jurisdiction(tmp_pa
         "application/xhtml+xml"
     )
     assert (tmp_path / "docs/regulation/eu/img/eu-x-001.jpg").is_file()
+    assert (tmp_path / "docs/regulation/us/img/er24ja20.025.gif").read_bytes() == b"GIF89a"
     eu = yaml.safe_load((tmp_path / "repo/manifest-regulation-eu.yaml").read_text())
     assert eu["collection"] == "regulation" and eu["jurisdiction"] == "eu"
     assert [d["doc_key"] for d in eu["documents"]] == ["eu-x", "eu-y"]

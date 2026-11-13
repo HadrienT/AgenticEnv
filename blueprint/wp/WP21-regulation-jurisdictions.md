@@ -144,9 +144,10 @@ Source: the PRA Rulebook, which shows each part at a given date, including futur
 | P1 | Market Risk: Simplified Standardised Approach (CRR) | 2027-01-01 | `uk-pra-mr-ssa` |
 | P1 | Market Risk: Internal Model Approach (CRR) | from 2028-01-01 | `uk-pra-mr-ima` |
 | P1 | Counterparty Credit Risk (CRR) | current + 2027-01-01 | `uk-pra-ccr`, `uk-pra-ccr-2027` |
-| P1 | Credit Valuation Adjustment Risk (replaces the CRR part on 2027-01-01) | current + 2027-01-01 | `uk-pra-cva`, `uk-pra-cva-2027` |
-| P1 | Valuation (prudent valuation) | current | `uk-pra-valuation` |
-| P1 | UK EMIR margin RTS (onshored 2016/2251, legislation.gov.uk) | current | `uk-emir-margin-rts` |
+| P1 | Credit Valuation Adjustment Risk (replaces the CRR part on 2027-01-01) | 2027-01-01 | `uk-pra-cva-2027` |
+| P1 | UK EMIR margin RTS (onshored 2016/2251, legislation.gov.uk) | current | later wave (another format) |
+| P1 | UK prudent valuation (onshored 2016/101) | current | later wave: the Rulebook's "Valuation" part is the Solvency II one, for insurers |
+| P2 | UK CVA until 2026-12-31 (onshored CRR, legislation.gov.uk) | current | later wave: the PRA's current CVA (CRR) part is nearly empty |
 | P2 | Trading Book (CRR) | 2027-01-01 | `uk-pra-trading-book` |
 | P2 | Credit Risk: General Provisions / Standardised Approach / IRB / Credit Risk Mitigation (CRR) | 2027-01-01 | `uk-pra-cr-*` |
 | P2 | Required Level of Own Funds (CRR) (output floor) | 2027-01-01 | `uk-pra-own-funds-level` |
@@ -202,7 +203,11 @@ A consolidated EU text shared by several entries is fetched once.
   then `kbase regulation-formulas` runs MinerU once over the pending images (GPU, night
   batch), writes a LaTeX sidecar per image and puts `$…$` in place. A new harvest
   re-applies the sidecars without MinerU (`--apply-only`).
-- **PRA** formulas are LaTeX in the page (`\[…\]`) and become `$$` equation blocks.
+- **PRA** formulas are LaTeX in the page (`\[…\]`) and become `$$` equation blocks;
+  some parts (CCR) use JPEG images (`-/media/<hash>.ashx`), downloaded under `img/`
+  and read by `kbase regulation-formulas` like the EU ones.
+- **eCFR** formulas that are Federal Register graphics (`/graphics/er24ja20.025.gif`)
+  take the same route.
 - Deferred from wave 1: UK EMIR margin RTS (legislation.gov.uk, another format), the
   BCBS/IOSCO margin framework (PDF, through the guidance manifest).
 

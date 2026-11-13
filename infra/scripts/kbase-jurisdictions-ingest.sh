@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# WP21 batch: EU formula images through MinerU, then ingestion of the EU, UK and US
-# regulation manifests, a consistency check and the evaluation gates. Heavy on the GPU
-# (MinerU) and the embedding server: meant to run at night, from the deployed checkout,
-# after `just migrate` has applied 0009.
+# WP21 batch: formula images (EU, PRA, eCFR) through MinerU, then ingestion of the EU,
+# UK and US regulation manifests, a consistency check and the evaluation gates. Heavy on
+# the GPU (MinerU) and the embedding server: meant to run at night, from the deployed
+# checkout, after `just migrate` has applied 0009.
 #
 #   systemd-run --user --on-calendar='YYYY-MM-DD 01:00' --unit=kbase-jurisdictions-ingest \
 #     /bin/bash ~/AgenticEnv/infra/scripts/kbase-jurisdictions-ingest.sh
@@ -34,7 +34,7 @@ step() {
   fi
 }
 
-step uv run kbase regulation-formulas --jurisdiction eu
+step uv run kbase regulation-formulas
 for j in eu uk us; do
   step uv run kbase ingest --target "documents/manifest-regulation-$j.yaml"
 done
