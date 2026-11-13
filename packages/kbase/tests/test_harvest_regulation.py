@@ -126,10 +126,14 @@ def test_ecfr_paragraph_paths_headings_formulas_and_tables() -> None:
     assert "Σ(E_{s} × H_{s})" in conv.markdown
     assert "| Maturity | Haircut |  |" in conv.markdown and conv.tables == 1
     assert "78 FR" not in conv.markdown
-    assert "[formula: er24ja20.025.gif]" in conv.markdown
+    assert "[formula: er24ja20.025.png]" in conv.markdown
     assert conv.image_urls == {
-        "er24ja20.025.gif": "https://www.ecfr.gov/graphics/er24ja20.025.gif",
-        "er11oc13.031.gif": "https://www.ecfr.gov/graphics/er11oc13.031.gif",
+        "er24ja20.025.png": (
+            "https://img.federalregister.gov/ER24JA20.025/ER24JA20.025_original_size.png"
+        ),
+        "er11oc13.031.png": (
+            "https://img.federalregister.gov/ER11OC13.031/ER11OC13.031_original_size.png"
+        ),
     }
 
 
@@ -256,7 +260,7 @@ def test_harvest_writes_markdown_images_and_one_manifest_per_jurisdiction(tmp_pa
             "section=217.132": _ECFR,
             "celex/02013R0575-20260626": _EU,
             "pra-rules/market-risk/01-01-2027": _PRA,
-            "graphics/er24ja20.025.gif": "GIF89a",
+            "ER24JA20.025_original_size.png": "PNG",
         }
     )
     report = harvest_regulation(
@@ -275,7 +279,7 @@ def test_harvest_writes_markdown_images_and_one_manifest_per_jurisdiction(tmp_pa
         "application/xhtml+xml"
     )
     assert (tmp_path / "docs/regulation/eu/img/eu-x-001.jpg").is_file()
-    assert (tmp_path / "docs/regulation/us/img/er24ja20.025.gif").read_bytes() == b"GIF89a"
+    assert (tmp_path / "docs/regulation/us/img/er24ja20.025.png").read_bytes() == b"PNG"
     eu = yaml.safe_load((tmp_path / "repo/manifest-regulation-eu.yaml").read_text())
     assert eu["collection"] == "regulation" and eu["jurisdiction"] == "eu"
     assert [d["doc_key"] for d in eu["documents"]] == ["eu-x", "eu-y"]
