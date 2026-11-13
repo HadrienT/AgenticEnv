@@ -234,11 +234,21 @@ def _ecfr_inline(node: PageElement) -> str:
     if name in {"su", "sup"}:
         return f"^{{{_clean(inner)}}}"
     if name == "img":
-        # `/graphics/er24ja20.025.gif`: a Federal Register graphic, unique by name.
+        # `/graphics/er24ja20.025.gif`: a Federal Register graphic, unique by name. The
+        # eCFR path serves an HTML page; the image comes from the Federal Register's
+        # image server as PNG (`ecfr_graphic_url`).
         src = str(node.get("src") or "")
         graphic = src.rsplit("/", 1)[-1]
-        return f" [formula: {graphic}] " if _GRAPHIC_RE.fullmatch(graphic) else "[formula: image]"
+        if not _GRAPHIC_RE.fullmatch(graphic):
+            return "[formula: image]"
+        return f" [formula: {graphic.rsplit('.', 1)[0]}.png] "
     return inner
+
+
+def ecfr_graphic_url(name: str) -> str:
+    """`er24ja20.025.png` -> the Federal Register image server's PNG of that graphic."""
+    stem = name.rsplit(".", 1)[0].upper()
+    return f"https://img.federalregister.gov/{stem}/{stem}_original_size.png"
 
 
 _GRAPHIC_RE = re.compile(r"[A-Za-z0-9_.-]{1,80}\.(?:gif|png|jpg)")
@@ -325,8 +335,7 @@ def convert_ecfr(xml: str, *, title: str) -> Conversion:
         _ecfr_walk(out, section, number, _CfrPath(), quoted=False)
     result = out.result()
     result.image_urls = {
-        name: f"{ECFR_ROOT}/graphics/{name}"
-        for name in _IMAGE_PLACEHOLDER_RE.findall(result.markdown)
+        name: ecfr_graphic_url(name) for name in _IMAGE_PLACEHOLDER_RE.findall(result.markdown)
     }
     return result
 
@@ -882,7 +891,8 @@ def harvest_regulation(
                 if target.exists():
                     continue
                 response = client.get(url)
-                if response.status == 200:
+                # A page instead of an image (the eCFR's own /graphics/ path does that).
+                if response.status == 200 and response.body.lstrip()[:1] != b"<":
                     target.write_bytes(response.body)
         entries.setdefault(entry.jurisdiction, []).append(manifest_entry(entry, md_rel))
         report.converted.append(
