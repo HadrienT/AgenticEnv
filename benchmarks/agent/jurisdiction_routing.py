@@ -12,7 +12,9 @@ Scored per question:
   fine; `intl` may be added; for a question that names none, either an unfiltered
   search or at least two jurisdictions);
 - `labelled`: the answer names the jurisdiction of each expected rule (EU/CRR,
-  UK/PRA, US/CFR, Basel), and says "proposal" when one is expected.
+  UK/PRA, US/CFR, Basel), and says "proposal" when one is expected;
+- `english`: every `kb.search` query is written in English (the base is English),
+  including for the questions asked in French (`language: fr`).
 
     uv run python benchmarks/agent/jurisdiction_routing.py --profile quant
     uv run python benchmarks/agent/jurisdiction_routing.py --profile research --output r.json
@@ -131,6 +133,36 @@ def _routed(case: dict[str, Any], calls: list[dict[str, Any]]) -> bool:
     return expected <= got and got - expected <= {"intl"}
 
 
+_FRENCH_RE = re.compile(
+    r"[àâçéèêëîïôûùœ]|\b(?:le|la|les|des|du|une|pour|quelles?|quels?|dans|avec|sur)\b",
+    re.IGNORECASE,
+)
+
+
+# French words of the domain with no English homograph: a short query has no stop word.
+_FRENCH_TERMS_RE = re.compile(
+    r"\b(?:facteur|décotes?|marges?|exigences?|fonds propres|banques?|période|niveau|"
+    r"confiance|risques?|calcul|approche|proposition|britannique|américaine|initiale|"
+    r"dérivés?|collatéral|contrepartie|valorisation)\b",
+    re.IGNORECASE,
+)
+
+
+def _french(text: str) -> bool:
+    """A sentence (an answer): accents or several French stop words."""
+    return len(_FRENCH_RE.findall(text)) >= 2
+
+
+def _french_query(text: str) -> bool:
+    """A search query, often a few words: one French term is enough."""
+    return _french(text) or _FRENCH_TERMS_RE.search(text) is not None
+
+
+def _english_queries(calls: list[dict[str, Any]]) -> bool:
+    texts = [str(c["arguments"].get("text", "")) for c in calls if c["tool"] == "kb.search"]
+    return not any(_french_query(text) for text in texts)
+
+
 def _labelled(case: dict[str, Any], answer: str) -> bool:
     if case.get("collection") == "quant":
         return True
@@ -148,6 +180,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
     by_openai = {_openai_name(t): t for t in TOOLS}
     system = _profile_prompt(args.profile)
     cases = yaml.safe_load(Path(args.cases).read_text(encoding="utf-8"))["cases"]
+    if args.only:
+        cases = [c for c in cases if c["id"] in args.only or c.get("language") in args.only]
     rows = []
     for case in cases:
         messages: list[dict[str, Any]] = [
@@ -195,6 +229,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             "question": case["question"],
             "routed": _routed(case, calls),
             "labelled": _labelled(case, answer),
+            "english": _english_queries(calls),
             "first_search": first_search,
             "calls": calls,
             "answer": answer,
@@ -203,6 +238,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         rows.append(row)
         print(
             f"{row['id']:28} routed={int(row['routed'])} labelled={int(row['labelled'])} "
+            f"english={int(row['english'])} "
             f"jurisdictions={(first_search or {}).get('jurisdictions')} "
             f"collections={(first_search or {}).get('collections')} {row['seconds']}s",
             flush=True,
@@ -212,6 +248,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         "model": args.model,
         "routed": sum(r["routed"] for r in rows),
         "labelled": sum(r["labelled"] for r in rows),
+        "english": sum(r["english"] for r in rows),
         "cases": len(rows),
         "rows": rows,
     }
@@ -227,10 +264,16 @@ def main() -> int:
     parser.add_argument("--model", default="local")
     parser.add_argument("--max-turns", type=int, default=4)
     parser.add_argument("--output")
+    parser.add_argument(
+        "--only", action="append", help="Case id or language (`fr`) to run; repeatable"
+    )
     args = parser.parse_args()
     report = asyncio.run(run(args))
     n = report["cases"]
-    print(f"routed {report['routed']}/{n}, labelled {report['labelled']}/{n}")
+    print(
+        f"routed {report['routed']}/{n}, labelled {report['labelled']}/{n}, "
+        f"english queries {report['english']}/{n}"
+    )
     if args.output:
         Path(args.output).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
     return 0

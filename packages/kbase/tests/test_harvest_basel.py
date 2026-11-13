@@ -157,3 +157,40 @@ def test_harvest_fails_loudly_when_the_seed_is_gone(tmp_path: Path) -> None:
             md_dir="m",
             manifest=tmp_path / "m.yaml",
         )
+
+
+def test_chapter_refs_keep_the_latest_publication_of_a_chapter() -> None:
+    from kbase.harvest.basel import chapter_refs
+
+    base = "/committees/bcbs/basel-framework/standard/cap/10/inforce/2019-12-15/published/"
+    html = "".join(
+        f'<a href="{base}{day}"><span class="accordion-subitem__label">CAP10 Definition</span></a>'
+        for day in ("2019-12-15", "2020-06-05", "2019-12-15")
+    )
+    (ref,) = chapter_refs(html)
+    assert ref.url.endswith("/published/2020-06-05") and ref.published.year == 2020
+
+
+def test_harvest_follows_a_newer_publication_linked_from_the_chapter_page(
+    tmp_path: Path,
+) -> None:
+    seed = "https://www.bis.org/seed"
+    current = {r.code: r for r in chapter_refs(_HTML)}["MAR21"]
+    older_html = _HTML.replace("published/2026-03-23", "published/2025-01-01")
+    older_url = current.url.replace("published/2026-03-23", "published/2025-01-01")
+    # The old page links the current publication, as bis.org does.
+    client = _FakeClient({seed: older_html, older_url: _HTML, current.url: _HTML})
+    report = harvest_basel(
+        client,
+        seed_url=seed,
+        standards=[],
+        chapters=["MAR21"],
+        documents_dir=tmp_path,
+        html_dir="basel/html",
+        md_dir="basel/md",
+        manifest=tmp_path / "manifest-regulation.yaml",
+    )
+    assert report.converted == ["MAR21"]
+    assert client.urls == [seed, older_url, current.url]
+    (item,) = resolve(tmp_path / "manifest-regulation.yaml", tmp_path)
+    assert item.meta.source_url == current.url

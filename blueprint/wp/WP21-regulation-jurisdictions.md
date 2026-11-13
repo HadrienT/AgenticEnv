@@ -297,6 +297,17 @@ Before the quant and coding prompts said anything about regulation, the quant pr
 answered a French question on UK margin haircuts from memory, without a search: both
 snippets now require `kb.search` on the regulation collection with `jurisdictions`.
 
+**Queries in English.** The corpus is English; French queries rank the right passage
+lower (MRR 0.75 against 0.95 in English, same recall). The `kb.search` description, the
+research/quant/coding snippets and the rag-citation skill now say: work in English,
+search in English whatever the language of the question, and answer in English (the
+maintainer's choice: English answers are fine). Agent test with two more French
+questions (14 in all): English queries 42/42 (before: one profile searched in French);
+routed research 12/14, quant 13/14, coding 11/14.
+The local model sometimes answers a French question from memory, without a search;
+asking it to answer in French made that worse. Results in
+`benchmarks/agent/results/2026-11-13-jurisdiction-routing-english-*.json`.
+
 ## 8. Delivery order
 
 1. Migration 0009, `jurisdiction` + new `doc_type`s, manifests, filter, citations,
@@ -306,9 +317,30 @@ snippets now require `kb.search` on the regulation collection with `jurisdiction
    (versioner API). Each writes Markdown with one heading per paragraph and a manifest,
    like `harvest-basel`.
 4. P1 wave for the three jurisdictions + d475; queries; night batch ingestion.
-5. P2 wave, US re-proposal and UK CP9/26 as `proposal`.
+5. P2 wave, US re-proposal and UK CP9/26 as `proposal` (done as wave 2, §5.6).
+6. Monthly refresh (§8.1).
 
 WP20 step 6 (CRR3/EBA wave) is absorbed into steps 3–5.
+
+### 8.1 Monthly refresh
+
+Scheduled by the Airflow of `~/data-ingest` (DAG `kbase_regulation_refresh`, first day
+of the month at 00:00 UTC), next to its other jobs. Airflow runs in containers without
+the GPU, `uv`, MinerU or `systemctl --user`, so the work stays on the host: the DAG's
+only task opens an SSH session with a dedicated key whose `authorized_keys` line is
+`restrict`, limited to the Docker networks, with a forced command that runs
+`infra/scripts/kbase-regulation-refresh.sh` (same pattern as the Atlas probes).
+`infra/scripts/install-refresh-access.sh` creates the key, the line and the Airflow
+connection `kbase_refresh_ssh`.
+
+The script fetches every source again (Basel Framework and its chapter formulas, every
+`configs/harvest/regulation-wave*.yaml`), sends new formula images through MinerU,
+ingests every regulation manifest (unchanged files are skipped by sha256, so only what
+changed is re-embedded), then runs `kbase verify` and three evaluations
+(jurisdictions, Basel with `intl`, the quant gate). It comments on #71 with the number
+of re-ingested documents per manifest and the scores, flags any change left in the
+checkout's `documents/` or `configs/`, prints the same summary for the Airflow log,
+and exits non-zero when a step failed, which fails the task.
 
 ## 9. Open questions
 

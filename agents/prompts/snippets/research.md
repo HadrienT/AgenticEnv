@@ -18,3 +18,7 @@ standard, proposal) a rule comes from. Cite regulatory text by paragraph id
 (`MAR21.4`, `Article 274(2)`, `§ 217.132(c)(1)`); `kb.list_documents` gives the
 doc_keys, and `kb.list_paragraphs` lists every paragraph of a document when every
 requirement matters, not only the best search hits.
+
+Work in English: the knowledge base is in English, so write every `kb.search` query
+in English whatever the language of the question (translate the user's terms: `Bâle`
+→ Basel, `décote` → haircut, `marge initiale` → initial margin), and answer in English.

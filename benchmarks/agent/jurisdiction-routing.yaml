@@ -2,6 +2,7 @@
 # what the first kb.search must filter on (`intl` may be added); empty: the question
 # names none, so no filter or several. `collection: quant`: no regulation search.
 # `proposal: true`: the answer must say the rule is proposed, not in force.
+# `language: fr`: asked in French; the searches must still be in English.
 cases:
   - id: eu-sa-ccr-exposure
     question: "Under the EU CRR, how is the SA-CCR exposure value of a netting set computed?"
@@ -18,6 +19,7 @@ cases:
   - id: basel-alpha-fr
     question: "Que dit le cadre de Bâle sur le facteur alpha du SA-CCR ?"
     jurisdictions: [intl]
+    language: fr
   - id: cva-unnamed
     question: "How should the capital requirement for CVA risk be computed?"
     jurisdictions: []
@@ -31,6 +33,7 @@ cases:
   - id: uk-im-haircuts-fr
     question: "Pour une banque britannique, quelles décotes s'appliquent au collatéral de marge initiale des dérivés non compensés ?"
     jurisdictions: [uk]
+    language: fr
   - id: quant-heston
     question: "How is the Heston model calibrated to an implied volatility surface?"
     collection: quant
@@ -40,3 +43,12 @@ cases:
   - id: eu-us-im-model
     question: "Compare the initial margin model requirements (confidence level, margin period of risk) between EU EMIR and the US CFTC rules."
     jurisdictions: [eu, us]
+  - id: eu-mpor-fr
+    question: "Quelle période de marge en risque et quel niveau de confiance doit utiliser un modèle de marge initiale dans l'UE ?"
+    jurisdictions: [eu]
+    language: fr
+  - id: us-cva-proposal-fr
+    question: "Comment la proposition américaine de 2026 calcule-t-elle l'exigence de fonds propres CVA dans l'approche de base ?"
+    jurisdictions: [us]
+    proposal: true
+    language: fr

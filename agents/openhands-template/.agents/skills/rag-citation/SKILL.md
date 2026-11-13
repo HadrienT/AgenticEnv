@@ -38,6 +38,9 @@ source of truth, not the model's training data.
    `§ 217.132(c)(1)`); `kb.list_documents` gives the doc_keys and
    `kb.list_paragraphs` lists every paragraph of a document when a review must
    cover all its requirements.
+6. Work in English: the knowledge base is in English, so write `kb.search`
+   queries in English whatever the language of the question (`Bâle` → Basel,
+   `décote` → haircut), and answer in English.
 
 ## Common Patterns
 
