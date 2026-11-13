@@ -1,5 +1,6 @@
-"""Integration (WP20): a regulatory chapter and a quant note in separate collections,
-searched by collection, cited by paragraph id, listed paragraph by paragraph."""
+"""Integration (WP20, WP21): a Basel chapter, an EU article that applies later and a quant
+note; searched by collection and jurisdiction, cited by paragraph id, listed paragraph by
+paragraph and document by document."""
 
 from __future__ import annotations
 
@@ -15,7 +16,7 @@ from kbase.ingestion import ops
 from kbase.ingestion.chunking import SectionChunker
 from kbase.ingestion.parsers.markdown import MarkdownParser
 from kbase.ingestion.pipeline import ingest
-from kbase.lookup import list_paragraphs, list_topics
+from kbase.lookup import list_documents, list_paragraphs, list_topics
 from kbase.retrieval.hybrid import HybridRetriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
 from kbase.schemas import ChunkPolicy, IngestionRequest
@@ -42,6 +43,15 @@ risk-weighted sensitivities separately for delta and vega risk.
 Vega risk weights for each risk class are set out in the tables below.
 """
 
+_ARTICLE = """# CRR Article 325c Advanced standardised approach
+
+## Article 325c(2)
+
+An institution shall calculate the own funds requirements for market risk under the
+advanced standardised approach as the sum of the sensitivities-based method, the default
+risk charge and the residual risk add-on.
+"""
+
 _NOTE = """# Credit valuation adjustment
 
 ## 1 Exposure simulation
@@ -59,15 +69,23 @@ def _migrated() -> None:
 @pytest.fixture()
 def corpus(tmp_path: Path) -> dict[str, str]:
     tag = uuid.uuid4().hex[:8]
-    keys = {"regulation": f"itest-bcbs-mar21-{tag}", "quant": f"itest-cva-note-{tag}"}
+    keys = {
+        "regulation": f"itest-bcbs-mar21-{tag}",
+        "eu": f"itest-eu-crr-325c-{tag}",
+        "quant": f"itest-cva-note-{tag}",
+    }
+    (tmp_path / "art325c.md").write_text(_ARTICLE + f"\n<!-- {tag} -->\n")
     (tmp_path / "mar21.md").write_text(_CHAPTER + f"\n<!-- {tag} -->\n")
     (tmp_path / "note.md").write_text(_NOTE + f"\n<!-- {tag} -->\n")
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text(
         "collection: regulation\n"
+        "jurisdiction: intl\n"
         "documents:\n"
         f"  - {{doc_key: {keys['regulation']}, path: mar21.md, title: MAR21, "
         "doc_type: standard, topic: reg-frtb-sa, valid_from: 2023-01-01}\n"
+        f"  - {{doc_key: {keys['eu']}, path: art325c.md, title: CRR Article 325c, "
+        "doc_type: law, topic: reg-frtb-sa, jurisdiction: eu, valid_from: 2999-01-01}\n"
         f"  - {{doc_key: {keys['quant']}, path: note.md, title: CVA note, doc_type: notes, "
         "topic: cva-xva, collection: quant}\n"
     )
@@ -174,3 +192,69 @@ def test_list_topics_groups_by_collection(corpus: dict[str, str]) -> None:
     assert summary.collections["regulation"].topics.get("reg-frtb-sa", 0) >= 1
     assert summary.collections["regulation"].description == "BCBS"
     assert "reg-frtb-sa" not in summary.collections["quant"].topics
+
+
+def _keys(filters: RetrievalFilters, text: str = "sensitivities-based method") -> list[str]:
+    result = _retriever().retrieve(
+        RetrievalQuery(text=text, k=10, strategy="lexical", rerank=False, filters=filters)
+    )
+    return [c.citation.doc_key for c in result.chunks]
+
+
+def test_jurisdiction_filter_keeps_quant_results(corpus: dict[str, str]) -> None:
+    eu_only = _keys(RetrievalFilters(collections=["regulation"], jurisdictions=["eu"]))
+    assert corpus["eu"] in eu_only and corpus["regulation"] not in eu_only
+    intl = _keys(RetrievalFilters(collections=["regulation"], jurisdictions=["intl"]))
+    assert corpus["regulation"] in intl and corpus["eu"] not in intl
+    both = _keys(
+        RetrievalFilters(collections=["regulation", "quant"], jurisdictions=["eu"]),
+        text="credit valuation adjustment exposure sensitivities-based method",
+    )
+    assert corpus["quant"] in both and corpus["regulation"] not in both
+
+
+def test_texts_that_apply_later_are_kept_unless_a_date_is_asked(corpus: dict[str, str]) -> None:
+    upcoming = _keys(
+        RetrievalFilters(collections=["regulation"], not_expired_at=date(2026, 11, 13))
+    )
+    assert corpus["eu"] in upcoming and corpus["regulation"] in upcoming
+    today = _keys(RetrievalFilters(collections=["regulation"], valid_at=date(2026, 11, 13)))
+    assert corpus["eu"] not in today and corpus["regulation"] in today
+
+
+def test_citation_carries_jurisdiction_and_type(corpus: dict[str, str]) -> None:
+    result = _retriever().retrieve(
+        RetrievalQuery(
+            text="Article 325c advanced standardised approach",
+            k=5,
+            strategy="lexical",
+            rerank=False,
+            filters=RetrievalFilters(collections=["regulation"], jurisdictions=["eu"]),
+        )
+    )
+    top = result.chunks[0].citation
+    assert top.doc_key == corpus["eu"]
+    assert top.jurisdiction == "eu" and top.doc_type == "law"
+    assert top.valid_from == date(2999, 1, 1)
+
+
+def test_list_documents_and_topics_by_jurisdiction(corpus: dict[str, str]) -> None:
+    with session_scope() as session:
+        eu = list_documents(session, collection="regulation", jurisdiction="eu")
+        summary = list_topics(
+            session, descriptions={"regulation": "rules"}, jurisdiction_descriptions={"eu": "CRR"}
+        )
+    entry = next(d for d in eu.documents if d.doc_key == corpus["eu"])
+    assert entry.doc_type == "law" and entry.valid_from == date(2999, 1, 1)
+    assert all(d.jurisdiction == "eu" for d in eu.documents)
+    by_jurisdiction = summary.collections["regulation"].jurisdictions
+    assert by_jurisdiction["eu"].description == "CRR"
+    assert by_jurisdiction["eu"].doc_types.get("law", 0) >= 1
+    assert by_jurisdiction["intl"].topics.get("reg-frtb-sa", 0) >= 1
+    assert summary.collections["quant"].jurisdictions == {}
+
+
+def test_spelled_out_article_reference_finds_the_article(corpus: dict[str, str]) -> None:
+    for text in ("what does Art. 325c(2) require", "article 325c paragraph 2 own funds"):
+        keys = _keys(RetrievalFilters(collections=["regulation"], jurisdictions=["eu"]), text=text)
+        assert keys and keys[0] == corpus["eu"], text

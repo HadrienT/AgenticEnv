@@ -104,10 +104,41 @@ def test_build_query_requires_a_collection() -> None:
         build_query(**_flat(collections=[]))  # type: ignore[arg-type]
 
 
-def test_regulation_is_searched_as_in_force_today_unless_dated() -> None:
+def test_regulation_is_searched_as_not_expired_today_unless_dated() -> None:
     quant = build_query(**_flat())  # type: ignore[arg-type]
     assert quant.filters.collections == ["quant"] and quant.filters.valid_at is None
+    assert quant.filters.not_expired_at is None
     regulation = build_query(**_flat(collections=["regulation", "quant"]))  # type: ignore[arg-type]
-    assert regulation.filters.valid_at == datetime.now(UTC).date()
+    assert regulation.filters.valid_at is None
+    assert regulation.filters.not_expired_at == datetime.now(UTC).date()
     dated = build_query(**_flat(collections=["regulation"], valid_at=date(2019, 1, 1)))  # type: ignore[arg-type]
-    assert dated.filters.valid_at == date(2019, 1, 1)
+    assert dated.filters.valid_at == date(2019, 1, 1) and dated.filters.not_expired_at is None
+
+
+def test_jurisdictions_are_passed_once_each() -> None:
+    query = build_query(**_flat(collections=["regulation"], jurisdictions=["eu", "intl", "eu"]))  # type: ignore[arg-type]
+    assert query.filters.jurisdictions == ["eu", "intl"]
+    assert build_query(**_flat()).filters.jurisdictions is None  # type: ignore[arg-type]
+
+
+def test_results_not_in_force_yet_or_proposed_carry_a_note() -> None:
+    from kbase.retrieval.query import RetrievalQuery, RetrievalResult
+
+    later = _retrieved("c1", "uk-pra-mr-asa", 1)
+    later.citation.valid_from = date(2999, 1, 1)
+    proposal = _retrieved("c2", "us-fr-2026-erba", 2)
+    proposal.citation.doc_type = "proposal"
+    in_force = _retrieved("c3", "bcbs-mar21", 3)
+    result = RetrievalResult(
+        query=RetrievalQuery(text="x", k=3),
+        chunks=[later, proposal, in_force],
+        total_candidates=3,
+        strategy_used="hybrid",
+        latency_ms=1,
+        correlation_id="t",
+    )
+    data, _ = search_result_to_payload(result)
+    notes = [r.get("note") for r in data["results"]]
+    assert notes[0] == "not in force yet: applies from 2999-01-01"
+    assert notes[1] == "proposal, not in force"
+    assert notes[2] is None

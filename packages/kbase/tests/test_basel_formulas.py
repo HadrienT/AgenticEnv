@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from kbase.harvest.basel import chapter_pdf_url
-from kbase.harvest.basel_formulas import _clean_latex, merge_formulas
+from kbase.harvest.basel_formulas import clean_latex, merge_formulas
 
 _HTML_MD = """# MAR21 Sensitivities
 
@@ -65,8 +65,8 @@ def test_paragraph_missing_from_the_pdf_is_reported() -> None:
     assert "MAR21.6" in stats.paragraphs_without_pdf
 
 
-def test_clean_latex_drops_fonts_and_spelled_out_words() -> None:
-    assert _clean_latex("\\mathsf { m a x } ( 0 , W S _ { k } )") == "{max}(0,WS_{k})"
+def testclean_latex_drops_fonts_and_spelled_out_words() -> None:
+    assert clean_latex("\\mathsf { m a x } ( 0 , W S _ { k } )") == "{max}(0,WS_{k})"
 
 
 def test_chapter_pdf_url_prefers_the_pdf_without_footnotes() -> None:

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -22,6 +23,13 @@ from kbase.harvest.basel import (
     harvest_basel,
 )
 from kbase.harvest.http import PoliteClient
+from kbase.harvest.regulation import (
+    apply_image_formulas,
+    convert_images,
+    harvest_regulation,
+    load_catalog,
+    pending_images,
+)
 from kbase.harvest.runner import HarvestSettings, harvest
 from kbase.harvest.schemas import HarvestProfile
 from kbase.ingestion import ops
@@ -33,7 +41,7 @@ from kbase.ingestion.parsers.pdf import PdfParser
 from kbase.ingestion.pipeline import ingest as run_ingest
 from kbase.retrieval.factory import build_embedder, build_retriever
 from kbase.retrieval.query import RetrievalFilters, RetrievalQuery
-from kbase.schemas import COLLECTIONS, ChunkPolicy, IngestionRequest
+from kbase.schemas import COLLECTIONS, JURISDICTIONS, ChunkPolicy, IngestionRequest
 
 
 def _build_parsers(config: IngestionConfig) -> list[Parser]:
@@ -124,6 +132,7 @@ def _cmd_eval(args: argparse.Namespace) -> int:
             args.label,
             details=args.details,
             collections=args.collection,
+            jurisdictions=args.jurisdiction,
         )
     except AppError as exc:
         print(f"eval failed: {exc.code}: {exc.message}")
@@ -172,7 +181,7 @@ def _cmd_search(args: argparse.Namespace) -> int:
     query = RetrievalQuery(
         text=args.query,
         k=args.k or config.retrieval.default_k,
-        filters=RetrievalFilters(collections=args.collection),
+        filters=RetrievalFilters(collections=args.collection, jurisdictions=args.jurisdiction),
         strategy=args.strategy,
         rerank=not args.no_rerank,
     )
@@ -252,6 +261,64 @@ def _cmd_harvest_basel(args: argparse.Namespace) -> int:
     return 0 if not report.failed else 1
 
 
+def _cmd_harvest_regulation(args: argparse.Namespace) -> int:
+    config = load_kbase_config().regulation_harvest
+    client = PoliteClient(
+        user_agent=config.user_agent,
+        min_interval_s=config.min_interval_s,
+        max_attempts=config.max_attempts,
+        timeout_s=config.timeout_s,
+    )
+    try:
+        report = harvest_regulation(
+            client,
+            load_catalog(repo_root() / args.catalog),
+            documents_dir=get_settings().paths.documents_dir,
+            root_dir=config.root_dir,
+            manifest_dir=repo_root() / config.manifest_dir,
+            only=args.only,
+            dry_run=args.dry_run,
+        )
+    except AppError as exc:
+        print(f"harvest-regulation failed: {exc.code}: {exc.message}")
+        return 1
+    print(report.model_dump_json(indent=2))
+    return 0 if not report.failed else 1
+
+
+def _cmd_regulation_formulas(args: argparse.Namespace) -> int:
+    config = load_kbase_config()
+    root = get_settings().paths.documents_dir / config.regulation_harvest.root_dir
+    summary: dict[str, dict[str, int]] = {}
+    for jurisdiction in args.jurisdiction or ["eu", "uk", "us"]:
+        img_dir = root / jurisdiction / "img"
+        pending = pending_images(img_dir)
+        try:
+            if pending and not args.apply_only:
+                convert_images(
+                    pending,
+                    mineru=repo_root() / config.ingestion.mineru_binary,
+                    timeout_s=config.ingestion.pdf_timeout_s,
+                )
+        except AppError as exc:
+            print(f"regulation-formulas failed: {exc.code}: {exc.message}")
+            return 1
+        placed = total = 0
+        for md_path in sorted((root / jurisdiction / "md").glob("*.md")):
+            text, n_placed, n_total = apply_image_formulas(md_path.read_text("utf-8"), img_dir)
+            if n_placed:
+                md_path.write_text(text, encoding="utf-8")
+            placed += n_placed
+            total += n_total
+        summary[jurisdiction] = {
+            "images_converted": 0 if args.apply_only else len(pending),
+            "placed": placed,
+            "placeholders": total,
+        }
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 def _cmd_basel_formulas(args: argparse.Namespace) -> int:
     kbase_config = load_kbase_config()
     config = kbase_config.basel
@@ -327,6 +394,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     search_parser.add_argument(
         "--collection", action="append", choices=COLLECTIONS, help="Repeatable; default: all"
     )
+    search_parser.add_argument(
+        "--jurisdiction",
+        action="append",
+        choices=JURISDICTIONS,
+        help="Regulatory results from these only (repeatable; WP21)",
+    )
     search_parser.set_defaults(func=_cmd_search)
 
     eval_parser = subparsers.add_parser("eval", help="Measure search on the reference queries")
@@ -340,6 +413,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         choices=COLLECTIONS,
         help="Search only these (repeatable); default: each query's own, else all (WP20 §8)",
     )
+    eval_parser.add_argument(
+        "--jurisdiction",
+        action="append",
+        choices=JURISDICTIONS,
+        help="Regulatory results from these only (repeatable); default: each query's own",
+    )
     eval_parser.set_defaults(func=_cmd_eval)
 
     basel_parser = subparsers.add_parser(
@@ -352,6 +431,29 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     basel_parser.add_argument("--chapter", action="append", help="MAR21… (repeatable)")
     basel_parser.add_argument("--dry-run", action="store_true", help="List the chapters only")
     basel_parser.set_defaults(func=_cmd_harvest_basel)
+
+    regulation_parser = subparsers.add_parser(
+        "harvest-regulation",
+        help="Fetch EU, UK and US rules from a catalogue into Markdown and manifests (WP21)",
+    )
+    regulation_parser.add_argument(
+        "--catalog", required=True, help="configs/harvest/regulation-*.yaml, from the repo root"
+    )
+    regulation_parser.add_argument("--only", action="append", help="doc_key (repeatable)")
+    regulation_parser.add_argument("--dry-run", action="store_true", help="List the documents")
+    regulation_parser.set_defaults(func=_cmd_harvest_regulation)
+
+    reg_formulas_parser = subparsers.add_parser(
+        "regulation-formulas",
+        help="Read formula images of harvested rules (EU, UK, US) through MinerU into LaTeX (WP21)",
+    )
+    reg_formulas_parser.add_argument(
+        "--jurisdiction", action="append", choices=JURISDICTIONS, help="Default: eu, uk, us"
+    )
+    reg_formulas_parser.add_argument(
+        "--apply-only", action="store_true", help="Use the existing LaTeX sidecars, run no MinerU"
+    )
+    reg_formulas_parser.set_defaults(func=_cmd_regulation_formulas)
 
     formulas_parser = subparsers.add_parser(
         "basel-formulas",

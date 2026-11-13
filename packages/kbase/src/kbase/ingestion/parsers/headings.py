@@ -14,6 +14,8 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+from kbase.regulatory import paragraph_id
+
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
 _NUMBER_RE = re.compile(r"^(?:chapter\s+|section\s+)?(\d{1,2}(?:\.\d{1,3})*)\.?\s+(?=\S)", re.I)
 _HAS_LETTER_RE = re.compile(r"[^\W\d_]{2,}", re.UNICODE)
@@ -52,7 +54,8 @@ def plan_headings(lines: list[str]) -> dict[int, HeadingPlan]:
         if not match:
             continue
         title = match.group(2).strip()
-        if not _HAS_LETTER_RE.search(title):
+        # A regulatory paragraph id is a heading even without a word (`§ 217.132(a)(1)`).
+        if not _HAS_LETTER_RE.search(title) and paragraph_id(title) is None:
             plan[line_no] = HeadingPlan("text")  # `## 1, 3, 9, 5, 4, 1, ... ,`
             continue
         raws.append(_Raw(line_no, len(match.group(1)), title, _number(title)))

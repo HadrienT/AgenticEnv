@@ -19,6 +19,9 @@ def to_sql_predicate(filters: RetrievalFilters) -> tuple[str, dict[str, Any]]:
     if filters.collections:
         clauses.append("d.collection = ANY(:collections)")
         params["collections"] = list(filters.collections)
+    if filters.jurisdictions:
+        clauses.append("(d.collection <> 'regulation' OR d.jurisdiction = ANY(:jurisdictions))")
+        params["jurisdictions"] = list(filters.jurisdictions)
     if filters.doc_types:
         clauses.append("d.doc_type = ANY(:doc_types)")
         params["doc_types"] = list(filters.doc_types)
@@ -44,6 +47,9 @@ def to_sql_predicate(filters: RetrievalFilters) -> tuple[str, dict[str, Any]]:
         clauses.append("(c.valid_from IS NULL OR c.valid_from <= :valid_at)")
         clauses.append("(c.valid_until IS NULL OR c.valid_until >= :valid_at)")
         params["valid_at"] = filters.valid_at
+    elif filters.not_expired_at is not None:
+        clauses.append("(c.valid_until IS NULL OR c.valid_until >= :not_expired_at)")
+        params["not_expired_at"] = filters.not_expired_at
 
     if not clauses:
         return "", params

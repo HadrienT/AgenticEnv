@@ -1,0 +1,414 @@
+# WP21 wave 1 (P1): the EU, UK and US rules a pricing or risk library implements for
+# equity derivatives, credit and XVA: market risk, counterparty credit risk, CVA, margin
+# for non-cleared derivatives, prudent valuation. See blueprint/wp/WP21 §5.
+#
+#   uv run kbase harvest-regulation --catalog configs/harvest/regulation-wave1.yaml --dry-run
+#   uv run kbase harvest-regulation --catalog configs/harvest/regulation-wave1.yaml
+#   uv run kbase ingest --target documents/manifest-regulation-eu.yaml   (then -uk, -us)
+#
+# Identifiers checked on 2026-11-13: consolidated versions from the EU SPARQL endpoint,
+# PRA parts as shown on the given date, eCFR sections on the latest issue.
+
+# None: the latest issue of each CFR title.
+ecfr_date: null
+
+documents:
+  # ======================================================================= EU
+  # CRR market risk (Part Three Title IV). The FRTB own funds requirements apply from
+  # 2027-01-01 (Delegated Regulations 2024/2795, 2025/1496); the consolidation in force
+  # (2026-06-26) already holds Articles 325c-325bp. The 2027-01-01 consolidation exists
+  # (EU SPARQL) but Cellar answered HTTP 500 for all its formats on 2026-11-13: switch
+  # `celex` to 02013R0575-20270101 once it is served. The targeted multipliers of
+  # 2026/1221 come in their own document below.
+  - doc_key: eu-crr-mr-general
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["325-325b"]
+    title: "CRR (Regulation 575/2013), market risk: general provisions (Art. 325-325b); FRTB applies from 2027-01-01"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-market-risk
+    license: &eu "(c) European Union, https://eur-lex.europa.eu; reuse authorised with the source acknowledged (Decision 2011/833/EU)"
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-mr-asa
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["325c-325ay"]
+    title: "CRR, market risk: alternative standardised approach, FRTB-SA (Art. 325c-325ay); own funds requirements apply from 2027-01-01"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-frtb-sa
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-mr-aima
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["325az-325bp"]
+    title: "CRR, market risk: alternative internal model approach, FRTB-IMA (Art. 325az-325bp); own funds requirements apply from 2027-01-01"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-frtb-ima
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-mr-simplified
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["326-361"]
+    title: "CRR, market risk: simplified standardised approach (Art. 326-361); own funds requirements apply from 2027-01-01"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-frtb-simplified
+    license: *eu
+    valid_from: 2026-06-26
+  # Counterparty credit risk, CVA, trading book, prudent valuation: the consolidation in
+  # force (2026-06-26).
+  - doc_key: eu-crr-ccr-general
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["271-273b"]
+    title: "CRR, counterparty credit risk: scope, definitions, methods (Art. 271-273b)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-ccr
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-sa-ccr
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["274-282"]
+    title: "CRR, counterparty credit risk: SA-CCR, simplified SA-CCR, original exposure method (Art. 274-282)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-ccr-sa-ccr
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-imm
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["283-294"]
+    title: "CRR, counterparty credit risk: internal model method (Art. 283-294)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-ccr-imm
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-ccr-netting-ccp
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["295-311"]
+    title: "CRR, counterparty credit risk: contractual netting, trading book items, exposures to CCPs (Art. 295-311)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-ccr-ccp
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-cva
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["381-386"]
+    title: "CRR, credit valuation adjustment risk: SA-CVA, BA-CVA, simplified approach (Art. 381-386)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-cva-capital
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-trading-book
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["102-104c", "106"]
+    title: "CRR, trading book: requirements, boundary, internal hedges (Art. 102-104c, 106)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-trading-book-boundary
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-art105
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["105"]
+    title: "CRR Article 105, requirements for prudent valuation"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-prudent-valuation
+    license: *eu
+    valid_from: 2026-06-26
+  # Delegated Regulations (EBA RTS).
+  - doc_key: eu-rts-2016-101
+    source: eu
+    jurisdiction: eu
+    celex: 02016R0101-20200626
+    articles: ["1-20"]
+    title: "Delegated Regulation 2016/101, RTS on prudent valuation (additional valuation adjustments)"
+    authors: [European Commission]
+    year: 2016
+    topic: reg-prudent-valuation
+    license: *eu
+    valid_from: 2020-06-26
+  - doc_key: eu-rts-2016-2251
+    source: eu
+    jurisdiction: eu
+    celex: 02016R2251-20230214
+    articles: ["1-40"]
+    title: "Delegated Regulation 2016/2251 (EMIR), RTS on margin for non-centrally cleared OTC derivatives"
+    authors: [European Commission]
+    year: 2016
+    topic: reg-margin-requirements
+    license: *eu
+    valid_from: 2023-02-14
+  - doc_key: eu-rts-2021-931
+    source: eu
+    jurisdiction: eu
+    celex: 02021R0931-20250525
+    articles: ["1-20"]
+    title: "Delegated Regulation 2021/931, RTS on SA-CCR: primary risk driver, supervisory delta, risk categories"
+    authors: [European Commission]
+    year: 2021
+    topic: reg-ccr-sa-ccr
+    license: *eu
+    valid_from: 2025-05-25
+  - doc_key: eu-rts-2022-2058
+    source: eu
+    jurisdiction: eu
+    celex: 32022R2058
+    articles: ["1-20"]
+    title: "Delegated Regulation 2022/2058, RTS on liquidity horizons for the alternative internal model approach"
+    authors: [European Commission]
+    year: 2022
+    topic: reg-frtb-ima
+    license: *eu
+  - doc_key: eu-rts-2022-2059
+    source: eu
+    jurisdiction: eu
+    celex: 32022R2059
+    articles: ["1-20"]
+    title: "Delegated Regulation 2022/2059, RTS on back-testing and profit and loss attribution"
+    authors: [European Commission]
+    year: 2022
+    topic: reg-frtb-ima
+    license: *eu
+  - doc_key: eu-rts-2022-2060
+    source: eu
+    jurisdiction: eu
+    celex: 32022R2060
+    articles: ["1-20"]
+    title: "Delegated Regulation 2022/2060, RTS on the modellability of risk factors"
+    authors: [European Commission]
+    year: 2022
+    topic: reg-frtb-ima
+    license: *eu
+  - doc_key: eu-rts-2022-2257
+    source: eu
+    jurisdiction: eu
+    celex: 32022R2257
+    articles: ["1-20"]
+    title: "Delegated Regulation 2022/2257, RTS on gross jump-to-default amounts"
+    authors: [European Commission]
+    year: 2022
+    topic: reg-frtb-sa
+    license: *eu
+  - doc_key: eu-rts-2022-2328
+    source: eu
+    jurisdiction: eu
+    celex: 32022R2328
+    articles: ["1-20"]
+    title: "Delegated Regulation 2022/2328, RTS on exotic underlyings and instruments bearing residual risks"
+    authors: [European Commission]
+    year: 2022
+    topic: reg-frtb-sa
+    license: *eu
+  - doc_key: eu-rts-2026-1221
+    source: eu
+    jurisdiction: eu
+    celex: 32026R1221
+    articles: ["1-20"]
+    title: "Delegated Regulation 2026/1221, targeted operational relief and multipliers for market risk"
+    authors: [European Commission]
+    year: 2026
+    topic: reg-market-risk
+    license: *eu
+
+  # ======================================================================= UK
+  # PRA Rulebook, CRR firms: Basel 3.1 parts as they apply from 2027-01-01 (PS1/26);
+  # the internal model approach from 2028-01-01. Not here: the Rulebook's "Valuation"
+  # part (Solvency II insurers, not bank prudent valuation) and the current CVA (CRR)
+  # part (nearly empty: until 2026-12-31 UK CVA rules sit in the onshored CRR on
+  # legislation.gov.uk, a source for a later wave).
+  - doc_key: uk-pra-mr-general
+    source: pra
+    jurisdiction: uk
+    pra_part: market-risk-general-provisions-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Market Risk: General Provisions (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-market-risk
+    license: &uk "(c) Bank of England, PRA Rulebook; free access, kept local, not redistributed"
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-mr-asa
+    source: pra
+    jurisdiction: uk
+    pra_part: market-risk-advanced-standardised-approach-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Market Risk: Advanced Standardised Approach (CRR), FRTB-SA, from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-frtb-sa
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-mr-ssa
+    source: pra
+    jurisdiction: uk
+    pra_part: market-risk-simplified-standardised-approach-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Market Risk: Simplified Standardised Approach (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-frtb-simplified
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-mr-ima
+    source: pra
+    jurisdiction: uk
+    pra_part: market-risk-internal-model-approach-crr
+    pra_date: 2028-01-01
+    title: "PRA Rulebook, Market Risk: Internal Model Approach (CRR), FRTB-IMA, from 2028"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-frtb-ima
+    license: *uk
+    valid_from: 2028-01-01
+  - doc_key: uk-pra-ccr-2027
+    source: pra
+    jurisdiction: uk
+    pra_part: counterparty-credit-risk-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Counterparty Credit Risk (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-ccr
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-ccr
+    source: pra
+    jurisdiction: uk
+    pra_part: counterparty-credit-risk-crr
+    pra_date: 2026-11-13
+    title: "PRA Rulebook, Counterparty Credit Risk (CRR), until 2026-12-31"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-ccr
+    license: *uk
+    valid_until: 2026-12-31
+  - doc_key: uk-pra-cva-2027
+    source: pra
+    jurisdiction: uk
+    pra_part: credit-valuation-adjustment-risk
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Credit Valuation Adjustment Risk, from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-cva-capital
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-trading-book
+    source: pra
+    jurisdiction: uk
+    pra_part: trading-book-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Trading Book (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-trading-book-boundary
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: us-cfr-217-f
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "217"
+    subpart: F
+    title: "12 CFR 217 Subpart F, risk-weighted assets: market risk (§ 217.201-217.212)"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-market-risk
+    license: &us "US government work, public domain"
+  - doc_key: us-cfr-217-132
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "217"
+    sections: ["217.132"]
+    title: "12 CFR 217.132, counterparty credit risk of repo-style transactions, margin loans and OTC derivatives (SA-CCR, IMM, CVA)"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-ccr
+    license: *us
+  - doc_key: us-cfr-217-133
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "217"
+    sections: ["217.133"]
+    title: "12 CFR 217.133, cleared transactions (advanced approaches)"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-ccr-ccp
+    license: *us
+  - doc_key: us-cfr-217-34-37
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "217"
+    sections: ["217.34", "217.35", "217.36", "217.37"]
+    title: "12 CFR 217.34-217.37, standardized approach: OTC derivatives, cleared transactions, guarantees and credit derivatives, collateralized transactions"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-ccr
+    license: *us
+  - doc_key: us-cfr-237-a
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "237"
+    subpart: A
+    title: "12 CFR 237 Subpart A, margin and capital for covered swap entities (Regulation KK)"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-margin-requirements
+    license: *us
+  - doc_key: us-cfr-17-23-margin
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 17
+    part: "23"
+    sections: ["23.150", "23.151", "23.152", "23.153", "23.154", "23.155", "23.156", "23.157", "23.158", "23.159", "23.160", "23.161"]
+    title: "17 CFR 23.150-23.161 (CFTC), margin for uncleared swaps of swap dealers"
+    authors: [Commodity Futures Trading Commission]
+    topic: reg-margin-requirements
+    license: *us
+  - doc_key: us-cfr-240-18a-1
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 17
+    part: "240"
+    sections: ["240.18a-1"]
+    title: "17 CFR 240.18a-1 (SEC), net capital of security-based swap dealers"
+    authors: [Securities and Exchange Commission]
+    topic: reg-capital-requirements
+    license: *us
+  - doc_key: us-cfr-240-18a-3
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 17
+    part: "240"
+    sections: ["240.18a-3"]
+    title: "17 CFR 240.18a-3 (SEC), margin for non-cleared security-based swaps (single-name equity and credit swaps)"
+    authors: [Securities and Exchange Commission]
+    topic: reg-margin-requirements
+    license: *us

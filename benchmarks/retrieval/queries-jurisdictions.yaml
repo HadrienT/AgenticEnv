@@ -1,0 +1,41 @@
+# Reference queries for the jurisdictions of the regulation collection (WP21 §7).
+# Answers checked in the harvested texts (UK, US) or the consolidated CRR (EU) before
+# the search was run. `expected_paragraphs` scores the passage by exact paragraph id;
+# EU paragraph ids are only given where the article was read.
+#
+# category:
+#   exact-id: the id as people write it, with the jurisdiction filter
+#   jurisdiction: a question whose answer differs by jurisdiction, filter set
+#   cross-jurisdiction: the same kind of question without a filter; the expected
+#     documents of every jurisdiction count, so recall shows whether all three surface
+#
+#   uv run kbase eval --queries benchmarks/retrieval/queries-jurisdictions.yaml --label …
+queries:
+  # --- exact ids ---
+  - {category: exact-id, collections: [regulation], jurisdictions: [us], text: "12 CFR 217.132(c)(5)", expected: [us-cfr-217-132], expected_paragraphs: ["§ 217.132(c)(5)(i)"]}
+  - {category: exact-id, collections: [regulation], jurisdictions: [us], text: "section 217.205(b)(1) VaR confidence level", expected: [us-cfr-217-f], expected_paragraphs: ["§ 217.205(b)(1)"]}
+  - {category: exact-id, collections: [regulation], jurisdictions: [eu], text: "Art. 274(2) CRR", expected: [eu-crr-sa-ccr], expected_paragraphs: ["Article 274(2)"]}
+  - {category: exact-id, collections: [regulation], jurisdictions: [uk], text: "PRA Article 325bc(1) expected shortfall", expected: [uk-pra-mr-ima], expected_paragraphs: ["Article 325bc(1)"]}
+
+  # --- jurisdiction-specific, filter set ---
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "multiplier applied to replacement cost plus PFE for the exposure amount of a netting set", expected: [us-cfr-217-132], expected_paragraphs: ["§ 217.132(c)(5)(i)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "multiplier applied to replacement cost plus PFE for the exposure value of a netting set", expected: [eu-crr-sa-ccr], expected_paragraphs: ["Article 274(2)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "multiplier applied to replacement cost plus PFE for the exposure value of a netting set", expected: [uk-pra-ccr-2027], expected_paragraphs: ["Article 274(2)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "confidence level and holding period of the VaR-based measure", expected: [us-cfr-217-f], expected_paragraphs: ["§ 217.205(b)(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "confidence level of expected shortfall in the internal model approach", expected: [uk-pra-mr-ima], expected_paragraphs: ["Article 325bc(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "minimum transfer amount below which a covered swap entity need not collect or post margin", expected: [us-cfr-237-a], expected_paragraphs: ["§ 237.5(b)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "minimum net capital of a security-based swap dealer", expected: [us-cfr-240-18a-1], expected_paragraphs: ["§ 240.18a-1(a)(1)(i)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "margin requirements for non-cleared security-based swaps such as single-name equity swaps", expected: [us-cfr-240-18a-3]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "initial margin calculation for uncleared swaps of a swap dealer under CFTC rules", expected: [us-cfr-17-23-margin]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "discount scalar in the basic approach for CVA risk", expected: [uk-pra-cva-2027]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "instruments subject to the residual risk add-on in the advanced standardised approach", expected: [uk-pra-mr-asa]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "aggregation of weighted sensitivities within a bucket with the square root formula", expected: [uk-pra-mr-asa], expected_paragraphs: ["Article 325f(7)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "additional valuation adjustments for unearned credit spread and investing and funding costs", expected: [eu-rts-2016-101]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "supervisory delta of an option under SA-CCR", expected: [eu-rts-2021-931, eu-crr-sa-ccr]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "minimum transfer amount for exchanging collateral on non-centrally cleared OTC derivatives", expected: [eu-rts-2016-2251]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "criteria for a risk factor to be modellable in the internal model approach", expected: [eu-rts-2022-2060]}
+
+  # --- cross-jurisdiction, no filter ---
+  - {category: cross-jurisdiction, collections: [regulation], text: "SA-CCR exposure value alpha 1.4 times replacement cost plus potential future exposure", expected: [us-cfr-217-132, eu-crr-sa-ccr, uk-pra-ccr-2027, bcbs-cre52]}
+  - {category: cross-jurisdiction, collections: [regulation], text: "margin requirements for non-centrally cleared derivatives minimum transfer amount", expected: [us-cfr-237-a, eu-rts-2016-2251, bcbs-mgn20]}
+  - {category: cross-jurisdiction, collections: [regulation], text: "basic approach for CVA risk capital with the discount scalar", expected: [uk-pra-cva-2027, eu-crr-cva, bcbs-mar50]}

@@ -11,7 +11,7 @@ from corelib.ids import deterministic_key
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
-from kbase.schemas import Collection, DocumentMeta, SourceItem
+from kbase.schemas import Collection, DocumentMeta, Jurisdiction, SourceItem
 
 
 class _ManifestEntry(BaseModel):
@@ -24,6 +24,7 @@ class _ManifestEntry(BaseModel):
     topic: str | None = None
     asset_class: str | None = None
     collection: Collection | None = None
+    jurisdiction: Jurisdiction | None = None
     source_url: str | None = None
     license: str | None = None
     sha256: str | None = None
@@ -36,6 +37,7 @@ class _ManifestEntry(BaseModel):
 class _Manifest(BaseModel):
     # Default for the entries that do not name their own (WP20 §2).
     collection: Collection | None = None
+    jurisdiction: Jurisdiction | None = None
     documents: list[_ManifestEntry] = []
 
 
@@ -79,6 +81,17 @@ def resolve(manifest_path: Path, documents_dir: Path) -> list[SourceItem]:
                 f"entry or at the top of {manifest_path.name}",
                 details={"path": str(manifest_path), "doc_key": entry.doc_key},
             )
+        # The file default only applies to regulatory entries: a quant entry in a
+        # regulation manifest inherits nothing.
+        jurisdiction = entry.jurisdiction or (
+            manifest.jurisdiction if collection == "regulation" else None
+        )
+        if (collection == "regulation") != (jurisdiction is not None):
+            raise ValidationError(
+                f"manifest entry {entry.doc_key}: `jurisdiction:` is required in the "
+                f"regulation collection and not allowed elsewhere (WP21 §2)",
+                details={"path": str(manifest_path), "doc_key": entry.doc_key},
+            )
         resolved_path = _resolve_confined(entry.path, documents_dir)
         meta = DocumentMeta(
             doc_key=entry.doc_key,
@@ -91,6 +104,7 @@ def resolve(manifest_path: Path, documents_dir: Path) -> list[SourceItem]:
             topic=entry.topic,
             asset_class=entry.asset_class,
             collection=collection,
+            jurisdiction=jurisdiction,
         )
         items.append(
             SourceItem(

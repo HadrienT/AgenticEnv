@@ -36,6 +36,13 @@ class EquationDetail(BaseModel):
     citation: Citation
 
 
+class JurisdictionSummary(BaseModel):
+    description: str | None
+    document_count: int
+    topics: dict[str, int]  # topic -> document count
+    doc_types: dict[str, int]  # doc_type -> document count (law, guidance, ...)
+
+
 class CollectionSummary(BaseModel):
     description: str | None
     document_count: int
@@ -43,6 +50,24 @@ class CollectionSummary(BaseModel):
     doc_types: list[str]
     year_min: int | None
     year_max: int | None
+    # Regulatory collection only (WP21 §3).
+    jurisdictions: dict[str, JurisdictionSummary] = {}
+
+
+class DocumentEntry(BaseModel):
+    doc_key: str
+    title: str
+    doc_type: str
+    topic: str | None
+    jurisdiction: str | None
+    year: int | None
+    valid_from: date | None
+    valid_until: date | None
+
+
+class DocumentListing(BaseModel):
+    documents: list[DocumentEntry]
+    truncated: bool = False
 
 
 class TopicsSummary(BaseModel):
@@ -95,7 +120,7 @@ def get_document(
     base_query = (
         "SELECT dv.id, dv.version, dv.sha256, dv.page_count, dv.ingestion_date, "
         " d.doc_key, d.title, d.authors, d.year, d.doc_type, d.source_url, d.license, "
-        " d.topic, d.asset_class, d.collection "
+        " d.topic, d.asset_class, d.collection, d.jurisdiction "
         "FROM kb.document_versions dv JOIN kb.documents d ON d.id = dv.document_id "
     )
     if document_version_id is not None:
@@ -146,6 +171,7 @@ def get_document(
         topic=row.topic,
         asset_class=row.asset_class,
         collection=row.collection,
+        jurisdiction=row.jurisdiction,
     )
     return DocumentDetail(
         meta=meta,
@@ -237,9 +263,15 @@ def get_equation(
     )
 
 
-def list_topics(session: Session, *, descriptions: dict[str, str] | None = None) -> TopicsSummary:
+def list_topics(
+    session: Session,
+    *,
+    descriptions: dict[str, str] | None = None,
+    jurisdiction_descriptions: dict[str, str] | None = None,
+) -> TopicsSummary:
     """Lets the caller discover what the base contains before searching (WP06 §1),
-    collection by collection (WP20 §4); `descriptions` come from the kbase config."""
+    collection by collection (WP20 §4), and jurisdiction by jurisdiction inside the
+    regulatory collection (WP21 §3); descriptions come from the kbase config."""
     topics = (
         session.execute(
             text("SELECT DISTINCT topic FROM kb.documents WHERE topic IS NOT NULL ORDER BY topic")
@@ -286,6 +318,28 @@ def list_topics(session: Session, *, descriptions: dict[str, str] | None = None)
         )
     ).all():
         collections[name].topics[topic] = count
+    regulation = collections.get("regulation")
+    if regulation is not None:
+        for jurisdiction, topic, doc_type, count in session.execute(
+            text(
+                "SELECT jurisdiction, topic, doc_type, count(*) FROM kb.documents "
+                "WHERE collection = 'regulation' AND jurisdiction IS NOT NULL "
+                "GROUP BY jurisdiction, topic, doc_type ORDER BY 1, 2, 3"
+            )
+        ).all():
+            summary = regulation.jurisdictions.setdefault(
+                jurisdiction,
+                JurisdictionSummary(
+                    description=(jurisdiction_descriptions or {}).get(jurisdiction),
+                    document_count=0,
+                    topics={},
+                    doc_types={},
+                ),
+            )
+            summary.document_count += count
+            summary.doc_types[doc_type] = summary.doc_types.get(doc_type, 0) + count
+            if topic is not None:
+                summary.topics[topic] = summary.topics.get(topic, 0) + count
     for name, description in (descriptions or {}).items():
         collections.setdefault(
             name,
@@ -402,3 +456,53 @@ def _first_line_after(content: str, paragraph: str, limit: int = 160) -> str:
         if stripped and not stripped.startswith("#"):
             return stripped if len(stripped) <= limit else stripped[: limit - 1] + "…"
     return ""
+
+
+_LIST_DOCUMENTS_LIMIT = 300
+
+
+def list_documents(
+    session: Session,
+    *,
+    collection: str,
+    jurisdiction: str | None = None,
+    topic: str | None = None,
+    doc_type: str | None = None,
+) -> DocumentListing:
+    """The documents of a collection, optionally narrowed, with their validity (WP21 §3):
+    how the caller learns the doc_keys `list_paragraphs` and `doc_keys` filters take."""
+    rows = session.execute(
+        text(
+            "SELECT d.doc_key, d.title, d.doc_type, d.topic, d.jurisdiction, d.year, "
+            " min(c.valid_from) AS valid_from, max(c.valid_until) AS valid_until "
+            "FROM kb.documents d "
+            "LEFT JOIN kb.document_versions dv ON dv.document_id = d.id "
+            "LEFT JOIN kb.chunks c ON c.document_version_id = dv.id "
+            "WHERE d.collection = :collection "
+            " AND (CAST(:jurisdiction AS text) IS NULL OR d.jurisdiction = :jurisdiction) "
+            " AND (CAST(:topic AS text) IS NULL OR d.topic = :topic) "
+            " AND (CAST(:doc_type AS text) IS NULL OR d.doc_type = :doc_type) "
+            "GROUP BY d.id ORDER BY d.jurisdiction NULLS FIRST, d.doc_key LIMIT :limit"
+        ),
+        {
+            "collection": collection,
+            "jurisdiction": jurisdiction,
+            "topic": topic,
+            "doc_type": doc_type,
+            "limit": _LIST_DOCUMENTS_LIMIT + 1,
+        },
+    ).all()
+    entries = [
+        DocumentEntry(
+            doc_key=r.doc_key,
+            title=r.title,
+            doc_type=r.doc_type,
+            topic=r.topic,
+            jurisdiction=r.jurisdiction,
+            year=r.year,
+            valid_from=r.valid_from,
+            valid_until=r.valid_until,
+        )
+        for r in rows[:_LIST_DOCUMENTS_LIMIT]
+    ]
+    return DocumentListing(documents=entries, truncated=len(rows) > _LIST_DOCUMENTS_LIMIT)

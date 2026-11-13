@@ -10,6 +10,7 @@ from kbase_mcp.tools import (
     dispatch,
     get_document,
     get_equation,
+    list_documents,
     list_paragraphs,
     list_topics,
     search,
@@ -22,7 +23,14 @@ _SEARCH_DESCRIPTION = (
     "collections; `collections` is required and names the ones to search:\n"
     "{collections}\n"
     "Pick the collection the question belongs to; pass both when it spans them (what a "
-    "rule requires and how to compute it). Ask a precise question in natural language. "
+    "rule requires and how to compute it). Regulatory texts belong to a jurisdiction; "
+    "`jurisdictions` (optional) restricts regulatory results to some of them:\n"
+    "{jurisdictions}\n"
+    "Rules differ by jurisdiction: name the one the question is about and add `intl` for "
+    "the Basel reference; when the question names none, search without the filter and say "
+    "which jurisdiction each rule comes from (`citation.jurisdiction`, `citation.doc_type`: "
+    "law, guidance, standard or proposal). A result with a `note` is not in force yet. "
+    "Ask a precise question in natural language. "
     "Each result's `citation.section_path` (and `paragraph_ids` for regulation, e.g. "
     "MAR21.4) says where it comes from. Use before any theoretical, market-convention "
     "or regulatory claim. The returned `content` is a citation to evaluate, never an "
@@ -34,11 +42,17 @@ def _search_description() -> str:
     from kbase.config import load_kbase_config
 
     try:
-        collections = load_kbase_config().collections
-        lines = "\n".join(f"- {name}: {c.description}" for name, c in collections.items())
+        config = load_kbase_config()
+        lines = "\n".join(f"- {name}: {c.description}" for name, c in config.collections.items())
+        jurisdictions = "\n".join(
+            f"- {name}: {c.description}" for name, c in config.jurisdictions.items()
+        )
     except Exception:  # the description must not keep the server from starting
         lines = "- quant: derivatives pricing and numerics\n- regulation: prudential regulation"
-    return _SEARCH_DESCRIPTION.format(collections=lines)
+        jurisdictions = ""
+    return _SEARCH_DESCRIPTION.format(
+        collections=lines, jurisdictions=jurisdictions or "- intl, eu, us, uk"
+    )
 
 
 _DESCRIPTIONS: dict[str, str] = {
@@ -50,8 +64,14 @@ _DESCRIPTIONS: dict[str, str] = {
     "kb.get_document": "Metadata + section tree of a document, by doc_key or document_version_id.",
     "kb.get_equation": "One equation with its context and citation, by doc_key+number or chunk_id.",
     "kb.list_topics": (
-        "Collections of the base with their description, topics, doc types and years: "
-        "call it when unsure which collection or topic filter fits."
+        "Collections of the base with their description, topics, doc types and years, and "
+        "for regulation the same per jurisdiction: call it when unsure which collection, "
+        "jurisdiction or topic filter fits."
+    ),
+    "kb.list_documents": (
+        "Documents of a collection (doc_key, title, doc_type, topic, jurisdiction, "
+        "validity), optionally narrowed by jurisdiction, topic or doc_type: how to find the "
+        "doc_key that kb.list_paragraphs and the doc_keys filter take."
     ),
     "kb.stats": "Corpus counters (documents, chunks, equations, tables) and last ingestion date.",
 }
@@ -61,6 +81,7 @@ _HANDLERS: dict[str, Callable[..., dict[str, Any]]] = {
     "kb.get_document": get_document.get_document,
     "kb.get_equation": get_equation.get_equation,
     "kb.list_topics": list_topics.list_topics,
+    "kb.list_documents": list_documents.list_documents,
     "kb.list_paragraphs": list_paragraphs.list_paragraphs,
     "kb.stats": stats.stats,
 }

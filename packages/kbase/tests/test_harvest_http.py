@@ -78,3 +78,44 @@ def test_gives_up_after_max_attempts() -> None:
     transport = _Scripted(clock, [_ok(503), _ok(503)])
     with pytest.raises(DependencyError):
         _client(clock, transport, attempts=2).get("a")
+
+
+def test_request_headers_are_added_to_the_user_agent() -> None:
+    clock = _Clock()
+    seen: list[dict[str, str]] = []
+
+    class _Recording(_Scripted):
+        def fetch(self, url: str, *, headers: dict[str, str], timeout_s: float) -> RawResponse:
+            seen.append(headers)
+            return super().fetch(url, headers=headers, timeout_s=timeout_s)
+
+    client = _client(clock, _Recording(clock, [_ok(), _ok()]))
+    client.get("u", headers={"Accept-Encoding": "gzip"})
+    client.get("u")
+    assert seen[0] == {"User-Agent": "ua", "Accept-Encoding": "gzip"}
+    assert seen[1] == {"User-Agent": "ua"}
+
+
+def test_urllib_transport_decompresses_gzip(monkeypatch: pytest.MonkeyPatch) -> None:
+    import gzip
+    import urllib.request
+
+    from kbase.harvest.http import UrllibTransport
+
+    class _Response:
+        status = 200
+        url = "u"
+        headers = {"Content-Encoding": "gzip"}
+
+        def read(self) -> bytes:
+            return gzip.compress(b"<DIV8/>")
+
+        def __enter__(self) -> _Response:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda request, timeout: _Response())
+    response = UrllibTransport().fetch("https://example.invalid/x", headers={}, timeout_s=1)
+    assert response.body == b"<DIV8/>"

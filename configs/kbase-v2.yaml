@@ -59,9 +59,29 @@ collections:
       Monte Carlo/QMC, PDE, Fourier, AAD, calibration, XVA pricing, C++/CUDA performance
   regulation:
     description: >-
-      prudential regulation and supervisory texts: Basel Framework (BCBS), CRR/CRD, EBA;
-      capital rules for market risk (FRTB), counterparty credit risk (SA-CCR, IMM),
-      CVA capital, credit risk, liquidity, model risk
+      prudential regulation and supervisory texts, by jurisdiction (see below): capital
+      rules for market risk (FRTB), counterparty credit risk (SA-CCR, IMM), CVA, credit
+      risk, margin, liquidity, model risk
+
+# What each jurisdiction holds in the regulation collection (WP21 §3). The agent reads
+# this in the kb.search description: update it with every ingestion wave.
+jurisdictions:
+  intl:
+    description: >-
+      Basel Framework (BCBS), consolidated, all standards: CAP, RBC, CRE (credit risk,
+      SA-CCR, IMM), MAR (FRTB, CVA), MGN (margin), LEV, LCR, NSF, LEX, SRP, DIS, OPE,
+      SCO, BCP. International standards, not binding by themselves
+  eu:
+    description: >-
+      ECB guide to internal models (guidance). EU binding rules (CRR, EBA RTS) not
+      ingested yet
+  us:
+    description: >-
+      Federal Reserve SR 26-2 model risk guidance (SR 11-7 kept for history). US binding
+      rules (12 CFR) not ingested yet
+  uk:
+    description: >-
+      PRA SS1/23 model risk principles (guidance). PRA Rulebook not ingested yet
 
 curation:
   # Whole-title regexes (case-insensitive), matched once a leading "12.8" is removed.

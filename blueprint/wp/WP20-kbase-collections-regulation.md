@@ -334,7 +334,8 @@ Steps 1–5a shipped together in one PR (#67); `kbase eval` before and after.
       (2024). PDFs, MinerU at ingestion.
    5b–5d run as one night batch: `infra/scripts/kbase-regulation-ingest.sh` (MinerU,
    ingestion, verify, the two evaluation gates, a summary comment on #66).
-6. CRR3/EBA wave once step 5 holds.
+6. CRR3/EBA wave once step 5 holds. **Superseded by WP21** (regulation by jurisdiction:
+   EU, UK and US rules), which absorbs this step.
 
 ## 10. Open questions
 

@@ -39,7 +39,7 @@ def _tokens(text: str) -> list[str]:
     return _TOKEN_RE.findall(text.lower())
 
 
-def _clean_latex(latex: str) -> str:
+def clean_latex(latex: str) -> str:
     latex = _FONT_RE.sub("", latex)
     latex = _SPACES_RE.sub(" ", latex).strip()
     latex = _SPELLED_RE.sub(lambda m: m.group(0).replace(" ", ""), latex)
@@ -72,7 +72,7 @@ def _pdf_formulas(paragraph: str) -> list[_PdfFormula]:
         after = _PDF_FORMULA_RE.sub(" ", paragraph[match.end() :])
         out.append(
             _PdfFormula(
-                _clean_latex(latex),
+                clean_latex(latex),
                 tuple(_tokens(before)[-_CONTEXT_WORDS:]),
                 tuple(_tokens(after)[:_CONTEXT_WORDS]),
             )

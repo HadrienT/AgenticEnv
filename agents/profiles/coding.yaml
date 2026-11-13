@@ -18,6 +18,7 @@ mcp_tools:                      # allowlist stricte
   - code.diff_context
   - kb.search
   - kb.list_paragraphs
+  - kb.list_documents
   - mem.recall
   - mem.remember
 

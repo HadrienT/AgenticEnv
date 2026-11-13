@@ -20,6 +20,8 @@ class StatsReport(BaseModel):
     last_ingestion_at: datetime | None
     # Documents per collection (WP20).
     documents_by_collection: dict[str, int] = {}
+    # Regulatory documents per jurisdiction (WP21).
+    documents_by_jurisdiction: dict[str, int] = {}
 
 
 def stats(session: Session) -> StatsReport:
@@ -33,8 +35,15 @@ def stats(session: Session) -> StatsReport:
     by_collection = session.execute(
         text("SELECT collection, count(*) FROM kb.documents GROUP BY collection ORDER BY 1")
     ).all()
+    by_jurisdiction = session.execute(
+        text(
+            "SELECT jurisdiction, count(*) FROM kb.documents WHERE jurisdiction IS NOT NULL "
+            "GROUP BY jurisdiction ORDER BY 1"
+        )
+    ).all()
     return StatsReport(
         documents_by_collection={row[0]: row[1] for row in by_collection},
+        documents_by_jurisdiction={row[0]: row[1] for row in by_jurisdiction},
         documents=documents,
         chunks=chunks,
         equations=equations,
