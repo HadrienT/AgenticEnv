@@ -325,3 +325,22 @@ def test_cfr_chunks_carry_every_paragraph_id_including_heading_only_ones(tmp_pat
     for expected in ("§ 217.132(a)", "§ 217.132(a)(1)", "§ 217.132(a)(1)(i)", "§ 217.132(b)"):
         assert expected in ids, expected
     assert any("§ 217.132(a) Methodologies." in c.content for c in chunks)
+
+
+def test_plain_reading_is_the_fallback_and_images_go_on_a_page(tmp_path: Path) -> None:
+    from kbase.harvest.regulation import _on_page, apply_image_formulas, text_from_markdown
+    from PIL import Image
+
+    assert text_from_markdown("## WSCV CVA = RWk·Sk SCVA\n") == "WSCV CVA = RWk·Sk SCVA"
+    assert text_from_markdown("![](images/a.jpg)\n") == ""
+    (tmp_path / "a.jpg.tex").write_text("\n")
+    (tmp_path / "a.jpg.txt").write_text("SCVA\n")
+    text, placed, total = apply_image_formulas("x [formula: a.jpg] y", tmp_path)
+    assert text == "x SCVA y" and (placed, total) == (1, 1)
+
+    Image.new("RGB", (200, 96), "black").save(tmp_path / "small.jpg")
+    _on_page(tmp_path / "small.jpg", tmp_path / "small.png")
+    with Image.open(tmp_path / "small.png") as page:
+        assert page.size == (1200, 1536)
+        assert page.getpixel((0, 0)) == (255, 255, 255)
+        assert page.getpixel((600, 768)) == (0, 0, 0)

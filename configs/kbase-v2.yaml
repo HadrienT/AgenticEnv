@@ -73,15 +73,29 @@ jurisdictions:
       SCO, BCP. International standards, not binding by themselves
   eu:
     description: >-
-      ECB guide to internal models (guidance). EU binding rules (CRR, EBA RTS) not
-      ingested yet
+      CRR (Regulation 575/2013, consolidated 2026-06-26): market risk (FRTB alternative
+      standardised and internal model approaches, own funds requirements from 2027-01-01;
+      simplified approach), counterparty credit risk (SA-CCR, IMM, netting, CCPs), CVA
+      risk, trading book, prudent valuation (Art. 105); EBA RTS: prudent valuation
+      2016/101, EMIR margin 2016/2251, SA-CCR 2021/931, FRTB RTS (liquidity horizons,
+      back-testing and PLA, modellability, gross JTD, residual risks), 2026/1221
+      multipliers; ECB guide to internal models
   us:
     description: >-
-      Federal Reserve SR 26-2 model risk guidance (SR 11-7 kept for history). US binding
-      rules (12 CFR) not ingested yet
+      12 CFR 217 (Regulation Q; same rule as OCC 12 CFR 3 and FDIC 12 CFR 324): market
+      risk subpart F (VaR, stressed VaR, IRC, CRM), counterparty credit risk 217.132-133
+      (SA-CCR, IMM, CVA), standardized OTC derivatives and collateral 217.34-37; margin
+      for non-cleared swaps: Regulation KK (12 CFR 237), CFTC (17 CFR 23.150-161); SEC
+      security-based swap dealers capital and margin (17 CFR 240.18a-1, 18a-3); Federal
+      Reserve SR 26-2 model risk guidance (SR 11-7 kept for history). The 2026 re-proposal
+      is not ingested
   uk:
     description: >-
-      PRA SS1/23 model risk principles (guidance). PRA Rulebook not ingested yet
+      PRA Rulebook, Basel 3.1 parts applying from 2027-01-01: market risk general
+      provisions, advanced standardised approach (FRTB-SA), simplified standardised
+      approach, internal model approach (from 2028-01-01), counterparty credit risk (also
+      the current version), CVA risk, trading book; PRA SS1/23 model risk principles. Not
+      yet: onshored CRR texts (current CVA, prudent valuation, UK EMIR margin)
 
 curation:
   # Whole-title regexes (case-insensitive), matched once a leading "12.8" is removed.
