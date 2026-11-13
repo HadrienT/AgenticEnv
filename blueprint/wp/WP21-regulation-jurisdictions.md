@@ -297,6 +297,16 @@ Before the quant and coding prompts said anything about regulation, the quant pr
 answered a French question on UK margin haircuts from memory, without a search: both
 snippets now require `kb.search` on the regulation collection with `jurisdictions`.
 
+**Queries in English.** The corpus is English; French queries rank the right passage
+lower (MRR 0.75 against 0.95 in English, same recall). The `kb.search` description, the
+research/quant/coding snippets and the rag-citation skill now say: search in English
+whatever the conversation's language, answer in the user's language. Agent test with
+two more French questions (14 in all): English queries 41/42 (before: one profile
+searched in French). The local model still sometimes answers a French question in
+English after searching in English, or answers a French question from memory; a more
+insistent wording made the second worse, so the short one is kept. Results in
+`benchmarks/agent/results/2026-11-13-jurisdiction-routing-english-*.json`.
+
 ## 8. Delivery order
 
 1. Migration 0009, `jurisdiction` + new `doc_type`s, manifests, filter, citations,

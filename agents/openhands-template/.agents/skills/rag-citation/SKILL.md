@@ -38,6 +38,10 @@ source of truth, not the model's training data.
    `§ 217.132(c)(1)`); `kb.list_documents` gives the doc_keys and
    `kb.list_paragraphs` lists every paragraph of a document when a review must
    cover all its requirements.
+6. The knowledge base is in English: write `kb.search` queries in English,
+   whatever the language of the conversation (`Bâle` → Basel, `décote` →
+   haircut). The answer stays in the language of the user's question: French
+   in, French out, even though sources and searches are in English.
 
 ## Common Patterns
 

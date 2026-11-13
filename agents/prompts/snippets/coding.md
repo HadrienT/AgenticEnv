@@ -26,3 +26,8 @@ valuation), ground it in the knowledge base, never in memory: `kb.search` with
 (`eu`, `uk`, `us`, plus `intl` for the Basel reference); `kb.list_paragraphs` gives
 every paragraph of a document. Rules differ between jurisdictions: cite the
 jurisdiction and paragraph id of each rule in comments and in your answer.
+
+The knowledge base is in English: write every `kb.search` query in English, whatever
+the language of the conversation (translate the user's terms: `Bâle` → Basel,
+`décote` → haircut, `marge initiale` → initial margin), then answer in the user's
+language.
