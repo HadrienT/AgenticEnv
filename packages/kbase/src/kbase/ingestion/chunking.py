@@ -11,7 +11,14 @@ from corelib.hashing import sha256_obj
 from corelib.ids import new_id
 
 from kbase.regulatory import paragraph_id
-from kbase.schemas import Chunk, ChunkEquation, ChunkPolicy, ContentBlock, ParsedDocument
+from kbase.schemas import (
+    Chunk,
+    ChunkEquation,
+    ChunkPolicy,
+    ContentBlock,
+    ParsedDocument,
+    Section,
+)
 
 
 class Chunker(Protocol):
@@ -196,6 +203,9 @@ class _Piece:
     text: str
     tokens: int
     block: ContentBlock | None  # None for a heading line
+    # The regulatory paragraph a heading line names, when its section holds no block
+    # of its own (`§ 217.132(a) Methodologies.`, whose text is in (a)(1)).
+    paragraph: str | None = None
 
 
 class SectionChunker:
@@ -228,6 +238,21 @@ class SectionChunker:
                     break
                 current = parent
             return current.section_id if current else None
+
+        # Regulatory paragraphs whose section holds no block (a heading that only
+        # introduces its sub-paragraphs): rendered before the next section's first
+        # block, so their heading and id stay in the chunk.
+        with_blocks = {b.section_id for b in doc.blocks}
+        ordered = sorted(doc.sections, key=lambda s: s.ordinal)
+        empty_before: dict[str, list[Section]] = {}
+        pending: list[Section] = []
+        for s in ordered:
+            if s.section_id in with_blocks:
+                if pending:
+                    empty_before[s.section_id] = pending
+                pending = []
+            elif s.section_id in paragraph_of and s.level > 1:
+                pending.append(s)
 
         chunks: list[Chunk] = []
         parts: list[_Piece] = []
@@ -272,9 +297,17 @@ class SectionChunker:
                     equations=equations,
                     paragraph_ids=list(
                         dict.fromkeys(
-                            paragraph_of[b.section_id]
-                            for b in blocks
-                            if b.section_id in paragraph_of
+                            pid
+                            for p in parts
+                            if (
+                                pid := p.paragraph
+                                or (
+                                    paragraph_of.get(p.block.section_id or "")
+                                    if p.block is not None
+                                    else None
+                                )
+                            )
+                            is not None
                         )
                     ),
                 )
@@ -303,6 +336,13 @@ class SectionChunker:
                 if parts and (tokens() >= policy.min_tokens or chapter != state["chapter"]):
                     flush(overlap=False)
                 state["section"], state["chapter"] = block.section_id, chapter
+                for empty in empty_before.get(block.section_id or "", []):
+                    heading = f"{'#' * empty.level} {empty.title}"
+                    parts.append(
+                        _Piece(
+                            heading, approx_tokens(heading), None, paragraph_of[empty.section_id]
+                        )
+                    )
                 section = sections.get(block.section_id) if block.section_id else None
                 if section is not None and section.level > 1:
                     heading = f"{'#' * section.level} {section.title}"

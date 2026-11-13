@@ -34,3 +34,9 @@ def test_running_headers_and_numeric_noise() -> None:
 def test_consistent_levels_are_kept_as_written() -> None:
     lines = ["# Paper", "## Abstract", "## 1 Introduction", "### 1.1 Setting", "## Appendix"]
     assert [p.level for _, p in _levels(lines)] == [1, 2, 2, 3, 2]
+
+
+def test_cfr_paragraph_ids_without_a_word_stay_headings() -> None:
+    lines = ["# 12 CFR 217.132", "#### § 217.132(a)(1)", "text", "#### § 217.132(a)(1)(i)", "x"]
+    plan = plan_headings(lines)
+    assert plan[1].action == "heading" and plan[3].action == "heading"

@@ -290,9 +290,13 @@ def _ecfr_walk(out: _Writer, node: Tag, number: str, path: _CfrPath, quoted: boo
             continue
         if name in {"table", "gpotable"}:
             _ecfr_table(out, child)
-        elif name in {"img", "gph", "math"}:
+        elif name == "img":
             out.formulas += 1
-            out.text("[formula: image]")
+            out.text(_ecfr_inline(child))
+        elif name in {"gph", "math"}:
+            out.formulas += 1
+            images = [i for i in child.find_all("img") if isinstance(i, Tag)]
+            out.text(" ".join(_ecfr_inline(i) for i in images) or "[formula: image]")
         elif name == "p" and not quoted:
             _ecfr_paragraph(out, child, number, path)
         elif name in {"p", "fp", "fp-1", "fp-2", "ftnt"}:

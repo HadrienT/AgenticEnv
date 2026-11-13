@@ -35,6 +35,7 @@ _ECFR = """<?xml version="1.0" encoding="UTF-8"?>
 <FP-2>max{0, [(ΣE − ΣC) + Σ(E<E T="52">s</E> × H<E T="52">s</E>)]}</FP-2>
 <P>(A) ΣE equals the value of the exposure <img src="/graphics/er24ja20.025.gif">;</P>
 <P>(<I>1</I>) First italic level;</P>
+<img src="/graphics/er11oc13.031.gif">
 <P>(<I>2</I>)(<I>i</I>) Two markers at once.</P>
 <DIV><TABLE><TR><TH>Maturity</TH><TH colspan="2">Haircut</TH></TR>
 <TR><TD>1 year</TD><TD>0.5</TD><TD>1.0</TD></TR></TABLE></DIV>
@@ -126,7 +127,10 @@ def test_ecfr_paragraph_paths_headings_formulas_and_tables() -> None:
     assert "| Maturity | Haircut |  |" in conv.markdown and conv.tables == 1
     assert "78 FR" not in conv.markdown
     assert "[formula: er24ja20.025.gif]" in conv.markdown
-    assert conv.image_urls == {"er24ja20.025.gif": "https://www.ecfr.gov/graphics/er24ja20.025.gif"}
+    assert conv.image_urls == {
+        "er24ja20.025.gif": "https://www.ecfr.gov/graphics/er24ja20.025.gif",
+        "er11oc13.031.gif": "https://www.ecfr.gov/graphics/er11oc13.031.gif",
+    }
 
 
 def test_cfr_roman_numeral_after_h_is_a_letter() -> None:
@@ -296,3 +300,24 @@ def test_formula_sidecars_replace_placeholders_and_mark_images_done(tmp_path: Pa
     text, placed, total = apply_image_formulas(md, tmp_path)
     assert text == "with ${RW}_{k}=1 . 4$ and [formula: eu-x-002.jpg] here"
     assert (placed, total) == (1, 2)
+
+
+def test_cfr_chunks_carry_every_paragraph_id_including_heading_only_ones(tmp_path: Path) -> None:
+    from kbase.ingestion.chunking import SectionChunker
+    from kbase.schemas import ChunkPolicy
+
+    path = tmp_path / "us.md"
+    path.write_text(convert_ecfr(_ECFR, title="12 CFR 217.132").markdown, encoding="utf-8")
+    parsed = MarkdownParser().parse(
+        path, DocumentMeta(doc_key="us", title="us", doc_type="law", collection="regulation")
+    )
+    chunks = SectionChunker().chunk(
+        parsed,
+        ChunkPolicy(
+            strategy="section", target_tokens=400, max_tokens=800, min_tokens=120, overlap_tokens=0
+        ),
+    )
+    ids = [pid for c in chunks for pid in c.paragraph_ids]
+    for expected in ("§ 217.132(a)", "§ 217.132(a)(1)", "§ 217.132(a)(1)(i)", "§ 217.132(b)"):
+        assert expected in ids, expected
+    assert any("§ 217.132(a) Methodologies." in c.content for c in chunks)
