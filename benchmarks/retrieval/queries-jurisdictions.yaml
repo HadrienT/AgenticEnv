@@ -8,6 +8,7 @@
 #   jurisdiction: a question whose answer differs by jurisdiction, filter set
 #   cross-jurisdiction: the same kind of question without a filter; the expected
 #     documents of every jurisdiction count, so recall shows whether all three surface
+#   french: a French question on English text
 #
 #   uv run kbase eval --queries benchmarks/retrieval/queries-jurisdictions.yaml --label …
 queries:
@@ -34,6 +35,31 @@ queries:
   - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "supervisory delta of an option under SA-CCR", expected: [eu-rts-2021-931, eu-crr-sa-ccr]}
   - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "minimum transfer amount for exchanging collateral on non-centrally cleared OTC derivatives", expected: [eu-rts-2016-2251]}
   - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "criteria for a risk factor to be modellable in the internal model approach", expected: [eu-rts-2022-2060]}
+
+  # --- EU (wave 1 texts) ---
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "formula for the supervisory delta of an option in SA-CCR", expected: [eu-crr-sa-ccr], expected_paragraphs: ["Article 279a(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "maturity factor for margined and unmargined netting sets in SA-CCR", expected: [eu-crr-sa-ccr], expected_paragraphs: ["Article 279c(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "buckets for equity risk factors in the alternative standardised approach", expected: [eu-crr-mr-asa], expected_paragraphs: ["Article 325o(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "how partial expected shortfall measures are calculated in the internal model approach", expected: [eu-crr-mr-aima], expected_paragraphs: ["Article 325bc(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "transactions excluded from the own funds requirements for CVA risk", expected: [eu-crr-cva], expected_paragraphs: ["Article 382(4)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "confidence level and margin period of risk of an initial margin model", expected: [eu-rts-2016-2251], expected_paragraphs: ["Article 15(1)"]}
+  - {category: exact-id, collections: [regulation], jurisdictions: [eu], text: "Article 25(1) of Delegated Regulation 2016/2251 minimum transfer amount", expected: [eu-rts-2016-2251], expected_paragraphs: ["Article 25(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "unearned credit spreads AVA on derivative positions", expected: [eu-rts-2016-101], expected_paragraphs: ["Article 12(1)"]}
+
+  # --- French (bge-m3 matches across languages) ---
+  - {category: french, collections: [regulation], jurisdictions: [eu], text: "montant minimal de transfert pour l'échange de collatéral sur les dérivés non compensés", expected: [eu-rts-2016-2251], expected_paragraphs: ["Article 25(1)"]}
+  - {category: french, collections: [regulation], jurisdictions: [us], text: "niveau de confiance et horizon de détention de la VaR réglementaire américaine", expected: [us-cfr-217-f], expected_paragraphs: ["§ 217.205(b)(1)"]}
+  - {category: french, collections: [regulation], jurisdictions: [uk], text: "agrégation des sensibilités pondérées au sein d'un bucket avec la formule en racine carrée", expected: [uk-pra-mr-asa], expected_paragraphs: ["Article 325f(7)"]}
+  - {category: french, collections: [regulation], jurisdictions: [eu], text: "calcul du delta prudentiel d'une option en SA-CCR", expected: [eu-crr-sa-ccr], expected_paragraphs: ["Article 279a(1)"]}
+
+  # --- wave 2: UK assimilated law, credit, proposals ---
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "minimum transfer amount for collateral on non-centrally cleared OTC derivatives in the UK", expected: [uk-emir-margin-rts], expected_paragraphs: ["Article 25(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "unearned credit spreads additional valuation adjustment", expected: [uk-prudent-valuation-rts], expected_paragraphs: ["Article 12(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "standardised method formula for CVA own funds requirements in the current UK CRR", expected: [uk-crr-cva], expected_paragraphs: ["Article 384(1)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [eu], text: "financial collateral comprehensive method volatility adjustments", expected: [eu-crr-crm]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [us], text: "proposed basic CVA approach capital requirement with beta 0.25", expected: [us-fr-2026-erba-f], expected_paragraphs: ["§ 217.222(a)"]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [uk], text: "proposed adjustments to the internal model approach for market risk", expected: [uk-pra-cp9-26-ima]}
+  - {category: jurisdiction, collections: [regulation], jurisdictions: [intl], text: "initial margin threshold and phase-in for non-centrally cleared derivatives", expected: [bcbs-iosco-margin]}
 
   # --- cross-jurisdiction, no filter ---
   - {category: cross-jurisdiction, collections: [regulation], text: "SA-CCR exposure value alpha 1.4 times replacement cost plus potential future exposure", expected: [us-cfr-217-132, eu-crr-sa-ccr, uk-pra-ccr-2027, bcbs-cre52]}

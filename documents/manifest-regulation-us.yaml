@@ -88,3 +88,49 @@ documents:
   topic: reg-margin-requirements
   source_url: https://www.ecfr.gov/current/title-17/section-240.18a-3
   license: US government work, public domain
+- doc_key: us-cfr-217-32
+  path: regulation/us/md/us-cfr-217-32.md
+  title: '12 CFR 217.32, standardized approach: general risk weights'
+  authors:
+  - Board of Governors of the Federal Reserve System
+  year: null
+  doc_type: law
+  topic: reg-credit-sa
+  source_url: https://www.ecfr.gov/current/title-12/section-217.32
+  license: US government work, public domain
+- doc_key: us-cfr-217-131
+  path: regulation/us/md/us-cfr-217-131.md
+  title: '12 CFR 217.131, advanced approaches: wholesale and retail risk-weighted assets (IRB formulas)'
+  authors:
+  - Board of Governors of the Federal Reserve System
+  year: null
+  doc_type: law
+  topic: reg-irb
+  source_url: https://www.ecfr.gov/current/title-12/section-217.131
+  license: US government work, public domain
+- doc_key: us-fr-2026-erba-f
+  path: regulation/us/md/us-fr-2026-erba-f.md
+  title: 'US Basel III endgame re-proposal (2026-03-19), proposed subpart F: market risk (FRTB-style)
+    and CVA (proposal)'
+  authors:
+  - Board of Governors of the Federal Reserve System
+  - Office of the Comptroller of the Currency
+  - Federal Deposit Insurance Corporation
+  year: 2026
+  doc_type: proposal
+  topic: reg-market-risk
+  source_url: https://www.federalregister.gov/documents/full_text/html/2026/03/27/2026-05959.html
+  license: US government work, public domain
+- doc_key: us-fr-2026-erba-e
+  path: regulation/us/md/us-fr-2026-erba-e.md
+  title: 'US Basel III endgame re-proposal (2026-03-19), proposed subpart E: expanded risk-based approach,
+    credit risk, counterparty credit risk, credit risk mitigation (proposal)'
+  authors:
+  - Board of Governors of the Federal Reserve System
+  - Office of the Comptroller of the Currency
+  - Federal Deposit Insurance Corporation
+  year: 2026
+  doc_type: proposal
+  topic: reg-credit-risk
+  source_url: https://www.federalregister.gov/documents/full_text/html/2026/03/27/2026-05959.html
+  license: US government work, public domain

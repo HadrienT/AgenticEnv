@@ -256,3 +256,42 @@ documents:
   source_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32026R1221
   license: (c) European Union, https://eur-lex.europa.eu; reuse authorised with the source acknowledged
     (Decision 2011/833/EU)
+- doc_key: eu-crr-cr-sa
+  path: regulation/eu/md/eu-crr-cr-sa.md
+  title: 'CRR, credit risk: standardised approach (Art. 111-141)'
+  authors:
+  - European Parliament
+  - Council of the European Union
+  year: 2024
+  doc_type: law
+  topic: reg-credit-sa
+  source_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02013R0575-20260626
+  license: (c) European Union, https://eur-lex.europa.eu; reuse authorised with the source acknowledged
+    (Decision 2011/833/EU)
+  valid_from: '2026-06-26'
+- doc_key: eu-crr-cr-irb
+  path: regulation/eu/md/eu-crr-cr-irb.md
+  title: 'CRR, credit risk: internal ratings based approach (Art. 142-191)'
+  authors:
+  - European Parliament
+  - Council of the European Union
+  year: 2024
+  doc_type: law
+  topic: reg-irb
+  source_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02013R0575-20260626
+  license: (c) European Union, https://eur-lex.europa.eu; reuse authorised with the source acknowledged
+    (Decision 2011/833/EU)
+  valid_from: '2026-06-26'
+- doc_key: eu-crr-crm
+  path: regulation/eu/md/eu-crr-crm.md
+  title: 'CRR, credit risk mitigation: collateral, guarantees, credit derivatives (Art. 192-241)'
+  authors:
+  - European Parliament
+  - Council of the European Union
+  year: 2024
+  doc_type: law
+  topic: reg-credit-risk
+  source_url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02013R0575-20260626
+  license: (c) European Union, https://eur-lex.europa.eu; reuse authorised with the source acknowledged
+    (Decision 2011/833/EU)
+  valid_from: '2026-06-26'

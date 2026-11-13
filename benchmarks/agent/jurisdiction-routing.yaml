@@ -1,0 +1,42 @@
+# Questions for benchmarks/agent/jurisdiction_routing.py (WP21 §7). `jurisdictions`:
+# what the first kb.search must filter on (`intl` may be added); empty: the question
+# names none, so no filter or several. `collection: quant`: no regulation search.
+# `proposal: true`: the answer must say the rule is proposed, not in force.
+cases:
+  - id: eu-sa-ccr-exposure
+    question: "Under the EU CRR, how is the SA-CCR exposure value of a netting set computed?"
+    jurisdictions: [eu]
+  - id: us-var-confidence
+    question: "What VaR confidence level and holding period must US banks use for the market risk capital requirement?"
+    jurisdictions: [us]
+  - id: uk-es-confidence
+    question: "For a UK bank under the PRA internal model approach, what confidence level applies to expected shortfall?"
+    jurisdictions: [uk]
+  - id: eu-us-mta
+    question: "What minimum transfer amount applies to margin on uncleared derivatives in the EU and in the US?"
+    jurisdictions: [eu, us]
+  - id: basel-alpha-fr
+    question: "Que dit le cadre de Bâle sur le facteur alpha du SA-CCR ?"
+    jurisdictions: [intl]
+  - id: cva-unnamed
+    question: "How should the capital requirement for CVA risk be computed?"
+    jurisdictions: []
+  - id: eu-delta-implementation
+    question: "We are implementing the SA-CCR supervisory delta for options in our pricing library for an EU bank. Which formula must we use?"
+    jurisdictions: [eu]
+  - id: us-proposal-status
+    question: "Is the US Basel III endgame market risk framework in force, and what does it propose for the basic CVA approach?"
+    jurisdictions: [us]
+    proposal: true
+  - id: uk-im-haircuts-fr
+    question: "Pour une banque britannique, quelles décotes s'appliquent au collatéral de marge initiale des dérivés non compensés ?"
+    jurisdictions: [uk]
+  - id: quant-heston
+    question: "How is the Heston model calibrated to an implied volatility surface?"
+    collection: quant
+  - id: uk-curvature-2027
+    question: "What are the FRTB curvature risk requirements for UK banks from 2027?"
+    jurisdictions: [uk]
+  - id: eu-us-im-model
+    question: "Compare the initial margin model requirements (confidence level, margin period of risk) between EU EMIR and the US CFTC rules."
+    jurisdictions: [eu, us]

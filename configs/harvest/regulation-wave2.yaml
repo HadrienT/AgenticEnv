@@ -1,0 +1,203 @@
+# WP21 wave 2: what wave 1 left out (blueprint/wp/WP21 §5).
+# - UK assimilated law on legislation.gov.uk: EMIR margin and prudent valuation
+#   standards, CVA until the PRA Basel 3.1 part applies (2027-01-01);
+# - the BCBS/IOSCO margin framework (PDF, read by MinerU at ingestion);
+# - credit risk on the counterparty side: EU CRR, PRA Basel 3.1 parts, 12 CFR 217;
+# - proposals, not in force: the US re-proposal of 2026-03-19 (regulatory text of
+#   subparts E and F) and the PRA's draft IMA rules of CP9/26.
+#
+#   uv run kbase harvest-regulation --catalog configs/harvest/regulation-wave2.yaml
+#   uv run kbase regulation-formulas
+#   uv run kbase ingest --target documents/manifest-regulation-<jurisdiction>.yaml
+#
+# Identifiers checked on 2026-11-13.
+
+ecfr_date: null
+
+documents:
+  # ======================================================================= UK
+  # Assimilated law, revised text in force (legislation.gov.uk). License: Open
+  # Government Licence v3.0.
+  - doc_key: uk-emir-margin-rts
+    source: leg
+    jurisdiction: uk
+    leg_path: eur/2016/2251
+    title: "UK EMIR margin RTS (assimilated Delegated Regulation 2016/2251): margin for non-centrally cleared OTC derivatives"
+    authors: [European Commission, HM Treasury, Bank of England, Prudential Regulation Authority, Financial Conduct Authority]
+    year: 2016
+    topic: reg-margin-requirements
+    license: &ogl "Contains public sector information licensed under the Open Government Licence v3.0 (legislation.gov.uk)"
+  - doc_key: uk-prudent-valuation-rts
+    source: leg
+    jurisdiction: uk
+    leg_path: eur/2016/101
+    title: "UK prudent valuation RTS (assimilated Delegated Regulation 2016/101): additional valuation adjustments"
+    authors: [European Commission, Prudential Regulation Authority]
+    year: 2016
+    topic: reg-prudent-valuation
+    license: *ogl
+  - doc_key: uk-crr-cva
+    source: leg
+    jurisdiction: uk
+    leg_path: eur/2013/575/part/THREE/title/VI
+    articles: ["381-386"]
+    title: "UK CRR (assimilated), CVA risk (Art. 381-386), until 2026-12-31"
+    authors: [European Parliament, Council of the European Union, HM Treasury]
+    year: 2013
+    topic: reg-cva-capital
+    license: *ogl
+    valid_until: 2026-12-31
+
+  # PRA Rulebook, credit risk parts from 2027-01-01 (Basel 3.1).
+  - doc_key: uk-pra-cr-general
+    source: pra
+    jurisdiction: uk
+    pra_part: credit-risk-general-provisions-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Credit Risk: General Provisions (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-credit-risk
+    license: &uk "(c) Bank of England, PRA Rulebook; free access, kept local, not redistributed"
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-cr-sa
+    source: pra
+    jurisdiction: uk
+    pra_part: credit-risk---standardised-approach-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Credit Risk: Standardised Approach (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-credit-sa
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-cr-irb
+    source: pra
+    jurisdiction: uk
+    pra_part: credit-risk-internal-ratings-based-approach-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Credit Risk: Internal Ratings Based Approach (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-irb
+    license: *uk
+    valid_from: 2027-01-01
+  - doc_key: uk-pra-crm
+    source: pra
+    jurisdiction: uk
+    pra_part: credit-risk-mitigation-crr
+    pra_date: 2027-01-01
+    title: "PRA Rulebook, Credit Risk Mitigation (CRR), from 2027"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-credit-risk
+    license: *uk
+    valid_from: 2027-01-01
+
+  # Proposal: draft IMA rules (CP9/26 appendix 2); IMA applies from 2028-01-01.
+  - doc_key: uk-pra-cp9-26-ima
+    source: pdf
+    jurisdiction: uk
+    doc_type: proposal
+    url: https://www.bankofengland.co.uk/-/media/boe/files/prudential-regulation/consultation-paper/2026/june/cp926app2.pdf
+    title: "PRA CP9/26 (June 2026), draft PRA Rulebook instrument: adjustments to the market risk internal model approach (proposal)"
+    authors: [Prudential Regulation Authority]
+    year: 2026
+    topic: reg-frtb-ima
+    license: *uk
+
+  # ======================================================================= EU
+  # CRR credit risk, counterparty side: consolidation in force (2026-06-26).
+  - doc_key: eu-crr-cr-sa
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["111-141"]
+    title: "CRR, credit risk: standardised approach (Art. 111-141)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-credit-sa
+    license: &eu "(c) European Union, https://eur-lex.europa.eu; reuse authorised with the source acknowledged (Decision 2011/833/EU)"
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-cr-irb
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["142-191"]
+    title: "CRR, credit risk: internal ratings based approach (Art. 142-191)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-irb
+    license: *eu
+    valid_from: 2026-06-26
+  - doc_key: eu-crr-crm
+    source: eu
+    jurisdiction: eu
+    celex: 02013R0575-20260626
+    articles: ["192-241"]
+    title: "CRR, credit risk mitigation: collateral, guarantees, credit derivatives (Art. 192-241)"
+    authors: [European Parliament, Council of the European Union]
+    year: 2024
+    topic: reg-credit-risk
+    license: *eu
+    valid_from: 2026-06-26
+
+  # ======================================================================= US
+  - doc_key: us-cfr-217-32
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "217"
+    sections: ["217.32"]
+    title: "12 CFR 217.32, standardized approach: general risk weights"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-credit-sa
+    license: &us "US government work, public domain"
+  - doc_key: us-cfr-217-131
+    source: ecfr
+    jurisdiction: us
+    cfr_title: 12
+    part: "217"
+    sections: ["217.131"]
+    title: "12 CFR 217.131, advanced approaches: wholesale and retail risk-weighted assets (IRB formulas)"
+    authors: [Board of Governors of the Federal Reserve System]
+    topic: reg-irb
+    license: *us
+  # Proposal of 2026-03-19 (Federal Register 2026-05959, 2026-03-27): regulatory text
+  # of the common rule, numbered as in the Board's part 217.
+  - doc_key: us-fr-2026-erba-f
+    source: fr
+    jurisdiction: us
+    doc_type: proposal
+    url: https://www.federalregister.gov/documents/full_text/html/2026/03/27/2026-05959.html
+    part: "217"
+    subpart: F
+    title: "US Basel III endgame re-proposal (2026-03-19), proposed subpart F: market risk (FRTB-style) and CVA (proposal)"
+    authors: [Board of Governors of the Federal Reserve System, Office of the Comptroller of the Currency, Federal Deposit Insurance Corporation]
+    year: 2026
+    topic: reg-market-risk
+    license: *us
+  - doc_key: us-fr-2026-erba-e
+    source: fr
+    jurisdiction: us
+    doc_type: proposal
+    url: https://www.federalregister.gov/documents/full_text/html/2026/03/27/2026-05959.html
+    part: "217"
+    subpart: E
+    title: "US Basel III endgame re-proposal (2026-03-19), proposed subpart E: expanded risk-based approach, credit risk, counterparty credit risk, credit risk mitigation (proposal)"
+    authors: [Board of Governors of the Federal Reserve System, Office of the Comptroller of the Currency, Federal Deposit Insurance Corporation]
+    year: 2026
+    topic: reg-credit-risk
+    license: *us
+
+  # ===================================================================== intl
+  - doc_key: bcbs-iosco-margin
+    source: pdf
+    jurisdiction: intl
+    doc_type: standard
+    url: https://www.bis.org/publications/201907-standards-margin-requirements-non-centrally-cleared-derivatives.pdf
+    title: "BCBS-IOSCO, Margin requirements for non-centrally cleared derivatives (July 2019, d475)"
+    authors: [Basel Committee on Banking Supervision, International Organization of Securities Commissions]
+    year: 2019
+    topic: reg-margin-requirements
+    license: "(c) Bank for International Settlements; excerpts may be reproduced with the source stated. Kept local, not redistributed."

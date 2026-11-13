@@ -211,6 +211,32 @@ A consolidated EU text shared by several entries is fetched once.
 - Deferred from wave 1: UK EMIR margin RTS (legislation.gov.uk, another format), the
   BCBS/IOSCO margin framework (PDF, through the guidance manifest).
 
+### 5.6 Wave 2 (as built, 2026-11-13)
+
+`configs/harvest/regulation-wave2.yaml`, 16 documents:
+
+- **legislation.gov.uk** (new source, `source: leg`): the UK's assimilated EU law as
+  revised, CLML XML (`<path>/data.xml`): divisions, articles, numbered paragraphs,
+  points, definition lists, annexes; amendments are inline, the text kept is the text
+  in force. Formulas are MathML and become LaTeX directly (`mathml_to_latex`), no OCR.
+  Documents: UK EMIR margin RTS (2016/2251), UK prudent valuation RTS (2016/101), UK
+  CRR CVA (Art. 381–386, until 2026-12-31). Open Government Licence.
+- **PDFs** (`source: pdf`), read by MinerU at ingestion: the BCBS-IOSCO margin
+  framework (d475, July 2019) and the PRA's draft IMA rules of CP9/26 (`proposal`).
+- **Federal Register** (`source: fr`): the regulatory text ("Text of Common Rule") of
+  the US re-proposal of 2026-03-19 (FR 2026-05959), subparts E (credit, CCR, CRM) and
+  F (market risk, CVA), as `proposal`. Sections `§ __.NNN` are numbered in the Board's
+  part 217; the discussion preamble is left out.
+- **Credit, counterparty side**: CRR Art. 111–241 (SA, IRB, CRM), the PRA's Basel 3.1
+  credit parts, 12 CFR 217.32 and 217.131.
+
+### 5.7 Formula images
+
+MinerU lays a lone one-line formula image out as a title or text and never sends it
+to formula recognition. `kbase regulation-formulas` centres each image on a white page
+(enlarged when small) before one MinerU run; without a formula, MinerU's plain reading
+is kept (`<image>.txt`) and used instead of the placeholder.
+
 ## 6. Topics
 
 Existing `reg-*` topics are reused. Added: `reg-margin-requirements` (already used by
@@ -229,6 +255,15 @@ jurisdiction:
   top result's jurisdiction is reported, and checked by hand at first.
 
 Gates: quant sets unchanged; Basel-only queries unchanged with `jurisdictions=["intl"]`.
+
+### 7.1 Agent test
+
+`benchmarks/agent/jurisdiction_routing.py` runs a short tool loop against the local
+LLM with an agent profile's system prompt and the kbase tools exactly as the MCP
+server exposes them; calls are executed against the real base. Per question of
+`benchmarks/agent/jurisdiction-routing.yaml`: `routed` (the first `kb.search` names
+the regulation collection and the expected jurisdictions) and `labelled` (the answer
+names the jurisdiction of each rule, and "proposal" when one is expected).
 
 ## 8. Delivery order
 

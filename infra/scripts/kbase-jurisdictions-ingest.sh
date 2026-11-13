@@ -35,8 +35,8 @@ step() {
 }
 
 step uv run kbase regulation-formulas
-for j in eu uk us; do
-  step uv run kbase ingest --target "documents/manifest-regulation-$j.yaml"
+for j in intl eu uk us; do
+  [ -f "documents/manifest-regulation-$j.yaml" ] && step uv run kbase ingest --target "documents/manifest-regulation-$j.yaml"
 done
 step uv run kbase verify
 step uv run kbase stats
