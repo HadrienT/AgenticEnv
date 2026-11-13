@@ -24,8 +24,6 @@ from __future__ import annotations
 import base64
 import re
 import warnings
-from collections.abc import Callable
-from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Literal, Protocol
@@ -38,118 +36,18 @@ from pydantic import BaseModel, model_validator
 
 from kbase.harvest.basel_formulas import clean_latex
 from kbase.harvest.http import RawResponse
+from kbase.harvest.legislation import convert_legislation
+from kbase.harvest.regulation_common import Conversion, article_selected
+from kbase.harvest.regulation_common import Writer as _Writer
+from kbase.harvest.regulation_common import classes as _classes
+from kbase.harvest.regulation_common import clean as _clean
+from kbase.harvest.regulation_common import table_rows as _table_rows
 from kbase.schemas import Jurisdiction
 
 ECFR_ROOT = "https://www.ecfr.gov"
 CELLAR_ROOT = "http://publications.europa.eu/resource/celex"
 PRA_ROOT = "https://www.prarulebook.co.uk"
-
-_WS_RE = re.compile(r"\s+")
-
-
-def _clean(text: str) -> str:
-    return _WS_RE.sub(" ", text).strip()
-
-
-def _escape(line: str) -> str:
-    """A line starting with these would be re-read as structure by `MarkdownParser`."""
-    return "\\" + line if line.startswith(("#", "$$", "|", "<!--")) else line
-
-
-def _classes(el: Tag) -> set[str]:
-    value = el.get("class")
-    if isinstance(value, str):
-        return set(value.split())
-    return set(value or [])
-
-
-def _pipe_table(rows: list[list[str]]) -> str | None:
-    rows = [r for r in rows if any(c.strip() for c in r)]
-    if len(rows) < 2:
-        return None
-    width = max(len(r) for r in rows)
-    padded = [[c.replace("|", "\\|") for c in r] + [""] * (width - len(r)) for r in rows]
-    lines = ["| " + " | ".join(padded[0]) + " |", "|" + "---|" * width]
-    lines += ["| " + " | ".join(r) + " |" for r in padded[1:]]
-    return "\n".join(lines)
-
-
-def _table_rows(table: Tag, inline: Callable[[PageElement], str]) -> list[list[str]]:
-    """Cell texts row by row; a cell spanning n columns is followed by n-1 empty ones so
-    the columns of the header and the body line up."""
-    rows: list[list[str]] = []
-    for tr in table.find_all("tr"):
-        if not isinstance(tr, Tag):
-            continue
-        cells: list[str] = []
-        for cell in tr.find_all(["td", "th"], recursive=False):
-            if not isinstance(cell, Tag):
-                continue
-            cells.append(_clean(inline(cell)))
-            span = str(cell.get("colspan") or "1")
-            if span.isdigit() and int(span) > 1:
-                cells.extend([""] * (int(span) - 1))
-        rows.append(cells)
-    return rows
-
-
-@dataclass
-class Conversion:
-    markdown: str
-    paragraphs: int = 0
-    tables: int = 0
-    formulas: int = 0
-    # Formula images to write next to the Markdown: file name -> bytes.
-    images: dict[str, bytes] = field(default_factory=dict)
-    # Formula images to download next to the Markdown: file name -> URL (eCFR graphics).
-    image_urls: dict[str, str] = field(default_factory=dict)
-
-
-class _Writer:
-    """Accumulates Markdown blocks separated by blank lines."""
-
-    def __init__(self, title: str) -> None:
-        self.blocks: list[str] = [f"# {title}"]
-        self.paragraphs = 0
-        self.tables = 0
-        self.formulas = 0
-        self.images: dict[str, bytes] = {}
-
-    def heading(self, level: int, text: str) -> None:
-        self.blocks.append(f"{'#' * level} {_clean(text)}")
-
-    def paragraph(self, pid: str, title: str = "") -> None:
-        self.paragraphs += 1
-        self.heading(4, f"{pid} {title}".strip())
-
-    def text(self, text: str) -> None:
-        cleaned = _clean(text)
-        if cleaned:
-            self.blocks.append(_escape(cleaned))
-
-    def equation(self, latex: str) -> None:
-        self.formulas += 1
-        self.blocks.append(f"$$\n{latex.strip()}\n$$")
-
-    def table(self, rows: list[list[str]]) -> None:
-        md = _pipe_table(rows)
-        if md is not None:
-            self.tables += 1
-            self.blocks.append(md)
-            return
-        # One row is layout, not a table: `RC | = | the replacement cost ...`.
-        for row in rows:
-            self.text(" ".join(c for c in row if c.strip()))
-
-    def result(self) -> Conversion:
-        return Conversion(
-            markdown="\n\n".join(self.blocks) + "\n",
-            paragraphs=self.paragraphs,
-            tables=self.tables,
-            formulas=self.formulas,
-            images=self.images,
-        )
-
+LEGISLATION_ROOT = "https://www.legislation.gov.uk"
 
 # --------------------------------------------------------------------------- eCFR (US)
 
@@ -266,9 +164,12 @@ def _ecfr_table(out: _Writer, table: Tag) -> None:
 
 
 def _ecfr_paragraph(out: _Writer, p: Tag, number: str, path: _CfrPath) -> None:
-    """A `<P>`: its leading markers set the paragraph path; `(a) Heading—(1) text`
-    gives (a) its heading and the text to (a)(1)."""
-    text = _ecfr_inline(p)
+    _ecfr_paragraph_text(out, _ecfr_inline(p), number, path)
+
+
+def _ecfr_paragraph_text(out: _Writer, text: str, number: str, path: _CfrPath) -> None:
+    """A paragraph's inline text: its leading markers set the paragraph path;
+    `(a) Heading—(1) text` gives (a) its heading and the text to (a)(1)."""
     out.formulas += text.count("[formula:")
     pid = ""
     stripped = text.lstrip()
@@ -340,29 +241,92 @@ def convert_ecfr(xml: str, *, title: str) -> Conversion:
     return result
 
 
+# ----------------------------------------------------- Federal Register proposals (US)
+
+_FR_SECTION_RE = re.compile(r"^§\s*(?:__|\d{1,3})\.(\d{1,4}[a-z]?(?:-\d{1,2})?)\s*(.*)$")
+_FR_GRAPHIC_RE = re.compile(r"img\.federalregister\.gov/([A-Z0-9.]+)/")
+
+
+def _fr_inline(node: PageElement) -> str:
+    if isinstance(node, NavigableString):
+        return str(node)
+    if not isinstance(node, Tag):
+        return ""
+    if "printed-page" in " ".join(_classes(node)) or node.get("data-page") and node.name == "span":
+        return ""  # `(printed page 15253)`: pagination of the printed edition
+    inner = "".join(_fr_inline(c) for c in node.children)
+    if node.name == "em":
+        return f"\x01{inner}\x02"
+    if node.name == "sub":
+        return f"_{{{_clean(inner)}}}"
+    if node.name == "sup":
+        return f"^{{{_clean(inner)}}}"
+    if node.name == "img":
+        graphic = _FR_GRAPHIC_RE.search(str(node.get("src") or ""))
+        return f" [formula: {graphic.group(1).lower()}.png] " if graphic else "[formula: image]"
+    return inner
+
+
+def convert_fr(html: str, *, title: str, part: str, subpart: str) -> Conversion:
+    """One subpart of the regulatory text of a Federal Register proposed rule ("Text of
+    Common Rule"): sections `§ __.201` are numbered in `part` (`§ 217.201`), paragraphs
+    read like the CFR's."""
+    soup = BeautifulSoup(html, "html.parser")
+    start = next(
+        (h for h in soup.find_all("h2") if _clean(h.get_text()).startswith("Text of Common Rule")),
+        None,
+    )
+    if not isinstance(start, Tag):
+        raise ValueError("no 'Text of Common Rule' in the Federal Register document")
+    out = _Writer(title)
+    inside = False
+    number = ""
+    path = _CfrPath()
+    for el in start.find_all_next(["h1", "h2", "h3", "h4", "p", "table"]):
+        if not isinstance(el, Tag):
+            continue
+        text = _clean(el.get_text(" "))
+        if el.name == "h2" and text.startswith("Table"):
+            if inside:
+                out.text(text)  # a table title set as a heading
+            continue
+        if el.name in {"h1", "h2"}:
+            break
+        if el.name == "h3" and text.startswith("Subpart"):
+            inside = text.startswith(f"Subpart {subpart}")
+            if inside:
+                out.heading(2, text)
+            continue
+        if not inside:
+            continue
+        if el.name == "h4":
+            m = _FR_SECTION_RE.match(text)
+            if m is not None:
+                number = f"{part}.{m.group(1)}"
+                out.paragraph(f"§ {number}", m.group(2))
+                path = _CfrPath()
+            else:
+                out.heading(3, text)
+            continue
+        if el.name == "table":
+            out.table(_table_rows(el, lambda n: _plain(_fr_inline(n))))
+            continue
+        if el.find_parent("table") is not None or not number:
+            continue
+        _ecfr_paragraph_text(out, _fr_inline(el), number, path)
+    if out.paragraphs == 0:
+        raise ValueError(f"no section found in subpart {subpart}")
+    result = out.result()
+    result.image_urls = {
+        name: ecfr_graphic_url(name) for name in _IMAGE_PLACEHOLDER_RE.findall(result.markdown)
+    }
+    return result
+
+
 # ------------------------------------------------------------------------ Cellar (EU)
 
 _ARTICLE_ID_RE = re.compile(r"^art_(\d{1,4})([a-z]*)$")
-_ARTICLE_NUM_RE = re.compile(r"^(\d{1,4})([a-z]*)$")
 _AMENDMENT_MARKER_RE = re.compile(r"[▼►◄]\s*[A-Z]\d*")
-
-
-def _article_key(number: str) -> tuple[int, int, str]:
-    m = _ARTICLE_NUM_RE.match(number)
-    if m is None:
-        raise ValueError(f"not an article number: {number}")
-    return int(m.group(1)), len(m.group(2)), m.group(2)
-
-
-def article_selected(number: str, ranges: list[str]) -> bool:
-    """`ranges`: `"271-311"`, `"325-325bp"`, `"105"`; letters order `325 < 325a < 325z
-    < 325aa`, as the CRR numbers inserted articles."""
-    key = _article_key(number)
-    for spec in ranges:
-        low, _, high = spec.partition("-")
-        if _article_key(low.strip()) <= key <= _article_key((high or low).strip()):
-            return True
-    return False
 
 
 class _EuConverter:
@@ -642,11 +606,11 @@ class CatalogEntry(BaseModel):
     """One document to build. `source` decides which of the selector fields apply."""
 
     doc_key: str
-    source: Literal["ecfr", "eu", "pra"]
+    source: Literal["ecfr", "eu", "pra", "leg", "pdf", "fr"]
     jurisdiction: Jurisdiction
     title: str
     authors: list[str]
-    doc_type: Literal["law", "guidance", "proposal"] = "law"
+    doc_type: Literal["law", "guidance", "proposal", "standard"] = "law"
     topic: str
     year: int | None = None
     license: str
@@ -663,6 +627,12 @@ class CatalogEntry(BaseModel):
     # pra: rule part slug and the date it is shown at.
     pra_part: str | None = None
     pra_date: date | None = None
+    # leg: legislation.gov.uk path (`eur/2016/2251`, `eur/2013/575/part/THREE/title/VI`);
+    # `articles` optional (empty: every article and annex).
+    leg_path: str | None = None
+    # pdf: the PDF to download (read by MinerU at ingestion); fr: the Federal Register
+    # full-text HTML of a proposed rule, with `part` and `subpart` to keep.
+    url: str | None = None
 
     @model_validator(mode="after")
     def _selector(self) -> CatalogEntry:
@@ -674,6 +644,12 @@ class CatalogEntry(BaseModel):
             raise ValueError(f"{self.doc_key}: eu needs celex and articles")
         if self.source == "pra" and not (self.pra_part and self.pra_date):
             raise ValueError(f"{self.doc_key}: pra needs pra_part and pra_date")
+        if self.source == "leg" and not self.leg_path:
+            raise ValueError(f"{self.doc_key}: leg needs leg_path")
+        if self.source == "pdf" and not self.url:
+            raise ValueError(f"{self.doc_key}: pdf needs url")
+        if self.source == "fr" and not (self.url and self.part and self.subpart):
+            raise ValueError(f"{self.doc_key}: fr needs url, part and subpart")
         return self
 
 
@@ -716,6 +692,11 @@ def source_url(entry: CatalogEntry) -> str:
         return f"{ECFR_ROOT}/current/title-{entry.cfr_title}/section-{entry.sections[0]}"
     if entry.source == "eu":
         return f"https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:{entry.celex}"
+    if entry.source == "leg":
+        return f"{LEGISLATION_ROOT}/{entry.leg_path}"
+    if entry.source in {"pdf", "fr"}:
+        assert entry.url is not None
+        return entry.url
     assert entry.pra_date is not None
     return f"{PRA_ROOT}/pra-rules/{entry.pra_part}/{entry.pra_date.strftime('%d-%m-%Y')}"
 
@@ -797,7 +778,35 @@ _HEADERS: dict[str, dict[str, str]] = {
     "ecfr": {"Accept-Encoding": "gzip"},
     "eu": {"Accept": "application/xhtml+xml", "Accept-Language": "eng"},
     "pra": {},
+    "leg": {},
+    "pdf": {},
+    "fr": {},
 }
+
+
+def _harvest_pdf(
+    client: _Getter, entry: CatalogEntry, base: Path, report: RegulationReport
+) -> None:
+    """A PDF kept as it is: MinerU reads it at ingestion, like the guidance PDFs."""
+    assert entry.url is not None
+    response = client.get(entry.url)
+    if response.status != 200 or not response.body.startswith(b"%PDF"):
+        raise DependencyError(
+            f"{entry.url} did not return a PDF (HTTP {response.status})",
+            details={"url": entry.url},
+        )
+    (base / "raw").mkdir(parents=True, exist_ok=True)
+    (base / "raw" / f"{entry.doc_key}.pdf").write_bytes(response.body)
+    report.converted.append(
+        DocumentReport(
+            doc_key=entry.doc_key,
+            paragraphs=0,
+            tables=0,
+            formulas=0,
+            images=0,
+            bytes_md=len(response.body),
+        )
+    )
 
 
 def ecfr_latest_issues(client: _Getter) -> dict[int, date]:
@@ -867,10 +876,33 @@ def harvest_regulation(
                     raw, title=entry.title, doc_key=entry.doc_key, articles=entry.articles
                 )
                 raw_name = f"{entry.celex}.xhtml"
-            else:
+            elif entry.source == "pra":
                 raw = _fetch(client, source_url(entry), "pra")
                 conversion = convert_pra(raw, title=entry.title)
                 raw_name = f"{entry.doc_key}.html"
+            elif entry.source == "leg":
+                raw = _fetch(client, f"{source_url(entry)}/data.xml", "leg")
+                conversion = convert_legislation(
+                    raw, title=entry.title, articles=entry.articles or None
+                )
+                raw_name = f"{entry.doc_key}.xml"
+            elif entry.source == "fr":
+                assert entry.url is not None and entry.part and entry.subpart
+                if entry.url not in cache:
+                    cache[entry.url] = _fetch(client, entry.url, "fr")
+                raw = cache[entry.url]
+                conversion = convert_fr(
+                    raw, title=entry.title, part=entry.part, subpart=entry.subpart
+                )
+                raw_name = f"{entry.doc_key}.html"
+            else:
+                _harvest_pdf(client, entry, base, report)
+                entries.setdefault(entry.jurisdiction, []).append(
+                    manifest_entry(
+                        entry, f"{root_dir}/{entry.jurisdiction}/raw/{entry.doc_key}.pdf"
+                    )
+                )
+                continue
         except (AppError, ValueError) as exc:
             report.failed[entry.doc_key] = str(exc)
             continue

@@ -93,3 +93,97 @@ documents:
   source_url: https://www.prarulebook.co.uk/pra-rules/trading-book-crr/01-01-2027
   license: (c) Bank of England, PRA Rulebook; free access, kept local, not redistributed
   valid_from: '2027-01-01'
+- doc_key: uk-emir-margin-rts
+  path: regulation/uk/md/uk-emir-margin-rts.md
+  title: 'UK EMIR margin RTS (assimilated Delegated Regulation 2016/2251): margin for non-centrally cleared
+    OTC derivatives'
+  authors:
+  - European Commission
+  - HM Treasury
+  - Bank of England
+  - Prudential Regulation Authority
+  - Financial Conduct Authority
+  year: 2016
+  doc_type: law
+  topic: reg-margin-requirements
+  source_url: https://www.legislation.gov.uk/eur/2016/2251
+  license: Contains public sector information licensed under the Open Government Licence v3.0 (legislation.gov.uk)
+- doc_key: uk-prudent-valuation-rts
+  path: regulation/uk/md/uk-prudent-valuation-rts.md
+  title: 'UK prudent valuation RTS (assimilated Delegated Regulation 2016/101): additional valuation adjustments'
+  authors:
+  - European Commission
+  - Prudential Regulation Authority
+  year: 2016
+  doc_type: law
+  topic: reg-prudent-valuation
+  source_url: https://www.legislation.gov.uk/eur/2016/101
+  license: Contains public sector information licensed under the Open Government Licence v3.0 (legislation.gov.uk)
+- doc_key: uk-crr-cva
+  path: regulation/uk/md/uk-crr-cva.md
+  title: UK CRR (assimilated), CVA risk (Art. 381-386), until 2026-12-31
+  authors:
+  - European Parliament
+  - Council of the European Union
+  - HM Treasury
+  year: 2013
+  doc_type: law
+  topic: reg-cva-capital
+  source_url: https://www.legislation.gov.uk/eur/2013/575/part/THREE/title/VI
+  license: Contains public sector information licensed under the Open Government Licence v3.0 (legislation.gov.uk)
+  valid_until: '2026-12-31'
+- doc_key: uk-pra-cr-general
+  path: regulation/uk/md/uk-pra-cr-general.md
+  title: 'PRA Rulebook, Credit Risk: General Provisions (CRR), from 2027'
+  authors:
+  - Prudential Regulation Authority
+  year: 2026
+  doc_type: law
+  topic: reg-credit-risk
+  source_url: https://www.prarulebook.co.uk/pra-rules/credit-risk-general-provisions-crr/01-01-2027
+  license: (c) Bank of England, PRA Rulebook; free access, kept local, not redistributed
+  valid_from: '2027-01-01'
+- doc_key: uk-pra-cr-sa
+  path: regulation/uk/md/uk-pra-cr-sa.md
+  title: 'PRA Rulebook, Credit Risk: Standardised Approach (CRR), from 2027'
+  authors:
+  - Prudential Regulation Authority
+  year: 2026
+  doc_type: law
+  topic: reg-credit-sa
+  source_url: https://www.prarulebook.co.uk/pra-rules/credit-risk---standardised-approach-crr/01-01-2027
+  license: (c) Bank of England, PRA Rulebook; free access, kept local, not redistributed
+  valid_from: '2027-01-01'
+- doc_key: uk-pra-cr-irb
+  path: regulation/uk/md/uk-pra-cr-irb.md
+  title: 'PRA Rulebook, Credit Risk: Internal Ratings Based Approach (CRR), from 2027'
+  authors:
+  - Prudential Regulation Authority
+  year: 2026
+  doc_type: law
+  topic: reg-irb
+  source_url: https://www.prarulebook.co.uk/pra-rules/credit-risk-internal-ratings-based-approach-crr/01-01-2027
+  license: (c) Bank of England, PRA Rulebook; free access, kept local, not redistributed
+  valid_from: '2027-01-01'
+- doc_key: uk-pra-crm
+  path: regulation/uk/md/uk-pra-crm.md
+  title: PRA Rulebook, Credit Risk Mitigation (CRR), from 2027
+  authors:
+  - Prudential Regulation Authority
+  year: 2026
+  doc_type: law
+  topic: reg-credit-risk
+  source_url: https://www.prarulebook.co.uk/pra-rules/credit-risk-mitigation-crr/01-01-2027
+  license: (c) Bank of England, PRA Rulebook; free access, kept local, not redistributed
+  valid_from: '2027-01-01'
+- doc_key: uk-pra-cp9-26-ima
+  path: regulation/uk/raw/uk-pra-cp9-26-ima.pdf
+  title: 'PRA CP9/26 (June 2026), draft PRA Rulebook instrument: adjustments to the market risk internal
+    model approach (proposal)'
+  authors:
+  - Prudential Regulation Authority
+  year: 2026
+  doc_type: proposal
+  topic: reg-frtb-ima
+  source_url: https://www.bankofengland.co.uk/-/media/boe/files/prudential-regulation/consultation-paper/2026/june/cp926app2.pdf
+  license: (c) Bank of England, PRA Rulebook; free access, kept local, not redistributed
