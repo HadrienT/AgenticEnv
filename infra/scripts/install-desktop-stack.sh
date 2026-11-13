@@ -51,11 +51,6 @@ install -m 0644 "$REPO/infra/systemd/agenticenv-backup.service" "$REPO/infra/sys
 systemctl --user daemon-reload
 systemctl --user enable --now agenticenv-backup.timer
 
-echo "==> monthly regulation refresh (WP21)"
-install -m 0644 "$REPO/infra/systemd/kbase-regulation-refresh.service" "$REPO/infra/systemd/kbase-regulation-refresh.timer" "$USER_UNIT_DIR/"
-systemctl --user daemon-reload
-systemctl --user enable --now kbase-regulation-refresh.timer
-
 echo "==> model-profile switch (agx-llm-use)"
 sudo install -m 0755 -o root -g root "$REPO/infra/scripts/agx-llm-use.sh" /usr/local/sbin/agx-llm-use
 echo "    installed /usr/local/sbin/agx-llm-use"

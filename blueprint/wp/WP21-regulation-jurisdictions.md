@@ -313,16 +313,23 @@ WP20 step 6 (CRR3/EBA wave) is absorbed into steps 3–5.
 
 ### 8.1 Monthly refresh
 
-`kbase-regulation-refresh.timer` (user unit, first day of the month at 01:00,
-installed by `infra/scripts/install-desktop-stack.sh`) runs
-`infra/scripts/kbase-regulation-refresh.sh` from the deployed checkout: every source is
-fetched again (Basel Framework and its chapter formulas, every
-`configs/harvest/regulation-wave*.yaml`), new formula images go through MinerU, every
-regulation manifest is ingested (unchanged files are skipped by sha256, so only what
-changed is re-embedded), then `kbase verify` and three evaluations (jurisdictions,
-Basel with `intl`, the quant gate). The script comments on #71 with the number of
-re-ingested documents per manifest and the scores, and flags any change left in the
-checkout's `documents/` or `configs/`.
+Scheduled by the Airflow of `~/data-ingest` (DAG `kbase_regulation_refresh`, first day
+of the month at 00:00 UTC), next to its other jobs. Airflow runs in containers without
+the GPU, `uv`, MinerU or `systemctl --user`, so the work stays on the host: the DAG's
+only task opens an SSH session with a dedicated key whose `authorized_keys` line is
+`restrict`, limited to the Docker networks, with a forced command that runs
+`infra/scripts/kbase-regulation-refresh.sh` (same pattern as the Atlas probes).
+`infra/scripts/install-refresh-access.sh` creates the key, the line and the Airflow
+connection `kbase_refresh_ssh`.
+
+The script fetches every source again (Basel Framework and its chapter formulas, every
+`configs/harvest/regulation-wave*.yaml`), sends new formula images through MinerU,
+ingests every regulation manifest (unchanged files are skipped by sha256, so only what
+changed is re-embedded), then runs `kbase verify` and three evaluations
+(jurisdictions, Basel with `intl`, the quant gate). It comments on #71 with the number
+of re-ingested documents per manifest and the scores, flags any change left in the
+checkout's `documents/` or `configs/`, prints the same summary for the Airflow log,
+and exits non-zero when a step failed, which fails the task.
 
 ## 9. Open questions
 

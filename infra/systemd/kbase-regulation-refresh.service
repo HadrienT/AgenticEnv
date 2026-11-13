@@ -1,9 +1,0 @@
-# systemd **user** unit: monthly refresh of the regulation collection (WP21).
-# Installed by infra/scripts/install-desktop-stack.sh.
-[Unit]
-Description=AgenticEnv kbase regulation refresh (harvest, formulas, ingest, eval)
-
-[Service]
-Type=oneshot
-ExecStart=/bin/bash %h/AgenticEnv/infra/scripts/kbase-regulation-refresh.sh
-TimeoutStartSec=6h
