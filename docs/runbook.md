@@ -133,7 +133,8 @@ or `~/.ssh` into the sandbox.
 ## Backups (WP16)
 
 `agenticenv-backup.timer` (user unit, installed by `just install-stack`) dumps the
-database nightly to `~/backups/agenticenv`, keeps 14 days, and prunes `obs` and
+database nightly to `~/backups/agenticenv`, keeps only the latest dump
+(`AGX_BACKUP_KEEP`, default 1, to keep more), and prunes `obs` and
 `kb.retrieval_logs` older than 90 days. On demand: `just backup`.
 
 Restore into a scratch database, check it, and only then swap:
