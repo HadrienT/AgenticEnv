@@ -892,7 +892,7 @@ def harvest_regulation(
                     continue
                 response = client.get(url)
                 # A page instead of an image (the eCFR's own /graphics/ path does that).
-                if response.status == 200 and not response.body.lstrip()[:1] == b"<":
+                if response.status == 200 and response.body.lstrip()[:1] != b"<":
                     target.write_bytes(response.body)
         entries.setdefault(entry.jurisdiction, []).append(manifest_entry(entry, md_rel))
         report.converted.append(
