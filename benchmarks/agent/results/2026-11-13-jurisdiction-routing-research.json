@@ -1,0 +1,453 @@
+{
+  "profile": "research",
+  "model": "local",
+  "routed": 11,
+  "labelled": 11,
+  "cases": 12,
+  "rows": [
+    {
+      "id": "eu-sa-ccr-exposure",
+      "question": "Under the EU CRR, how is the SA-CCR exposure value of a netting set computed?",
+      "routed": false,
+      "labelled": true,
+      "first_search": null,
+      "calls": [
+        {
+          "tool": "kb.list_documents",
+          "arguments": {
+            "collection": "regulation",
+            "jurisdiction": "eu"
+          }
+        },
+        {
+          "tool": "kb.list_paragraphs",
+          "arguments": {
+            "doc_key": "eu-crr-sa-ccr"
+          }
+        }
+      ],
+      "answer": "Based on the information retrieved, the SA-CCR exposure value of a netting set under the EU CRR is computed as follows:\n\n1. An institution may calculate a single exposure value at netting set level for all the transactions covered by a contractual netting agreement (Article 274(1)).\n2. The exposure value of a netting set that is subject to a contractual margin agreement shall be capped at the exposure value of the same netting set not subject to a margin agreement (Article 274(3)).\n3. Institutions shall calculate the replacement cost (RC) for netting sets that are not subject to a margin agreement, in accordance with a specific formula (Article 275(1)).\n4. For netting sets subject to a margin agreement, the replacement cost is calculated differently, also according to a specific formula (Article 275(2)).\n5. The potential future exposure of a netting set is calculated as the sum of the potential future exposures of the individual hedging sets within that netting set (Article 278(1)).\n6. The potential future exposure of multiple netting sets that are subject to one margin agreement is calculated as the sum of the potential future exposures of the individual netting sets (Article 278(2)).\n7. The multiplier for the potential future exposure is calculated based on the risk category of the transactions within the netting set (Article 278(3)).\n\nThese steps outline the process for computing the SA-CCR exposure value for a netting set under the EU CRR.",
+      "seconds": 20.6
+    },
+    {
+      "id": "us-var-confidence",
+      "question": "What VaR confidence level and holding period must US banks use for the market risk capital requirement?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "VaR confidence level and holding period for market risk capital requirement in 12 CFR 217 Subpart F",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "us"
+        ],
+        "doc_keys": [
+          "us-cfr-217-f"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.list_documents",
+          "arguments": {
+            "collection": "regulation",
+            "jurisdiction": "us"
+          }
+        },
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "VaR confidence level and holding period for market risk capital requirement in 12 CFR 217 Subpart F",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "us"
+            ],
+            "doc_keys": [
+              "us-cfr-217-f"
+            ]
+          }
+        }
+      ],
+      "answer": "Based on the information retrieved from the knowledge base, US banks must use a VaR confidence level of 99.0 percent and a holding period of 10 business days for the market risk capital requirement. This is specified in 12 CFR 217 Subpart F, specifically in § 217.205(b)(1).",
+      "seconds": 16.3
+    },
+    {
+      "id": "uk-es-confidence",
+      "question": "For a UK bank under the PRA internal model approach, what confidence level applies to expected shortfall?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "PRA internal model approach expected shortfall confidence level",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "uk"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "PRA internal model approach expected shortfall confidence level",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "uk"
+            ]
+          }
+        }
+      ],
+      "answer": "Based on my search of the knowledge base, I found information regarding the confidence level for expected shortfall in the context of the PRA's internal model approach.\n\nAccording to the PRA Rulebook, Market Risk: Internal Model Approach (CRR), FRTB-IMA, the confidence level for expected shortfall calculations is the 97.5th percentile with a one-tailed confidence interval. This is specified in Article 325bc(1) and Article 325bk(3) of the PRA Rulebook.\n\nThe relevant excerpts state:\n- Article 325bc(1): \"at 97.5th percentile, one tailed confidence interval\"\n- Article 325bk(3): \"at 97.5^{th} percentile, one tailed confidence interval\"\n\nThis confidence level of 97.5% is applied when calculating partial expected shortfall measures and stress scenario risk measures for institutions using the PRA's internal model approach.\n\nIt's important to note that these rules are not yet in force, as they apply from 2028-01-01 (Article 325bc(1) and Article 325bk(3)) and 2027-01-01 (Article 325a1), so they are for future implementation.\n\nFor a UK bank under the PRA internal model approach, the confidence level that applies to expected shortfall is 97.5% with a one-tailed confidence interval.",
+      "seconds": 12.9
+    },
+    {
+      "id": "eu-us-mta",
+      "question": "What minimum transfer amount applies to margin on uncleared derivatives in the EU and in the US?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "minimum transfer amount margin uncleared derivatives EU",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "eu"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "minimum transfer amount margin uncleared derivatives EU",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "eu"
+            ]
+          }
+        },
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "minimum transfer amount margin uncleared derivatives US",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "us"
+            ]
+          }
+        }
+      ],
+      "answer": "Based on the knowledge base search results, here are the minimum transfer amounts for margin on uncleared derivatives in the EU and the US:\n\n### EU\nAccording to Article 25(1) of the Delegated Regulation 2016/2251 (EMIR), the minimum transfer amount for margin on uncleared derivatives in the EU is **EUR 500,000** or the equivalent amount in another currency. This amount applies to the sum of variation margin and initial margin due from the last collection of collateral.\n\n### US\nIn the US, the minimum transfer amount for margin on uncleared derivatives is **$500,000**. This is defined in the CFTC regulations (17 CFR 23.151(5)) and also applies to security-based swaps under SEC regulations (17 CFR 240.18a-3). This amount applies to the combined initial and variation margin amounts under which no actual transfer of funds is required.\n\nBoth jurisdictions set the minimum transfer amount at $500,000 or its equivalent in the local currency, with the EU specifying it as EUR 500,000.",
+      "seconds": 19.5
+    },
+    {
+      "id": "basel-alpha-fr",
+      "question": "Que dit le cadre de Bâle sur le facteur alpha du SA-CCR ?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "SA-CCR alpha factor",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "intl"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "SA-CCR alpha factor",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "intl"
+            ]
+          }
+        }
+      ],
+      "answer": "Dans le cadre de Bâle, le facteur alpha utilisé dans le SA-CCR (Standardised Approach for Credit Risk) est fixé à 1,4. Ce facteur est appliqué dans le calcul de l'Exposure at Default (EAD) pour les positions en crédit de contrepartie, comme indiqué dans les documents de référence suivants :\n\n1. **CRE52.1** : Ce paragraphe stipule clairement que dans la formule de calcul de l'EAD pour le SA-CCR, le facteur alpha est fixé à 1,4. L'EAD est calculé comme suit : \n   $$\n   EAD = (RC + PFE) \\times \\alpha\n   $$\n   où :\n   - $ RC $ est le coût de remplacement,\n   - $ PFE $ est l'exposition future potentielle,\n   - $ \\alpha $ est le facteur de calibration, fixé à 1,4.\n\n2. **CRE99.21** : Ce paragraphe indique également que l'EAD pour tous les ensembles de netting dans le SA-CCR est donné par une formule où alpha est assigné à la valeur de 1,4.\n\n3. **CRE99.97 et CRE99.58** : Ces paragraphes montrent des exemples concrets d'application de cette formule avec le facteur alpha de 1,4.\n\n4. **CRE53.15** : Ce paragraphe précise que les autorités de supervision ont la discretion de demander un alpha plus élevé selon les caractéristiques spécifiques des expositions de risque de crédit des banques.\n\nEn résumé, le facteur alpha du SA-CCR, tel que défini par le cadre de Bâle, est de 1,4. Ce paramètre est utilisé pour ajuster l'EAD en tenant compte de la volatilité des positions de crédit de contrepartie.",
+      "seconds": 14.4
+    },
+    {
+      "id": "cva-unnamed",
+      "question": "How should the capital requirement for CVA risk be computed?",
+      "routed": true,
+      "labelled": false,
+      "first_search": {
+        "text": "CVA risk capital requirement",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "intl"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "CVA risk capital requirement",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "intl"
+            ]
+          }
+        },
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "CVA risk capital requirement",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "eu"
+            ]
+          }
+        },
+        {
+          "tool": "kb.list_paragraphs",
+          "arguments": {
+            "doc_key": "bcbs-mar21",
+            "prefix": "MAR21.4"
+          }
+        },
+        {
+          "tool": "kb.list_paragraphs",
+          "arguments": {
+            "doc_key": "crr-575-2013",
+            "prefix": "Article 274"
+          }
+        },
+        {
+          "tool": "kb.list_paragraphs",
+          "arguments": {
+            "doc_key": "bcbs-mar21"
+          }
+        }
+      ],
+      "answer": "Based on the information gathered, the capital requirement for CVA risk can be computed using the following approaches:\n\n1. **Basel Framework (intl)**:\n   - **Basic Approach (BA-CVA)**: The capital requirement for CVA risk is calculated using the formula:\n     \\[\n     BACVA^{total} = \\beta \\cdot BACVA^{csr-unhedged} + DS_{CVA} \\cdot (1 - \\beta) \\cdot BACVA^{csr-hedged}\n     \\]\n     where:\n     - \\( BACVA^{total} \\) is the own funds requirements for CVA risk under the basic approach.\n     - \\( BACVA^{csr-unhedged} \\) is the own funds requirements for CVA risk under the basic approach for an institution that meets the condition set out in paragraph 1, point (b).\n     - \\( DS_{CVA} = 0.65 \\).\n     - \\( \\beta = 0.25 \\).\n     - \\( BACVA^{csr-hedged} \\) is the own funds requirements for CVA risk under the basic approach for an institution that meets the condition set out in paragraph 1, point (a).\n\n   - **Standardised Approach (SA-CVA)**: The capital requirements for CVA risk are calculated as the sum of the capital requirements for delta and vega risks calculated for the entire CVA portfolio (including eligible hedges). The capital requirements for delta risk are calculated as the simple sum of delta capital requirements calculated independently for the following six risk classes:\n     1. Interest rate risk.\n     2. Foreign exchange (FX) risk.\n     3. Counterparty credit spread risk.\n     4. Reference credit spread risk.\n     5. Equity risk.\n     6. Commodity risk.\n\n2. **European Union's CRR (eu)**:\n   - **Basic Approach (BA-CVA)**: The capital requirement for CVA risk is calculated using the formula:\n     \\[\n     BACVA^{total} = \\beta \\cdot BACVA^{csr-unhedged} + DS_{CVA} \\cdot (1 - \\beta) \\cdot BACVA^{csr-hedged}\n     \\]\n     where:\n     - \\( BACVA^{total} \\) is the own funds requirements for CVA risk under the basic approach.\n     - \\( BACVA^{csr-unhedged} \\) is the own funds requirements for CVA risk under the basic approach as calculated in accordance with paragraph 3 for an institution that meets the condition set out in paragraph 1, point (b).\n     - \\( DS_{CVA} = 0.65 \\).\n     - \\( \\beta = 0.25 \\).\n     - \\( BACVA^{csr-hedged} \\) is the own funds requirements for CVA risk under the basic approach as calculated in accordance with paragraph 3 for an institution that meets the condition set out in paragraph 1, point (a).\n\n   - **Standardised Approach (SA-CVA)**: The capital requirements for CVA risk are calculated as the sum of the capital requirements for delta and vega risks calculated for the entire CVA portfolio (including eligible hedges). The capital requirements for delta risk are calculated as the simple sum of delta capital requirements calculated independently for the following six risk classes:\n     1. Interest rate risk.\n     2. Foreign exchange (FX) risk.\n     3. Counterparty credit spread risk.\n     4. Reference credit spread risk.\n     5. Equity risk.\n     6. Commodity risk.\n\nIn summary, the capital requirement for CVA risk is computed using either the Basic Approach or the Standardised Approach, depending on the regulatory framework and the specific conditions met by the institution. The Basic Approach uses a formula that incorporates the supervisory parameter \\(\\beta\\) and the discount factor \\(DS_{CVA}\\), while the Standardised Approach calculates the capital requirements based on the sensitivities of the CVA portfolio to various risk factors.",
+      "seconds": 37.5
+    },
+    {
+      "id": "eu-delta-implementation",
+      "question": "We are implementing the SA-CCR supervisory delta for options in our pricing library for an EU bank. Which formula must we use?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "SA-CCR supervisory delta formula",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "eu"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.list_documents",
+          "arguments": {
+            "collection": "regulation",
+            "jurisdiction": "eu",
+            "topic": "counterparty credit risk"
+          }
+        },
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "SA-CCR supervisory delta formula",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "eu"
+            ]
+          }
+        }
+      ],
+      "answer": "Based on the search results, the formula for the supervisory delta for options under the SA-CCR framework in the EU is as follows:\n\nFor call and put options that entitle the option buyer to purchase or sell an underlying instrument at a positive price on a single or multiple dates in the future, except where those options are mapped to the interest rate risk or commodity risk category, the supervisory delta is calculated as:\n\n$$\n\\mathfrak{S} = \\text{sign} \\cdot N\\left(\\text{type} \\cdot \\frac{\\ln \\left(\\frac{P}{K}\\right) + 0.5 \\cdot \\sigma^{2} \\cdot T}{\\sigma \\cdot \\sqrt{T}}\\right)\n$$\n\nWhere:\n- $\\mathfrak{S}$ = the supervisory delta;\n- $\\text{sign} = -1$ where the transaction is a sold call option or a bought put option;\n- $\\text{sign} = +1$ where the transaction is a bought call option or sold put option;\n- $\\text{type} = -1$ where the transaction is a put option;\n- $\\text{type} = +1$ where the transaction is a call option;\n- $N(x)$ = the cumulative distribution function for a standard normal random variable meaning the probability that a normal random variable with mean zero and variance of one is less than or equal to x;\n- $P$ = the spot or forward price of the underlying instrument of the option; for options the cash flows of which depend on an average value of the price of the underlying instrument, P shall be equal to the average value at the calculation date;\n- $K$ = the strike price of the option;\n- $T$ = the expiry date of the option, expressed in years using the relevant business day convention;\n- $\\sigma$ = the supervisory volatility of the option.\n\nThis formula is specified in Article 279a(1) of the CRR, which is the primary regulatory document for SA-CCR in the EU.",
+      "seconds": 16.1
+    },
+    {
+      "id": "us-proposal-status",
+      "question": "Is the US Basel III endgame market risk framework in force, and what does it propose for the basic CVA approach?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "US Basel III endgame market risk framework",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "us"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "US Basel III endgame market risk framework",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "us"
+            ]
+          }
+        }
+      ],
+      "answer": "The US Basel III endgame market risk framework is currently in the proposal stage and is not yet in force. The proposal, titled \"US Basel III endgame re-proposal (2026-03-19), proposed subpart F: market risk (FRTB-style) and CVA (proposal)\", outlines a new market risk framework that includes a FRTB-style approach and a basic CVA approach.\n\nRegarding the basic CVA approach, the proposal includes provisions for measuring CVA risk. Specifically, it defines the measure for CVA risk in § 217.221 and sets criteria for when a banking organization is subject to the market risk framework based on its OTC derivative contracts with an aggregate gross notional value of $1 trillion or more on average for the prior four quarters (§ 217.201(b)(2)(iii)).\n\nThe proposal also includes provisions for assigning market risk covered positions that are options or positions with embedded options that do not have a maturity to the longest prescribed maturity tenor (§ 217.207(c)(3)).\n\nIn summary, the US Basel III endgame market risk framework is not yet in force, but it proposes a FRTB-style approach and a basic CVA approach with specific measures and criteria for implementation.",
+      "seconds": 11.8
+    },
+    {
+      "id": "uk-im-haircuts-fr",
+      "question": "Pour une banque britannique, quelles décotes s'appliquent au collatéral de marge initiale des dérivés non compensés ?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "margin requirements for non-centrally cleared derivatives",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "uk"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "margin requirements for non-centrally cleared derivatives",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "uk"
+            ]
+          }
+        }
+      ],
+      "answer": "Pour une banque britannique, les décotes s'appliquent au collatéral de marge initiale (IM) des dérivés non compensés selon les dispositions du règlement CRR (Capital Requirements Regulation) et des RTS (Regulatory Technical Standards) établis par l'EBA, ainsi que les règles du PRA (Prudential Regulation Authority). Voici les éléments clés concernant les décotes :\n\n1. **Règlement CRR** : Le règlement CRR impose des exigences strictes en matière de gestion du risque de crédit et de collatéral. Il précise que les actifs de collatéral doivent être évalués selon des méthodes prises en compte par les autorités de réglementation.\n\n2. **Décotes pour les actifs de collatéral** : Selon les dispositions du règlement CRR, les décotes s'appliquent aux actifs de collatéral pour tenir compte du risque de crédit associé à ces actifs. Ces décotes sont définies dans les RTS établis par l'EBA.\n\n3. **RTS sur la gestion du risque de crédit (EBA RTS 2021/931)** : Ce document précise les exigences en matière de collatéral, notamment les décotes à appliquer aux actifs de collatéral. Pour les actifs de collatéral non compensés, les décotes peuvent varier selon le type d'actif, mais elles sont généralement fixées à 0 % pour les actifs de collatéral de type obligation d'État ou actifs de qualité élevée.\n\n4. **PRA SS1/23 (Principles for Model Risk Management)** : Le PRA a publié des principes pour la gestion du risque de modèle, qui incluent des recommandations sur la manière d'évaluer les actifs de collatéral et les décotes à appliquer.\n\n5. **Décotes spécifiques pour les dérivés non compensés** : Pour les dérivés non compensés, les décotes peuvent être plus élevées, car ces instruments présentent un risque de crédit plus important. Les décotes peuvent varier entre 0 % et 100 % selon le type d'actif de collatéral utilisé.\n\nEn résumé, pour une banque britannique, les décotes appliquées au collatéral de marge initiale des dérivés non compensés sont déterminées par les exigences du règlement CRR et des RTS établis par l'EBA, avec des décotes pouvant aller de 0 % à 100 % selon le type d'actif de collatéral utilisé. Les décotes sont fixées pour tenir compte du risque de crédit associé à ces actifs.\n\nSi vous avez besoin de plus de détails spécifiques, je peux rechercher les documents réglementaires pertinents.",
+      "seconds": 20.2
+    },
+    {
+      "id": "quant-heston",
+      "question": "How is the Heston model calibrated to an implied volatility surface?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "Heston model calibration to implied volatility surface",
+        "collections": [
+          "quant"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "Heston model calibration to implied volatility surface",
+            "collections": [
+              "quant"
+            ]
+          }
+        }
+      ],
+      "answer": "The Heston model is calibrated to an implied volatility surface using a process that involves fitting the model's parameters to observed market data. Here's a detailed explanation based on the provided information:\n\n1. **Model Overview**: The Heston model is a stochastic volatility model that describes the evolution of asset prices and their volatility. It is defined by a system of stochastic differential equations (SDEs) that include a mean-reverting variance process.\n\n2. **Calibration Objective**: The primary goal of calibration is to match the model's implied volatilities with those observed in the market. This is typically done by minimizing a cost function that measures the difference between model-implied and market-observed volatilities.\n\n3. **Calibration Approach**: \n   - **Implied Volatility Fitting**: The calibration process focuses on fitting the volatility surface of an underlying asset at a fixed time. This involves using options with various strikes and maturities to determine the set of Heston model parameters that best fit the observed implied volatilities.\n   - **Parameter Set**: The parameters to be calibrated include the mean reversion rate ($\\kappa$), long-term variance ($\\theta$), volatility of variance ($\\sigma$), and correlation ($\\rho$) between the Brownian motions driving the asset price and variance.\n\n4. **Numerical Methods**:\n   - **Fourier Transform Methods**: The characteristic function of the Heston model is known, and option prices can be computed using the inverse Fourier transform.\n   - **Optimization Techniques**: The calibration is performed using optimization techniques to minimize the difference between model and market implied volatilities. This often involves least-squares fitting.\n\n5. **Implementation Details**:\n   - **Initialization**: The model is initialized under the physical measure using historical data (e.g., spot returns from 2010–2016) to provide a starting point for the calibration process.\n   - **Risk-Neutral Calibration**: The structural parameters are calibrated under the risk-neutral measure using market proxies for the risk-free rate ($r$) and dividend yield ($q$).\n   - **Dynamic Adaptation**: In some approaches, the instantaneous variance is updated dynamically to match observed implied volatilities, allowing for rapid adaptation to changing market conditions while preserving the learned long-run surface geometry.\n\n6. **Objective Function**: The calibration often uses a relative squared volatility error (RSVE) as the objective function to measure the fit between model and market implied volatilities.\n\n7. **Robustness**: The calibration process can be sensitive to the optimization algorithm used. Robust algorithms are preferred to handle potential issues such as ill-conditioned Hessian matrices, which can occur with traditional methods like Newton-Raphson.\n\nIn summary, the calibration of the Heston model to an implied volatility surface involves a combination of numerical methods and optimization techniques to fit the model parameters to market data, ensuring that the model accurately reflects the observed volatility surface.",
+      "seconds": 21.5
+    },
+    {
+      "id": "uk-curvature-2027",
+      "question": "What are the FRTB curvature risk requirements for UK banks from 2027?",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "FRTB curvature risk requirements for UK banks from 2027",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "uk"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.list_documents",
+          "arguments": {
+            "collection": "regulation",
+            "jurisdiction": "uk",
+            "topic": "market risk"
+          }
+        },
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "FRTB curvature risk requirements for UK banks from 2027",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "uk"
+            ]
+          }
+        }
+      ],
+      "answer": "Based on the knowledge base search, I can provide information on the FRTB curvature risk requirements for UK banks from 2027.\n\nThe relevant document is the \"PRA Rulebook, Market Risk: Advanced Standardised Approach (CRR), FRTB-SA, from 2027\" issued by the Prudential Regulation Authority (PRA).\n\nAccording to the regulations:\n\n1. **Own Funds Requirements for Curvature Risk**: An institution must ensure the own funds requirement for curvature risk is the sum of the risk class own funds requirements for curvature risk calculated in accordance with paragraph 6 across all risk classes to which at least one risk factor of the instruments referred to in paragraph 1 belongs (Article 325g(7)).\n\n2. **Aggregation of Risk Class-Specific Requirements**: An institution shall aggregate risk class-specific own funds requirements for delta, vega and curvature risks in accordance with the process set out in paragraphs 2, 3 and 4 (Article 325h(1)).\n\n3. **Curvature Risk Formula**: For specific buckets (bucket 16 of Table 4, bucket 16 of Table 6, bucket 25 of Table 7, and bucket 11 of Table 8), institutions shall use the following formula:\n   $$ K_b = \\textrm{max} \\left ( \\sum_{k}max(CVR_k^+,0), \\sum_{k}max(CVR_k^-,0) \\right ) $$\n   Where:\n   - $CVR_k^+$ is the upward net curvature risk position\n   - $CVR_k^-$ is the downward net curvature risk position\n\n4. **Risk Factor Treatment**: Institutions shall calculate the sensitivity of instruments to each risk factor used in the curvature risk formula in accordance with Article 325g. Vectors corresponding to different yield curves with the same currency are considered the same risk factor, and sensitivities to the same risk factor shall be offset.\n\n5. **Exclusions**: There shall be no curvature risk own funds requirements for inflation and cross currency basis risks.\n\nThese requirements apply from January 1, 2027, and are part of the UK's implementation of the Fundamental Review of the Trading Book (FRTB) standards. The rules are based on the CRR as it applied immediately before revocation by the Treasury, with some modifications specific to UK requirements.\n\nPlease note that these rules are not yet in force as of the current date, but will apply from 2027-01-01.",
+      "seconds": 14.2
+    },
+    {
+      "id": "eu-us-im-model",
+      "question": "Compare the initial margin model requirements (confidence level, margin period of risk) between EU EMIR and the US CFTC rules.",
+      "routed": true,
+      "labelled": true,
+      "first_search": {
+        "text": "EMIR margin requirements confidence level margin period of risk",
+        "collections": [
+          "regulation"
+        ],
+        "jurisdictions": [
+          "eu"
+        ]
+      },
+      "calls": [
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "EMIR margin requirements confidence level margin period of risk",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "eu"
+            ]
+          }
+        },
+        {
+          "tool": "kb.search",
+          "arguments": {
+            "text": "CFTC margin requirements confidence level margin period of risk",
+            "collections": [
+              "regulation"
+            ],
+            "jurisdictions": [
+              "us"
+            ]
+          }
+        }
+      ],
+      "answer": "Based on my search results, I can now compare the initial margin model requirements for confidence level and margin period of risk between EU EMIR and US CFTC rules.\n\n## Comparison of Initial Margin Model Requirements\n\n### EU EMIR Requirements:\nAccording to Article 15(1) of the EMIR RTS (EU Regulation 2016/2251):\n- **Confidence Level**: The initial margin model must be based on a one-tailed 99 percent confidence interval\n- **Margin Period of Risk (MPOR)**: The MPOR shall be at least 10 days, with the MPOR including the period that may elapse from the last margin exchange of variation margin to the default of the counterparty, plus the estimated period needed to replace the non-centrally cleared OTC derivative contracts within the netting set\n\n### US CFTC Requirements:\nAccording to § 23.154(b)(2)(i) of the CFTC rules:\n- **Confidence Level**: The initial margin model must calculate an amount based on a one-tailed 99 percent confidence interval\n- **Margin Period of Risk (MPOR)**: The MPOR is equal to the shorter of ten business days or the maturity of the swap or netting portfolio\n\n## Key Findings:\n\n1. **Confidence Level**: Both regulations require a one-tailed 99 percent confidence interval, making this requirement identical between the two jurisdictions.\n\n2. **Margin Period of Risk**: \n   - EMIR requires a minimum MPOR of 10 days\n   - CFTC requires a MPOR of the shorter of ten business days or the maturity of the swap\n   - The CFTC approach is more flexible, allowing for shorter periods when the swap maturity is shorter than 10 business days\n\n3. **Additional Requirements**:\n   - EMIR requires that the MPOR includes the period from the last margin exchange to counterparty default and the time needed to replace contracts\n   - CFTC focuses more on the time period from the most recent exchange of collateral until the next required exchange plus time to sell/realize collateral and re-hedge\n\nBoth regulations aim to ensure adequate margin coverage for potential losses, but they differ in their specific approaches to calculating the margin period of risk, with EMIR providing more detailed guidance on how to determine the MPOR components.",
+      "seconds": 22.3
+    }
+  ]
+}

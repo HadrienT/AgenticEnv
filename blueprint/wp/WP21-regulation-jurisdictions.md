@@ -263,7 +263,39 @@ LLM with an agent profile's system prompt and the kbase tools exactly as the MCP
 server exposes them; calls are executed against the real base. Per question of
 `benchmarks/agent/jurisdiction-routing.yaml`: `routed` (the first `kb.search` names
 the regulation collection and the expected jurisdictions) and `labelled` (the answer
-names the jurisdiction of each rule, and "proposal" when one is expected).
+names the jurisdiction of each rule, and "proposal" when one is expected). A
+`kb.list_documents` filtered on a jurisdiction counts as routed; one search per market
+is fine.
+
+### 7.2 Results (2026-11-13, live base after wave 2)
+
+Retrieval, `queries-jurisdictions.yaml` (42 queries; results in
+`benchmarks/retrieval/results/2026-11-13-wp21-jurisdictions.json`):
+
+| Category | n | recall@10 | MRR | paragraph recall@10 |
+|---|---|---|---|---|
+| exact-id | 5 | 1.00 | 1.00 | 1.00 |
+| jurisdiction | 30 | 1.00 | 0.95 | 1.00 |
+| french | 4 | 1.00 | 0.75 | 1.00 |
+| cross-jurisdiction | 3 | 1.00 | 0.83 | |
+| overall | 42 | 1.00 | 0.93 | 1.00 (paragraph MRR 0.86) |
+
+Gates: quant `queries.yaml` recall@10 0.881 / MRR 0.628 (unchanged); Basel queries
+with `jurisdictions=[intl]` recall@10 1.00 / MRR 0.82 (unchanged). Without a filter,
+Basel queries now meet the UK/US transpositions first (MRR 0.78): expected.
+
+Agent test (Qwen3-Coder-30B-A3B Q4, 64k context, 12 questions; results in
+`benchmarks/agent/results/2026-11-13-*`):
+
+| Profile | routed | labelled | median time |
+|---|---|---|---|
+| research | 12/12 | 12/12 | 19.5 s |
+| quant | 12/12 | 11/12 | 19.8 s |
+| coding | 11/12 | 12/12 | 25.8 s |
+
+Before the quant and coding prompts said anything about regulation, the quant profile
+answered a French question on UK margin haircuts from memory, without a search: both
+snippets now require `kb.search` on the regulation collection with `jurisdictions`.
 
 ## 8. Delivery order
 

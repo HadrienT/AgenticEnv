@@ -19,3 +19,10 @@ You are not done because the code compiles or a program runs. Before you finish:
   your last edit. Compiling one file is not enough. You cannot finish until this has passed.
 - If a tool is missing, install it with `sudo apt-get`, `pip` or `npm`. Report that you could not
   check something only after trying, and never claim success for what you did not run.
+
+When code implements a regulatory rule (capital, SA-CCR, FRTB, CVA, margin, prudent
+valuation), ground it in the knowledge base, never in memory: `kb.search` with
+`collections: ["regulation"]` and `jurisdictions` set to the market the code serves
+(`eu`, `uk`, `us`, plus `intl` for the Basel reference); `kb.list_paragraphs` gives
+every paragraph of a document. Rules differ between jurisdictions: cite the
+jurisdiction and paragraph id of each rule in comments and in your answer.

@@ -1,0 +1,615 @@
+{
+  "label": "wave2",
+  "overall": {
+    "queries": 42,
+    "recall_at_5": 1.0,
+    "recall_at_10": 1.0,
+    "mrr": 0.9285714285714286,
+    "ndcg_at_10": 0.9421045267252613,
+    "latency_p50_ms": 1863.0,
+    "latency_p95_ms": 2121.0,
+    "section_queries": 28,
+    "section_recall_at_5": 1.0,
+    "section_recall_at_10": 1.0,
+    "section_mrr": 0.8571428571428571
+  },
+  "by_category": {
+    "cross-jurisdiction": {
+      "queries": 3,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.8333333333333334,
+      "ndcg_at_10": 0.8045804515345618,
+      "latency_p50_ms": 1866.0,
+      "latency_p95_ms": 1969.0,
+      "section_queries": 0,
+      "section_recall_at_5": null,
+      "section_recall_at_10": null,
+      "section_mrr": null
+    },
+    "exact-id": {
+      "queries": 5,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "latency_p50_ms": 1743.0,
+      "latency_p95_ms": 1838.0,
+      "section_queries": 5,
+      "section_recall_at_5": 1.0,
+      "section_recall_at_10": 1.0,
+      "section_mrr": 0.9
+    },
+    "french": {
+      "queries": 4,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.75,
+      "ndcg_at_10": 0.8154648767857288,
+      "latency_p50_ms": 1990.0,
+      "latency_p95_ms": 2093.0,
+      "section_queries": 4,
+      "section_recall_at_5": 1.0,
+      "section_recall_at_10": 1.0,
+      "section_mrr": 0.6875
+    },
+    "jurisdiction": {
+      "queries": 30,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.95,
+      "ndcg_at_10": 0.9630929753571458,
+      "latency_p50_ms": 1866.0,
+      "latency_p95_ms": 2156.0,
+      "section_queries": 19,
+      "section_recall_at_5": 1.0,
+      "section_recall_at_10": 1.0,
+      "section_mrr": 0.881578947368421
+    }
+  },
+  "details": [
+    {
+      "text": "12 CFR 217.132(c)(5)",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "us-cfr-217-132",
+        "us-cfr-217-f",
+        "us-cfr-217-133",
+        "us-fr-2026-erba-e",
+        "us-cfr-217-32"
+      ]
+    },
+    {
+      "text": "section 217.205(b)(1) VaR confidence level",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "us-cfr-217-f",
+        "us-fr-2026-erba-f",
+        "us-cfr-240-18a-1",
+        "us-cfr-217-132",
+        "us-fr-2026-erba-e"
+      ]
+    },
+    {
+      "text": "Art. 274(2) CRR",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-crr-sa-ccr",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-ccr-general",
+        "eu-crr-mr-aima",
+        "eu-crr-crm"
+      ]
+    },
+    {
+      "text": "PRA Article 325bc(1) expected shortfall",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "uk-pra-mr-ima",
+        "uk-pra-mr-general",
+        "uk-pra-cp9-26-ima",
+        "uk-pra-mr-asa",
+        "uk-pra-crm"
+      ]
+    },
+    {
+      "text": "multiplier applied to replacement cost plus PFE for the exposure amount of a netting set",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "us-cfr-217-132",
+        "us-fr-2026-erba-e",
+        "us-cfr-217-34-37",
+        "us-cfr-217-133",
+        "us-fr-2026-erba-f"
+      ]
+    },
+    {
+      "text": "multiplier applied to replacement cost plus PFE for the exposure value of a netting set",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "eu-crr-sa-ccr",
+        "eu-crr-cr-irb",
+        "eu-crr-ccr-general",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-imm"
+      ]
+    },
+    {
+      "text": "multiplier applied to replacement cost plus PFE for the exposure value of a netting set",
+      "category": "jurisdiction",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "uk-pra-ccr",
+        "uk-pra-ccr-2027",
+        "uk-pra-cr-sa",
+        "uk-pra-cr-irb",
+        "uk-pra-cva-2027"
+      ]
+    },
+    {
+      "text": "confidence level and holding period of the VaR-based measure",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "us-cfr-217-f",
+        "us-fr-2026-erba-f",
+        "us-cfr-240-18a-1",
+        "us-cfr-217-132",
+        "fed-sr-11-7-model-risk"
+      ]
+    },
+    {
+      "text": "confidence level of expected shortfall in the internal model approach",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "uk-pra-mr-ima",
+        "uk-pra-mr-general",
+        "uk-pra-cp9-26-ima",
+        "uk-crr-cva",
+        "uk-pra-cr-irb"
+      ]
+    },
+    {
+      "text": "minimum transfer amount below which a covered swap entity need not collect or post margin",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "us-cfr-237-a",
+        "us-cfr-17-23-margin",
+        "us-cfr-240-18a-3",
+        "us-fr-2026-erba-e",
+        "us-cfr-217-132"
+      ]
+    },
+    {
+      "text": "minimum net capital of a security-based swap dealer",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "us-cfr-240-18a-1",
+        "us-cfr-240-18a-3",
+        "us-cfr-237-a",
+        "us-cfr-17-23-margin"
+      ]
+    },
+    {
+      "text": "margin requirements for non-cleared security-based swaps such as single-name equity swaps",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "us-cfr-240-18a-3",
+        "us-cfr-237-a",
+        "us-cfr-17-23-margin",
+        "us-cfr-240-18a-1"
+      ]
+    },
+    {
+      "text": "initial margin calculation for uncleared swaps of a swap dealer under CFTC rules",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "us-cfr-17-23-margin",
+        "us-cfr-237-a",
+        "us-cfr-240-18a-3",
+        "us-cfr-240-18a-1"
+      ]
+    },
+    {
+      "text": "discount scalar in the basic approach for CVA risk",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "uk-pra-cva-2027",
+        "uk-crr-cva",
+        "uk-pra-mr-asa",
+        "uk-pra-cr-irb",
+        "uk-pra-trading-book"
+      ]
+    },
+    {
+      "text": "instruments subject to the residual risk add-on in the advanced standardised approach",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "uk-pra-mr-asa",
+        "uk-pra-trading-book",
+        "uk-pra-cva-2027",
+        "uk-pra-cp9-26-ima",
+        "uk-pra-mr-ssa"
+      ]
+    },
+    {
+      "text": "aggregation of weighted sensitivities within a bucket with the square root formula",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "uk-pra-mr-asa",
+        "uk-pra-cva-2027",
+        "uk-crr-cva",
+        "uk-pra-mr-ima",
+        "uk-pra-cr-irb"
+      ]
+    },
+    {
+      "text": "additional valuation adjustments for unearned credit spread and investing and funding costs",
+      "category": "jurisdiction",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "eu-crr-art105",
+        "eu-rts-2016-101",
+        "eu-crr-crm",
+        "eu-crr-cva",
+        "eu-crr-cr-sa"
+      ]
+    },
+    {
+      "text": "supervisory delta of an option under SA-CCR",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "eu-crr-sa-ccr",
+        "eu-rts-2021-931",
+        "eu-crr-mr-simplified",
+        "eu-crr-cva",
+        "eu-crr-mr-asa"
+      ]
+    },
+    {
+      "text": "minimum transfer amount for exchanging collateral on non-centrally cleared OTC derivatives",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "eu-rts-2016-2251",
+        "eu-crr-sa-ccr",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-imm",
+        "eu-crr-cva"
+      ]
+    },
+    {
+      "text": "criteria for a risk factor to be modellable in the internal model approach",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "eu-rts-2022-2060",
+        "eu-crr-mr-aima",
+        "eu-rts-2026-1221",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-crm"
+      ]
+    },
+    {
+      "text": "formula for the supervisory delta of an option in SA-CCR",
+      "category": "jurisdiction",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "eu-rts-2021-931",
+        "eu-crr-sa-ccr",
+        "eu-crr-cva",
+        "eu-crr-mr-asa",
+        "eu-crr-mr-simplified"
+      ]
+    },
+    {
+      "text": "maturity factor for margined and unmargined netting sets in SA-CCR",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-crr-sa-ccr",
+        "eu-crr-imm",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-cr-irb",
+        "eu-rts-2016-2251"
+      ]
+    },
+    {
+      "text": "buckets for equity risk factors in the alternative standardised approach",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-crr-mr-asa",
+        "eu-crr-cva",
+        "eu-rts-2022-2060",
+        "ecb-guide-internal-models-2024",
+        "eu-rts-2026-1221"
+      ]
+    },
+    {
+      "text": "how partial expected shortfall measures are calculated in the internal model approach",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-crr-mr-aima",
+        "eu-crr-cr-irb",
+        "eu-crr-crm",
+        "eu-rts-2022-2059",
+        "eu-crr-cva"
+      ]
+    },
+    {
+      "text": "transactions excluded from the own funds requirements for CVA risk",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-crr-cva",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-trading-book",
+        "eu-crr-cr-irb",
+        "eu-crr-cr-sa"
+      ]
+    },
+    {
+      "text": "confidence level and margin period of risk of an initial margin model",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-rts-2016-2251",
+        "eu-crr-imm",
+        "eu-crr-crm",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-cva"
+      ]
+    },
+    {
+      "text": "Article 25(1) of Delegated Regulation 2016/2251 minimum transfer amount",
+      "category": "exact-id",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-rts-2016-2251",
+        "eu-crr-sa-ccr",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-mr-asa",
+        "eu-crr-imm"
+      ]
+    },
+    {
+      "text": "unearned credit spreads AVA on derivative positions",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-rts-2016-101",
+        "eu-crr-art105",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-mr-simplified",
+        "eu-crr-mr-aima"
+      ]
+    },
+    {
+      "text": "montant minimal de transfert pour l'échange de collatéral sur les dérivés non compensés",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-rts-2016-2251",
+        "eu-crr-sa-ccr",
+        "eu-crr-imm",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-cr-irb"
+      ]
+    },
+    {
+      "text": "niveau de confiance et horizon de détention de la VaR réglementaire américaine",
+      "category": "french",
+      "hit_rank": 2,
+      "section_hit_rank": 4,
+      "top_documents": [
+        "us-cfr-240-18a-1",
+        "us-cfr-217-f",
+        "us-fr-2026-erba-f",
+        "us-cfr-217-132",
+        "us-cfr-217-34-37"
+      ]
+    },
+    {
+      "text": "agrégation des sensibilités pondérées au sein d'un bucket avec la formule en racine carrée",
+      "category": "french",
+      "hit_rank": 2,
+      "section_hit_rank": 2,
+      "top_documents": [
+        "uk-pra-cva-2027",
+        "uk-pra-mr-asa",
+        "uk-crr-cva",
+        "uk-pra-mr-ima",
+        "uk-pra-ccr-2027"
+      ]
+    },
+    {
+      "text": "calcul du delta prudentiel d'une option en SA-CCR",
+      "category": "french",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "eu-crr-sa-ccr",
+        "eu-rts-2021-931",
+        "eu-crr-mr-simplified",
+        "eu-crr-cva",
+        "eu-crr-mr-asa"
+      ]
+    },
+    {
+      "text": "minimum transfer amount for collateral on non-centrally cleared OTC derivatives in the UK",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "uk-emir-margin-rts",
+        "uk-pra-ccr",
+        "uk-pra-ccr-2027",
+        "uk-pra-cva-2027",
+        "uk-pra-cr-irb"
+      ]
+    },
+    {
+      "text": "unearned credit spreads additional valuation adjustment",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "uk-prudent-valuation-rts",
+        "uk-pra-trading-book",
+        "uk-pra-cr-irb",
+        "uk-pra-cva-2027",
+        "uk-pra-mr-ima"
+      ]
+    },
+    {
+      "text": "standardised method formula for CVA own funds requirements in the current UK CRR",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "uk-crr-cva",
+        "uk-pra-cva-2027",
+        "uk-pra-mr-asa",
+        "uk-pra-cp9-26-ima",
+        "uk-pra-mr-ssa"
+      ]
+    },
+    {
+      "text": "financial collateral comprehensive method volatility adjustments",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "eu-crr-crm",
+        "ecb-guide-internal-models-2024",
+        "eu-crr-cr-sa",
+        "eu-crr-cr-irb",
+        "eu-crr-imm"
+      ]
+    },
+    {
+      "text": "proposed basic CVA approach capital requirement with beta 0.25",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": 1,
+      "top_documents": [
+        "us-fr-2026-erba-f",
+        "us-cfr-217-132",
+        "us-fr-2026-erba-e",
+        "us-cfr-217-34-37",
+        "us-cfr-217-133"
+      ]
+    },
+    {
+      "text": "proposed adjustments to the internal model approach for market risk",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "uk-pra-cp9-26-ima",
+        "uk-pra-mr-ima",
+        "uk-pra-mr-general",
+        "uk-pra-cva-2027",
+        "uk-pra-crm"
+      ]
+    },
+    {
+      "text": "initial margin threshold and phase-in for non-centrally cleared derivatives",
+      "category": "jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-iosco-margin",
+        "bcbs-mgn20",
+        "bcbs-mgn10",
+        "bcbs-mgn90",
+        "bcbs-nsf30"
+      ]
+    },
+    {
+      "text": "SA-CCR exposure value alpha 1.4 times replacement cost plus potential future exposure",
+      "category": "cross-jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "us-cfr-217-132",
+        "eu-crr-sa-ccr",
+        "bcbs-cre99",
+        "bcbs-cre52",
+        "bcbs-cre22"
+      ]
+    },
+    {
+      "text": "margin requirements for non-centrally cleared derivatives minimum transfer amount",
+      "category": "cross-jurisdiction",
+      "hit_rank": 2,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-iosco-margin",
+        "eu-rts-2016-2251",
+        "uk-emir-margin-rts",
+        "bcbs-mgn20",
+        "bcbs-mgn90"
+      ]
+    },
+    {
+      "text": "basic approach for CVA risk capital with the discount scalar",
+      "category": "cross-jurisdiction",
+      "hit_rank": 1,
+      "section_hit_rank": null,
+      "top_documents": [
+        "bcbs-mar50",
+        "us-fr-2026-erba-f",
+        "eu-crr-cva",
+        "bcbs-rbc20",
+        "us-cfr-217-132"
+      ]
+    }
+  ]
+}

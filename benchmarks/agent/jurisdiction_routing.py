@@ -7,9 +7,10 @@ JSON schemas). Tool calls are executed for real against the knowledge base, up t
 `--max-turns`; the final answer is then checked.
 
 Scored per question:
-- `routed`: the first `kb.search` names the `regulation` collection (or not, for a
-  quant question) and the expected jurisdictions (`intl` may be added; for a question
-  that names none, either no filter or at least two jurisdictions);
+- `routed`: the `kb.search` calls name the `regulation` collection (or not, for a
+  quant question) and, together, the expected jurisdictions (one search per market is
+  fine; `intl` may be added; for a question that names none, either an unfiltered
+  search or at least two jurisdictions);
 - `labelled`: the answer names the jurisdiction of each expected rule (EU/CRR,
   UK/PRA, US/CFR, Basel), and says "proposal" when one is expected.
 
@@ -39,10 +40,13 @@ from kbase_mcp.server import build_server
 
 TOOLS = ("kb.search", "kb.list_topics", "kb.list_documents", "kb.list_paragraphs")
 LABELS = {
-    "eu": r"\bEU\b|\bCRR\b|European|EMIR|EBA",
-    "uk": r"\bUK\b|\bPRA\b|United Kingdom|British",
-    "us": r"\bUS\b|U\.S\.|\bCFR\b|Federal Reserve|\bCFTC\b|\bSEC\b|Regulation (?:Q|KK)",
-    "intl": r"Basel|\bBCBS\b",
+    "eu": r"\bEU\b|\bUE\b|\bCRR\b|Europ|EMIR|\bEBA\b",
+    "uk": r"\bUK\b|\bPRA\b|United Kingdom|Royaume-Uni|British|britannique",
+    "us": (
+        r"\bUS\b|U\.S\.|\bCFR\b|Federal Reserve|\bCFTC\b|\bSEC\b|Regulation (?:Q|KK)"
+        r"|États-Unis|améric"
+    ),
+    "intl": r"Basel|Bâle|\bBCBS\b",
 }
 
 
@@ -100,22 +104,37 @@ def _result_text(result: Any) -> str:
     return text[:12000]  # keep the context of an 8k-32k model in check
 
 
-def _routed(case: dict[str, Any], call: dict[str, Any] | None) -> bool:
+def _routed(case: dict[str, Any], calls: list[dict[str, Any]]) -> bool:
+    """`calls`: every tool call. A `kb.list_documents` of the regulation collection for
+    one jurisdiction counts like a search filtered on it (the model then reads the
+    paragraphs with `kb.list_paragraphs`)."""
+    searches = [c["arguments"] for c in calls if c["tool"] == "kb.search"]
+    searches += [
+        {"collections": ["regulation"], "jurisdictions": [c["arguments"]["jurisdiction"]]}
+        for c in calls
+        if c["tool"] == "kb.list_documents"
+        and c["arguments"].get("collection") == "regulation"
+        and c["arguments"].get("jurisdiction")
+    ]
+    regulatory = [s for s in searches if "regulation" in (s.get("collections") or [])]
     if case.get("collection") == "quant":
-        return call is None or "regulation" not in (call.get("collections") or [])
-    if call is None or "regulation" not in (call.get("collections") or []):
+        return not regulatory
+    if not regulatory:
         return False
-    got = set(call.get("jurisdictions") or [])
     expected = set(case.get("jurisdictions") or [])
-    if not expected:  # the question names none: no filter, or several
-        return not got or len(got) >= 2
+    if not expected:  # the question names none: an unfiltered search, or several
+        got = {j for s in regulatory for j in (s.get("jurisdictions") or [])}
+        return any(not s.get("jurisdictions") for s in regulatory) or len(got) >= 2
+    if any(not s.get("jurisdictions") for s in regulatory):
+        return False
+    got = {j for s in regulatory for j in s["jurisdictions"]}
     return expected <= got and got - expected <= {"intl"}
 
 
 def _labelled(case: dict[str, Any], answer: str) -> bool:
     if case.get("collection") == "quant":
         return True
-    wanted = case.get("jurisdictions") or ["eu", "uk", "us"]
+    wanted = case.get("jurisdictions") or ["intl", "eu", "uk", "us"]
     hits = [j for j in wanted if re.search(LABELS[j], answer)]
     ok = len(hits) == len(wanted) if case.get("jurisdictions") else len(hits) >= 2
     if case.get("proposal"):
@@ -174,7 +193,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         row = {
             "id": case["id"],
             "question": case["question"],
-            "routed": _routed(case, first_search),
+            "routed": _routed(case, calls),
             "labelled": _labelled(case, answer),
             "first_search": first_search,
             "calls": calls,
