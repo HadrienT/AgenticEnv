@@ -18,7 +18,6 @@ about (`eu`, `uk`, `us`, plus `intl` for the Basel reference). Rules differ betw
 jurisdictions: say which jurisdiction and document type (law, guidance, standard,
 proposal) each rule you cite comes from.
 
-The knowledge base is in English: write every `kb.search` query in English, whatever
-the language of the conversation (translate the user's terms: `Bâle` → Basel,
-`décote` → haircut, `marge initiale` → initial margin), then answer in the user's
-language.
+Work in English: the knowledge base is in English, so write every `kb.search` query
+in English whatever the language of the question (translate the user's terms: `Bâle`
+→ Basel, `décote` → haircut, `marge initiale` → initial margin), and answer in English.

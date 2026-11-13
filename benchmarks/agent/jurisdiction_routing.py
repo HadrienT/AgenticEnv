@@ -13,8 +13,8 @@ Scored per question:
   search or at least two jurisdictions);
 - `labelled`: the answer names the jurisdiction of each expected rule (EU/CRR,
   UK/PRA, US/CFR, Basel), and says "proposal" when one is expected;
-- `english`: every `kb.search` query is written in English (the base is English);
-- `same_language`: a question asked in French (`language: fr`) is answered in French.
+- `english`: every `kb.search` query is written in English (the base is English),
+  including for the questions asked in French (`language: fr`).
 
     uv run python benchmarks/agent/jurisdiction_routing.py --profile quant
     uv run python benchmarks/agent/jurisdiction_routing.py --profile research --output r.json
@@ -163,10 +163,6 @@ def _english_queries(calls: list[dict[str, Any]]) -> bool:
     return not any(_french_query(text) for text in texts)
 
 
-def _same_language(case: dict[str, Any], answer: str) -> bool:
-    return case.get("language") != "fr" or _french(answer)
-
-
 def _labelled(case: dict[str, Any], answer: str) -> bool:
     if case.get("collection") == "quant":
         return True
@@ -234,7 +230,6 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             "routed": _routed(case, calls),
             "labelled": _labelled(case, answer),
             "english": _english_queries(calls),
-            "same_language": _same_language(case, answer),
             "first_search": first_search,
             "calls": calls,
             "answer": answer,
@@ -243,7 +238,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         rows.append(row)
         print(
             f"{row['id']:28} routed={int(row['routed'])} labelled={int(row['labelled'])} "
-            f"english={int(row['english'])} same_language={int(row['same_language'])} "
+            f"english={int(row['english'])} "
             f"jurisdictions={(first_search or {}).get('jurisdictions')} "
             f"collections={(first_search or {}).get('collections')} {row['seconds']}s",
             flush=True,
@@ -254,7 +249,6 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         "routed": sum(r["routed"] for r in rows),
         "labelled": sum(r["labelled"] for r in rows),
         "english": sum(r["english"] for r in rows),
-        "same_language": sum(r["same_language"] for r in rows),
         "cases": len(rows),
         "rows": rows,
     }
@@ -278,7 +272,7 @@ def main() -> int:
     n = report["cases"]
     print(
         f"routed {report['routed']}/{n}, labelled {report['labelled']}/{n}, "
-        f"english queries {report['english']}/{n}, same language {report['same_language']}/{n}"
+        f"english queries {report['english']}/{n}"
     )
     if args.output:
         Path(args.output).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")

@@ -2,8 +2,7 @@
 # what the first kb.search must filter on (`intl` may be added); empty: the question
 # names none, so no filter or several. `collection: quant`: no regulation search.
 # `proposal: true`: the answer must say the rule is proposed, not in force.
-# `language: fr`: asked in French; the searches must still be in English and the answer
-# in French.
+# `language: fr`: asked in French; the searches must still be in English.
 cases:
   - id: eu-sa-ccr-exposure
     question: "Under the EU CRR, how is the SA-CCR exposure value of a netting set computed?"
