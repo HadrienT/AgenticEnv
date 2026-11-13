@@ -54,7 +54,8 @@ per-document cap are unchanged.
 
 ### 3.2 Filtered HNSW (prerequisite)
 
-Upgrade pgvector to **0.8.x** and enable iterative index scans per query:
+**Done on 2026-11-13**: pgvector 0.7.4 → **0.8.7** (latest release, 2026-10-01; 0.9.0
+is not tagged yet). Iterative index scans are enabled per query:
 
 ```sql
 SET LOCAL hnsw.iterative_scan = relaxed_order;
@@ -68,27 +69,66 @@ is wrapped in a materialized CTE and sorted again on the distance.
 `retrieval.hnsw_iterative_scan` / `hnsw_max_scan_tuples` in the kbase config turn it on
 (set in `kbase-v2.yaml`). The retriever reads `extversion` once: on pgvector < 0.8 it
 sets nothing, search keeps working as before, and every filtered result carries a
-warning, so the code can ship before the database is upgraded.
+warning. Since the upgrade, filtered searches no longer carry that warning.
 
-Upgrade procedure, **done by the maintainer**, not by an agent (issue #8: recreating a
-container tears down a veth on `docker0`):
+#### Upgrade procedure
 
-1. `just backup` (dump checked).
-2. Rebuild the image (`infra/docker/postgres/Dockerfile` pins `v0.8.7`, released
-   2026-10-01).
-3. Recreate **only** `agenticenv-postgres` (`docker compose -f infra/docker/compose.yaml
-   up -d postgres`). The data volume is kept.
-4. `ALTER EXTENSION vector UPDATE;` in each database (`agenticenv`, `agenticenv_test`).
-   The HNSW index does not need a rebuild.
+**Done by the maintainer**, not by an agent (issue #8: recreating a container tears
+down a veth, and a veth teardown has already frozen this host). Have the BMC console
+(IPMI) reachable before step 4: if the host freezes, SSH goes with it. Only step 4
+interrupts the database, for about ten seconds. Run from `~/AgenticEnv`:
 
-Fallback if the upgrade is refused: a `collection` column copied onto
-`kb.chunk_embeddings` and one partial HNSW index per collection
-(`WHERE collection = 'regulation'`), one query per collection merged in Python. This
-costs a column to keep in sync and N index scans for a multi-collection query; the
-upgrade is preferred.
+```bash
+# 1. Fresh dump
+just backup
 
-Measure `kbase eval` before and after the upgrade with no collection filter: scores
-must not change. Then measure with `topics=[…]` on a narrow topic: recall should rise.
+# 2. Keep the current image as a rollback
+docker tag agenticenv/postgres:16-pgvector agenticenv/postgres:16-pgvector-<old version>
+
+# 3. Rebuild. --network=host: the RUN steps get no veth on docker0
+docker build --network=host -t agenticenv/postgres:16-pgvector infra/docker/postgres
+docker run --rm --network none --entrypoint sh agenticenv/postgres:16-pgvector \
+  -c 'grep default_version /usr/share/postgresql/16/extension/vector.control'
+
+# 4. Stop the database clients (user units, no sudo), recreate ONLY postgres
+#    (the data volume is kept), wait for "(healthy)"
+systemctl --user stop agenticenv-mcp@kbase agenticenv-mcp@agentmem
+docker compose --env-file .env -f infra/docker/compose.yaml up -d --no-build postgres
+docker ps --filter name=agenticenv-postgres
+
+# 5. Update the extension in every database, then restart the clients
+for d in agenticenv agenticenv_test agenticenv_eval; do
+  docker exec agenticenv-postgres psql -U postgres -d $d \
+    -c "ALTER EXTENSION vector UPDATE" -Atc "select extversion from pg_extension where extname='vector'"
+done
+systemctl --user start agenticenv-mcp@kbase agenticenv-mcp@agentmem
+```
+
+- `--env-file .env` is required: compose looks for `.env` next to `compose.yaml`
+  (`infra/docker/`), where there is none, and fails on `AGX_DB_ADMIN_PASSWORD`.
+- The bridge does not connect to Postgres and can stay up. The stdio `kbase-mcp`
+  started by a Claude Code session (`~/quant-modeling/.mcp.json`) holds its own
+  connections: reconnect it (`/mcp`) or restart that session.
+- The HNSW index does not need a rebuild.
+- **Rollback**: retag the old image and redo step 4, but only before step 5. After
+  `ALTER EXTENSION`, the catalog is at the new version and the old binary no longer
+  matches it: the only way back is restoring the dump from step 1.
+
+#### Measurements (`kbase-v2.yaml`, night batch on 0.7.4 → after the upgrade)
+
+| Set | recall@10 | MRR | nDCG@10 | paragraph recall@10 | p95 ms |
+|---|---|---|---|---|---|
+| `queries-regulation.yaml` | 1.000 → 1.000 | 0.825 → 0.819 | 0.845 → 0.840 | 0.792 → 0.792 | 2374 → 2201 |
+| `queries.yaml`, `collections=[quant]` | 0.881 → 0.881 | 0.627 → 0.627 | 0.562 → 0.562 | | 3455 → 3490 |
+
+No measurable change on these sets: each collection is large enough that the
+post-filtered scan already returned `k` rows. The upgrade removes the risk of short
+result lists for the small collection and narrow filters (`topics=[…]`); that case is
+not measured yet.
+
+The fallback considered if the upgrade had been refused (a `collection` column copied
+onto `kb.chunk_embeddings`, one partial HNSW index per collection, one query per
+collection merged in Python) is not needed.
 
 ## 4. MCP surface
 
