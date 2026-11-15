@@ -17,6 +17,7 @@ from corelib.serialization import to_json
 logger = get_logger(__name__)
 
 _MAX_ARGS_BYTES = 4096
+_MAX_RESULT_BYTES = 16384
 _REDACTED = "***REDACTED***"
 
 
@@ -32,6 +33,8 @@ class ToolInvocation(BaseModel):
     error_message: str | None = None
     caller: str | None = None
     correlation_id: str | None = None
+    # A short summary of what the call returned (never the full payload).
+    result: dict[str, Any] | None = None
 
 
 def _redact(value: Any) -> Any:
@@ -45,10 +48,10 @@ def _redact(value: Any) -> Any:
     return value
 
 
-def _sanitize_args(args: dict[str, Any]) -> dict[str, Any]:
+def _sanitize_args(args: dict[str, Any], max_bytes: int = _MAX_ARGS_BYTES) -> dict[str, Any]:
     safe: dict[str, Any] = _redact(args)
     encoded = to_json(safe)
-    if len(encoded.encode("utf-8")) <= _MAX_ARGS_BYTES:
+    if len(encoded.encode("utf-8")) <= max_bytes:
         return safe
     return {"_truncated": True, "_original_bytes": len(encoded.encode("utf-8"))}
 
@@ -57,14 +60,16 @@ def record_tool_invocation(inv: ToolInvocation) -> None:
     """Persists a tool call for observability. Never raises (07-ERRORS-AND-LOGGING.md E5)."""
     try:
         safe_args = _sanitize_args(inv.args)
+        safe_result = None if inv.result is None else _sanitize_args(inv.result, _MAX_RESULT_BYTES)
         with session_scope() as session:
             session.execute(
                 text(
                     "INSERT INTO obs.tool_invocations "
                     "(id, ts, server, tool, args, args_sha, status, duration_ms, "
-                    " error_code, error_message, caller, correlation_id) "
+                    " error_code, error_message, caller, correlation_id, result) "
                     "VALUES (:id, :ts, :server, :tool, CAST(:args AS jsonb), :args_sha, "
-                    " :status, :duration_ms, :error_code, :error_message, :caller, :correlation_id)"
+                    " :status, :duration_ms, :error_code, :error_message, :caller, "
+                    " :correlation_id, CAST(:result AS jsonb))"
                 ),
                 {
                     "id": inv.id,
@@ -79,6 +84,7 @@ def record_tool_invocation(inv: ToolInvocation) -> None:
                     "error_message": inv.error_message,
                     "caller": inv.caller,
                     "correlation_id": inv.correlation_id,
+                    "result": None if safe_result is None else to_json(safe_result),
                 },
             )
     except Exception as exc:

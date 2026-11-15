@@ -5,7 +5,7 @@ from typing import Any
 from corelib.db import session_scope
 from kbase.lookup import get_document as run_get_document
 
-from kbase_mcp.tools.dispatch import dispatch
+from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
 def get_document(
@@ -14,6 +14,8 @@ def get_document(
     """Metadata + section tree of one document. Give either `doc_key` (latest version)
     or `document_version_id` (a specific version), never both."""
 
+    args = call_args(locals())
+
     def _run(timeout_s: int) -> tuple[dict[str, Any], dict[str, Any]]:
         with session_scope() as session:
             detail = run_get_document(
@@ -21,4 +23,4 @@ def get_document(
             )
         return detail.model_dump(mode="json"), {}
 
-    return dispatch("kb.get_document", _run)
+    return dispatch("kb.get_document", _run, args=args)

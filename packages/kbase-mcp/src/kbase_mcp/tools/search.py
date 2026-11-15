@@ -10,7 +10,7 @@ from kbase.retrieval.hybrid import HybridRetriever
 from kbase.schemas import Collection, Jurisdiction
 
 from kbase_mcp.mapping import build_query, search_result_to_payload
-from kbase_mcp.tools.dispatch import dispatch
+from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
 def _build_retriever() -> HybridRetriever:
@@ -45,6 +45,8 @@ def search(
     description). For `regulation`, texts in force and texts that apply later are
     returned unless `valid_at` asks what applied on a given day."""
 
+    args = call_args(locals())
+
     def _run(timeout_s: int) -> tuple[dict[str, Any], dict[str, Any]]:
         config = load_kbase_config()
         query = build_query(
@@ -66,4 +68,4 @@ def search(
         result = _build_retriever().retrieve(query)
         return search_result_to_payload(result)
 
-    return dispatch("kb.search", _run)
+    return dispatch("kb.search", _run, args=args)

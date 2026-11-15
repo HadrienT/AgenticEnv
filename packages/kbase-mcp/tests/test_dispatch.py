@@ -71,3 +71,51 @@ def test_dispatch_truncates_an_oversized_result() -> None:
     dispatch_mod.init(_config(max_result_bytes=32))
     result = dispatch("kb.search", lambda timeout_s: ({"blob": "x" * 1_000}, {}))
     assert result["meta"]["truncated"] is True
+
+
+def test_dispatch_logs_the_arguments_the_caller_and_a_summary_of_the_hits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recorded: list[object] = []
+    monkeypatch.setattr(dispatch_mod, "record_tool_invocation", recorded.append)
+    monkeypatch.delenv("AGX_MCP_CALLER", raising=False)
+    monkeypatch.setenv("PWD", "/home/u/quant-modeling")
+    dispatch_mod.init(_config())
+    data = {
+        "results": [
+            {
+                "rank": 1,
+                "content": "passage",
+                "citation": {"doc_key": "giles-mlmc", "document": "MLMC", "section_path": "2"},
+                "scores": {"rerank": 5.2},
+            }
+        ],
+        "warnings": [],
+    }
+    dispatch("kb.search", lambda t: (data, {"provenance": ["giles-mlmc"]}), args={"text": "MLMC"})
+    (inv,) = recorded
+    assert inv.args == {"text": "MLMC"}  # type: ignore[attr-defined]
+    assert inv.caller == "quant-modeling"  # type: ignore[attr-defined]
+    assert inv.result == {  # type: ignore[attr-defined]
+        "n_results": 1,
+        "hits": [
+            {"rank": 1, "doc_key": "giles-mlmc", "document": "MLMC", "section": "2", "rerank": 5.2}
+        ],
+        "provenance": ["giles-mlmc"],
+        "truncated": False,
+    }
+
+
+def test_an_explicit_caller_wins_over_the_working_directory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PWD", "/home/u/quant-modeling")
+    monkeypatch.setenv("AGX_MCP_CALLER", "openhands")
+    assert dispatch_mod.caller() == "openhands"
+
+
+def test_call_args_drops_the_arguments_left_to_none() -> None:
+    assert dispatch_mod.call_args({"text": "x", "k": None, "rerank": False}) == {
+        "text": "x",
+        "rerank": False,
+    }

@@ -161,6 +161,35 @@ def _cmd_stats(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_usage(args: argparse.Namespace) -> int:
+    from corelib.time import utc_now
+
+    from kbase import usage
+
+    since = usage.since_days(args.days, utc_now())
+    transcripts = [Path(p).expanduser() for p in args.transcripts]
+    transcripts += [usage.claude_project_dir(Path(p)) for p in args.project]
+    with session_scope() as session:
+        if transcripts:
+            report = usage.load_transcripts(
+                transcripts, since=since, known_arxiv=usage.known_arxiv_ids(session)
+            )
+            if args.caller:
+                report.calls = [c for c in report.calls if c.caller == args.caller]
+        else:
+            report = usage.UsageReport(
+                calls=usage.load_server_calls(session, since=since, caller=args.caller),
+                sources=["obs.tool_invocations"],
+            )
+    if not args.all_tools:
+        report.calls = [c for c in report.calls if c.tool == "kb.search"]
+    if args.json:
+        print(report.model_dump_json(indent=2))
+    else:
+        print(usage.render(report, hits=args.hits))
+    return 0
+
+
 def _cmd_verify(_args: argparse.Namespace) -> int:
     config = load_kbase_config()
     with session_scope() as session:
@@ -380,6 +409,37 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
     stats_parser = subparsers.add_parser("stats", help="Print corpus counters")
     stats_parser.set_defaults(func=_cmd_stats)
+
+    usage_parser = subparsers.add_parser(
+        "usage",
+        help="What agents searched in the kbase and whether they found it",
+        description=(
+            "Without --project/--transcripts: the kb calls the MCP server logged "
+            "(arguments, caller and hits are kept since 2026-11-15). With them: the calls "
+            "read from Claude Code transcripts, with what the agent did next (web searches, "
+            "documents opened) and the arXiv papers it cited that the base lacks."
+        ),
+    )
+    usage_parser.add_argument("--days", type=float, help="Only the last N days")
+    usage_parser.add_argument("--caller", help="Only this caller (project directory name)")
+    usage_parser.add_argument(
+        "--project",
+        action="append",
+        default=[],
+        help="Read the Claude Code transcripts of sessions opened in this directory (repeatable)",
+    )
+    usage_parser.add_argument(
+        "--transcripts",
+        action="append",
+        default=[],
+        help="Transcript file or directory (.jsonl, repeatable)",
+    )
+    usage_parser.add_argument("--hits", type=int, default=3, help="Hits shown per search")
+    usage_parser.add_argument(
+        "--all-tools", action="store_true", help="Every kb.* call, not only searches"
+    )
+    usage_parser.add_argument("--json", action="store_true")
+    usage_parser.set_defaults(func=_cmd_usage)
 
     verify_parser = subparsers.add_parser("verify", help="Check provenance and consistency")
     verify_parser.set_defaults(func=_cmd_verify)

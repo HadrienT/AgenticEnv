@@ -7,7 +7,7 @@ from corelib.db import session_scope
 from kbase.lookup import list_documents as run_list_documents
 from kbase.schemas import Collection, Jurisdiction
 
-from kbase_mcp.tools.dispatch import dispatch
+from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
 def list_documents(
@@ -19,6 +19,8 @@ def list_documents(
     """Documents of a collection with doc_key, title, doc_type, topic, jurisdiction and
     validity (WP21 §3). Example: `list_documents(collection="regulation",
     jurisdiction="eu", topic="reg-ccr-sa-ccr")`."""
+
+    args = call_args(locals())
 
     def _run(timeout_s: int) -> tuple[dict[str, Any], dict[str, Any]]:
         get_settings()
@@ -32,4 +34,4 @@ def list_documents(
             )
         return listing.model_dump(mode="json"), {}
 
-    return dispatch("kb.list_documents", _run)
+    return dispatch("kb.list_documents", _run, args=args)
