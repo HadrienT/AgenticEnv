@@ -1,0 +1,89 @@
+# Third arXiv wave for quant-modeling (2026-11-15): papers the repository cites or relies
+# on that the base lacked, and 2024-2026 papers aimed at its open work packages
+# (WP 22 rough Bergomi, WP 23 xVA, WP 25 ML, WP 26 multilevel, WP 27 IR + AD, rates, SLV
+# and vol surfaces). Each paper was picked by hand from arXiv searches; the comment says
+# what it is for. Ids, not keyword queries, so a rerun harvests exactly this list.
+#
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave3.yaml --dry-run
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave3.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv.yaml
+name: quant-modeling-wave3
+sort_by: relevance
+queries:
+  # --- Multilevel Monte Carlo and QMC (WP 26) ---
+  # 1304.5472  Giles, Multilevel Monte Carlo methods (Acta Numerica 2015): the reference
+  #            the MLMC engine follows (complexity theorem, optimal N_l)
+  # 2102.08164 Giles & Sheridan-Methven, nested MLMC with approximate normal RVs: the
+  #            correction level for a cheap inverse CDF (WP 26 §12, cited from memory)
+  # 1808.10623 Giles, Hefter, Mayer, random bit multilevel algorithms (cited from memory)
+  # 2606.24207 Ouyang, Pan, He, QMC for SDE simulation: error analysis and dimension
+  #            reduction (Brownian bridge / PCA under QMC)
+  # 2409.09821 Rached, Haji-Ali, Tempone, from QMC to MLQMC through McKean-Vlasov dynamics
+  #            (MLQMC, and the particle system of the SLV calibration)
+  - topic: numerical-monte-carlo
+    query: 'id:1304.5472 OR id:2102.08164 OR id:1808.10623'
+    max_results: 3
+  - topic: numerical-qmc
+    query: 'id:2606.24207 OR id:2409.09821'
+    max_results: 2
+  # --- AD of generated kernels, Greeks of discontinuous payoffs (WP 27) ---
+  # 2610.26694 CuAD: source-to-source AD of CUDA kernels for discrete adjoints (what L4
+  #            does for scripts, in CFD)
+  # 2602.20516 Lattice gauge theory via LLVM-level AD (Enzyme on GPU at scale: the option
+  #            WP 27 §12 did not take, measured)
+  # 2609.06137 Lakshtanov, unbiased Monte Carlo Greeks for discontinuous payoffs (§8)
+  # 2610.42119 Functional tensor trains for high-order Greeks and exposure tails of
+  #            multi-asset structured products (L6 second order, L8)
+  - topic: numerical-aad
+    query: 'id:2610.26694 OR id:2602.20516 OR id:2609.06137 OR id:2610.42119'
+    max_results: 4
+  # --- Rough volatility (WP 22, WP 25 part B) ---
+  # 1507.03004 Bennedsen, Lunde, Pakkanen, the hybrid scheme rough_bergomi_hybrid implements
+  # 1410.3394  Gatheral, Jaisson, Rosenbaum, Volatility is rough
+  # 1810.03399 Bayer & Stemper, deep calibration of rough stochastic volatility models
+  # 1908.08806 Bayer, Horvath, Muguruza, Stemper, Tomas, on deep calibration (cited in WP 25)
+  # 2512.00448 Teng & Li, simulation and calibration of rough Bergomi via Wasserstein
+  # 2309.07023 Bayer & Breneis, weak Markovian approximations of rough Heston (a GPU-friendly
+  #            alternative to the O(n^2) convolution, WP 22 §5)
+  - topic: volatility-rough
+    query: 'id:1507.03004 OR id:1410.3394 OR id:1810.03399 OR id:1908.08806 OR id:2512.00448 OR id:2309.07023'
+    max_results: 6
+  # --- ML pricing, differential ML, deep hedging (WP 25) ---
+  # 2005.02347 Huge & Savine, Differential Machine Learning (WP 25 part A's reference)
+  # 1802.03042 Buehler, Gonon, Teichmann, Wood, Deep Hedging (part C)
+  # 2405.01233 Gomes, mathematics of differential ML in derivative pricing and hedging
+  # 2512.11530 Leitao & Rafales, parametric numerical integration with (differential) ML
+  # 2411.05257 Routray & Hientzsch, enforcing asymptotic behaviour with DNNs in finance
+  #            (extrapolation: "ML must be able to lose")
+  - topic: numerical-ml-pricing
+    query: 'id:2005.02347 OR id:1802.03042 OR id:2405.01233 OR id:2512.11530 OR id:2411.05257'
+    max_results: 5
+  # --- xVA (WP 23) ---
+  # 1405.0508  Green & Kenyon, MVA by replication and regression
+  # 2407.16435 Villarino & Leitao, deep learning for dynamic initial margin and MVA (§5.6 DIM)
+  # 2408.01185 Agarwal, De Marco, Gobet, McKean anticipative BSDEs arising in initial margin
+  # 2603.20243 Tsuchiya, two-factor Hull-White correlation structure in CVA
+  # 2402.15936 Dhandapani & Jain, neural networks for Bermudans and their future exposure
+  - topic: cva-xva
+    query: 'id:1405.0508 OR id:2407.16435 OR id:2408.01185 OR id:2603.20243 OR id:2402.15936'
+    max_results: 5
+  # --- Local and stochastic-local volatility, vol surfaces ---
+  # 1204.0646  Gatheral & Jacquier, arbitrage-free SVI volatility surfaces (svi_surface)
+  # 2601.11209 Buehler, Horvath, Kratsios et al., SANOS: smooth arbitrage-free option surfaces
+  # 2606.12717 Berg, mixture-preserving arbitrage-free interpolation of vol surfaces
+  # 2506.10817 Friz, Jourdain, Wagenhofer, weak error for local stochastic volatility models
+  # 2608.01217 projection-consistent neural operator for LSV calibration
+  - topic: volatility-local
+    query: 'id:1204.0646 OR id:2601.11209 OR id:2606.12717 OR id:2506.10817 OR id:2608.01217'
+    max_results: 5
+  # --- Rates, collateral, calibration (WP 21, CSA, SABR) ---
+  # 2401.15728 Romero-Bermudez & Turfus, analytic SOFR futures with smile and skew
+  # 2410.08477 Ding, Liu, Rutkowski, cross-currency basis swaps on backward-looking rates
+  # 2603.07863 Ding, Liu, Rutkowski, choice of collateral currency in differential swaps
+  # 2407.20713 SABR calibration and pricing on GPUs
+  - topic: market-conventions-sofr
+    query: 'id:2401.15728 OR id:2410.08477 OR id:2603.07863'
+    max_results: 3
+  - topic: volatility-sabr
+    query: 'id:2407.20713'
+    max_results: 1
