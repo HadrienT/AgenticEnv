@@ -101,3 +101,11 @@ candidates:
     arxiv_id: "1107.1831"
     title: "Adjoints and Automatic (Algorithmic) Differentiation in Computational Finance"
     topic: numerical-aad
+
+  # --- Arbitrage-free vol surface, quant-modeling WP 30 (2026-11-25) ---
+  # Not on arXiv: the SSRN preprint (2017) or the journal version needs a PDF by hand.
+  # Its calendar proposition is restated, and corrected, by Pasquazzi (arxiv-2304.02106,
+  # Prop. 4.14), which is in the base.
+  - doc_key: hendriks-martini-2019-essvi
+    title: "The extended SSVI volatility surface (J. Computational Finance 22(5), 2019)"
+    topic: volatility-local
