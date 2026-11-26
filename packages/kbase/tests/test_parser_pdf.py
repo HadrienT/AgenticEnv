@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from corelib.errors import DependencyError
+from corelib.hashing import sha256_file
 from kbase.ingestion.parsers.pdf import PdfParser
 from kbase.schemas import DocumentMeta
 
@@ -56,6 +57,16 @@ def test_a_converted_file_is_never_converted_twice(tmp_path: Path) -> None:
     parser.parse(pdf, _META)
 
     assert (tmp_path / "calls").read_text().count("run") == 1
+
+
+def test_the_version_is_keyed_by_the_pdf_hash(tmp_path: Path) -> None:
+    # `pipeline` dedups on the PDF's hash before parsing; the cached Markdown's hash
+    # never matched it, so every ingest re-ingested every PDF.
+    pdf = _pdf(tmp_path)
+    parsed = _parser(tmp_path, _fake_mineru(tmp_path)).parse(pdf, _META)
+
+    assert parsed.sha256 == sha256_file(pdf)
+    assert parsed.parser_name == "mineru"
 
 
 def test_missing_mineru_and_missing_output_are_explicit(tmp_path: Path) -> None:

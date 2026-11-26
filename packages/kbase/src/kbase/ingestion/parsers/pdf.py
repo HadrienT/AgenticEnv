@@ -35,7 +35,16 @@ class PdfParser:
         return path.suffix.lower() == ".pdf"
 
     def parse(self, path: Path, meta: DocumentMeta) -> ParsedDocument:
-        return self._markdown.parse(self._to_markdown(path), meta)
+        parsed = self._markdown.parse(self._to_markdown(path), meta)
+        # The version is keyed by the PDF's hash, which `pipeline` checks before parsing:
+        # the cached Markdown's hash would never match, so every run re-ingested every PDF.
+        return parsed.model_copy(
+            update={
+                "sha256": sha256_file(path),
+                "parser_name": self.name,
+                "parser_version": self.version,
+            }
+        )
 
     def to_markdown(self, path: Path) -> Path:
         """The MinerU Markdown of a PDF (cached by content hash), without parsing it."""
