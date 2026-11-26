@@ -16,8 +16,9 @@ DocType = Literal[
 ChunkKind = Literal["text", "equation", "table", "caption"]
 # Separate corpora the agent picks from when it searches (WP20 §2). Adding one means a
 # value here, a description under `collections:` in the kbase config, and a manifest.
-Collection = Literal["quant", "regulation"]
-COLLECTIONS: tuple[Collection, ...] = ("quant", "regulation")
+# A new value also needs the `documents_collection_check` constraint widened (migrations).
+Collection = Literal["quant", "regulation", "ir"]
+COLLECTIONS: tuple[Collection, ...] = ("quant", "regulation", "ir")
 # Whose text a regulatory document is (WP21 §2): `intl` for BCBS and other international
 # standards. Required in the `regulation` collection, absent elsewhere.
 Jurisdiction = Literal["intl", "eu", "us", "uk"]

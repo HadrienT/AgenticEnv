@@ -62,6 +62,12 @@ collections:
       prudential regulation and supervisory texts, by jurisdiction (see below): capital
       rules for market risk (FRTB), counterparty credit risk (SA-CCR, IMM), CVA, credit
       risk, margin, liquidity, model risk
+  ir:
+    description: >-
+      how to build this base and its tools: retrieval and RAG (embeddings, sparse and late
+      interaction, reranking, chunking, query rewriting, agentic search, evaluation,
+      citations), PDF and formula parsing, and the Model Context Protocol (tool
+      descriptions, tool selection, benchmarks, security)
 
 # What each jurisdiction holds in the regulation collection (WP21 §3). The agent reads
 # this in the kb.search description: update it with every ingestion wave.

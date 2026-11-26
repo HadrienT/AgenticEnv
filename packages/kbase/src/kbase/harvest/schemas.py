@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from kbase.schemas import Collection
+
 
 class ArxivEntry(BaseModel):
     """One paper as the arXiv API describes it. `arxiv_id` carries no version."""
@@ -41,6 +43,10 @@ class HarvestProfile(BaseModel):
     queries: list[HarvestQuery]
     # arXiv ids reviewed and rejected (off-topic): never harvested again.
     exclude_ids: list[str] = Field(default_factory=list)
+    # Where the profile's papers go: the generated manifest (repo-relative; default the
+    # config's `harvest.manifest`) and, when that manifest is new, its collection.
+    manifest: str | None = None
+    collection: Collection = "quant"
 
 
 HarvestOutcome = Literal["converted", "no_html", "low_quality", "failed"]

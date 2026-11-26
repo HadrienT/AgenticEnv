@@ -236,11 +236,18 @@ def _cmd_harvest(args: argparse.Namespace) -> int:
     except (OSError, yaml.YAMLError, PydanticValidationError) as exc:
         print(f"harvest failed: invalid profile {profile_path}: {exc}")
         return 1
-    manifest = root / config.manifest
+    # A profile may write its own manifest (another collection); every generated manifest
+    # still counts as known, so no paper lands in two of them.
+    manifest = root / (profile.manifest or config.manifest)
+    known = dict.fromkeys(
+        (manifest, root / config.manifest, *(root / m for m in config.known_manifests))
+    )
     settings = HarvestSettings(
         documents_dir=get_settings().paths.documents_dir,
         manifest=manifest,
-        known_manifests=(manifest, *(root / m for m in config.known_manifests)),
+        known_manifests=tuple(known),
+        collection=profile.collection,
+        max_equation_chars=config.max_equation_chars,
         html_dir=config.html_dir,
         md_dir=config.md_dir,
         page_size=config.page_size,

@@ -1,0 +1,31 @@
+# arXiv papers of the `ir` collection whose HTML does not convert, so `kbase harvest`
+# cannot take them: their PDF, parsed through MinerU (PdfParser). Same doc_key and
+# metadata scheme as manifest-arxiv-ir.yaml. Paths are relative to AGX_PATHS_DOCUMENTS_DIR
+# (host: /srv/knowledge/documents); the PDFs, downloaded from arxiv.org, are not in the repo.
+#
+#   uv run kbase ingest --target documents/manifest-arxiv-ir-pdf.yaml
+
+collection: ir
+
+documents:
+  # ir-wave1: LaTeXML turns a TikZ figure into a 23,000-character "equation"
+  - doc_key: arxiv-2310.11511
+    path: arxiv/pdf/2310.11511.pdf
+    title: "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection"
+    authors: [Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, Hannaneh Hajishirzi]
+    year: 2023
+    doc_type: research_paper
+    topic: ir-agentic-search
+    source_url: https://arxiv.org/abs/2310.11511v1
+    license: arXiv preprint; terms on the abs page
+
+  # ir-wave1: no HTML
+  - doc_key: arxiv-2604.12047
+    path: arxiv/pdf/2604.12047.pdf
+    title: Empirical Evaluation of PDF Parsing and Chunking for Financial Question Answering with RAG
+    authors: [Omar El Bachyr, Yewei Song, Saad Ezzini, Jacques Klein, Tegawendé F. Bissyandé, Anas Zilali, Ulrick Ble, Anne Goujon]
+    year: 2026
+    doc_type: research_paper
+    topic: ir-chunking
+    source_url: https://arxiv.org/abs/2604.12047v1
+    license: arXiv preprint; terms on the abs page
