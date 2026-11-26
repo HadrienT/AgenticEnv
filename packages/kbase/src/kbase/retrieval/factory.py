@@ -64,6 +64,7 @@ def build_retriever(config: KbaseConfig) -> HybridRetriever:
         fts_config=config.retrieval.fts_config,
         min_score=config.retrieval.min_score,
         rerank_top_k=config.retrieval.rerank.candidates,
+        rerank_pool_by_collection=config.retrieval.rerank.candidates_by_collection,
         require_page=config.provenance.require_page,
         require_section=config.provenance.require_section,
         lexical_fallback=config.retrieval.lexical_fallback,
