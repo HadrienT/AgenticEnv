@@ -39,6 +39,8 @@ retrieval:
     model_name: bge-reranker-v2-m3
     top_k: 8
     candidates: 100              # fused candidates the cross-encoder reorders
+    candidates_by_collection:    # same passage recall, half the latency (issue #85)
+      regulation: 50
     contextual: true             # the cross-encoder reads title / section path / content
     max_document_chars: 8000
     timeout_s: 300

@@ -47,6 +47,10 @@ class RerankConfig(BaseModel):
     # How many fused candidates the reranker sees: with no more than `k`, it can only
     # reorder what fusion already picked.
     candidates: int
+    # A smaller pool for searches confined to these collections. Regulation: 50
+    # candidates kept passage recall on its 68 reference queries and halved latency;
+    # the quant passages lost 4 of 143 at 10 (2026-11-26, issue #85).
+    candidates_by_collection: dict[str, int] = {}
     base_url: str | None = None
     timeout_s: float = 30.0
     # The cross-encoder reads "document title / section path / content" (WP19: +4 points

@@ -53,7 +53,9 @@ class HybridRetriever:
         hnsw_ef_search: int | None = None,
         hnsw_iterative_scan: str | None = None,
         hnsw_max_scan_tuples: int | None = None,
+        rerank_pool_by_collection: dict[str, int] | None = None,
     ) -> None:
+        self._rerank_pool_by_collection = dict(rerank_pool_by_collection or {})
         self._max_per_document = max_chunks_per_document
         self._hnsw_ef_search = hnsw_ef_search
         self._hnsw_iterative_scan = hnsw_iterative_scan
@@ -70,6 +72,15 @@ class HybridRetriever:
         self._require_page = require_page
         self._require_section = require_section
         self._lexical_fallback = lexical_fallback
+
+    def rerank_pool(self, query: RetrievalQuery) -> int:
+        """Candidates the cross-encoder reorders: the collections' own pool when every
+        searched collection has one (the largest of them), else the default."""
+        collections = query.filters.collections or []
+        pools = [self._rerank_pool_by_collection.get(c) for c in collections]
+        if collections and all(p is not None for p in pools):
+            return max(p for p in pools if p is not None)
+        return self._rerank_top_k
 
     def retrieve(self, query: RetrievalQuery) -> RetrievalResult:
         started = time.monotonic()
@@ -144,7 +155,7 @@ class HybridRetriever:
 
             pool_size = query.k
             if query.rerank and self._reranker is not None:
-                pool_size = max(query.k, self._rerank_top_k)
+                pool_size = max(query.k, self.rerank_pool(query))
             candidate_ids = ranked_ids[:pool_size]
 
             candidates = store.load_candidates(session, candidate_ids)
