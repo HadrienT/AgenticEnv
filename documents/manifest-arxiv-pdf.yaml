@@ -1,0 +1,54 @@
+# arXiv papers whose HTML does not convert (no HTML, or an empty page), so `kbase harvest`
+# cannot take them: their PDF, parsed through MinerU (PdfParser). Same doc_key and
+# metadata scheme as manifest-arxiv.yaml. Paths are relative to AGX_PATHS_DOCUMENTS_DIR
+# (host: /srv/knowledge/documents); the PDFs, downloaded from arxiv.org, are not in the repo.
+#
+#   uv run kbase ingest --target documents/manifest-arxiv-pdf.yaml
+
+collection: quant
+
+documents:
+  # Wave 7 (configs/harvest/quant-modeling-wave7.yaml): its HTML converts with an
+  # unclosed equation that swallows the rest of the paper
+  - doc_key: arxiv-1802.05016
+    path: arxiv/pdf/1802.05016.pdf
+    title: Multilevel nested simulation for efficient risk estimation
+    authors: [Michael B. Giles, Abdul-Lateef Haji-Ali]
+    year: 2018
+    doc_type: research_paper
+    topic: numerical-monte-carlo
+    source_url: https://arxiv.org/abs/1802.05016v1
+    license: arXiv preprint; terms on the abs page
+
+  # Wave 7: HTML page with no content
+  - doc_key: arxiv-1804.06826
+    path: arxiv/pdf/1804.06826.pdf
+    title: Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking
+    authors: [Zhe Jia, Marco Maggioni, Benjamin Staiger, Daniele P. Scarpazza]
+    year: 2018
+    doc_type: research_paper
+    topic: performance-cuda
+    source_url: https://arxiv.org/abs/1804.06826v1
+    license: arXiv preprint; terms on the abs page
+
+  # Wave 7: no HTML
+  - doc_key: arxiv-2302.05170
+    path: arxiv/pdf/2302.05170.pdf
+    title: GPU acceleration of the Seven-League Scheme for large time step simulations of stochastic differential equations
+    authors: [Shuaiqiang Liu, Graziana Colonna, Lech A. Grzelak, Cornelis W. Oosterlee]
+    year: 2023
+    doc_type: research_paper
+    topic: performance-cuda
+    source_url: https://arxiv.org/abs/2302.05170v1
+    license: arXiv preprint; terms on the abs page
+
+  # Wave 3 (issue #79): no HTML
+  - doc_key: arxiv-2603.20243
+    path: arxiv/pdf/2603.20243.pdf
+    title: "Two-Factor Hull-White Model Revisited: Correlation Structure for Two-Factor Interest Rate Model in CVA Calculation"
+    authors: [Osamu Tsuchiya]
+    year: 2026
+    doc_type: research_paper
+    topic: cva-xva
+    source_url: https://arxiv.org/abs/2603.20243v1
+    license: arXiv preprint; terms on the abs page
