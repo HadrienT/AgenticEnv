@@ -1,0 +1,20 @@
+# Fourth arXiv wave for quant-modeling (2026-11-25): the arbitrage-free implied-vol
+# surface of WP 30 (#381), extended SSVI. Gatheral & Jacquier (1204.0646) is already in
+# the base; Hendriks & Martini's "The extended SSVI volatility surface" (J. Comput.
+# Finance 2019) is not on arXiv and sits in documents/candidate-manifest-draft.yaml.
+#
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave4.yaml --dry-run
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave4.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv.yaml
+name: quant-modeling-wave4
+sort_by: relevance
+queries:
+  # 1804.04924 Corbetta, Cohort, Laachir, Martini, robust calibration and arbitrage-free
+  #            interpolation of SSVI slices: the slice-by-slice search and the
+  #            interpolation / extrapolation essvi.cpp implements
+  # 2204.00312 Mingone, no-arbitrage global parametrization of eSSVI: Hendriks & Martini's
+  #            calendar condition restated, the whole surface in one fit
+  # 2304.02106 Pasquazzi, eSSVI surface calibration (an alternative to the sequential fit)
+  - topic: volatility-local
+    query: 'id:1804.04924 OR id:2204.00312 OR id:2304.02106'
+    max_results: 3

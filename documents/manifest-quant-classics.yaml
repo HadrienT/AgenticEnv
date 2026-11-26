@@ -1,0 +1,150 @@
+# Classic papers quant-modeling relies on that are not on arXiv (issue #79). Paths are
+# relative to AGX_PATHS_DOCUMENTS_DIR (host: /srv/knowledge/documents); the PDFs are not in
+# the repo. Each is a copy its authors or an academic repository publish openly (author
+# page, institutional repository, working-paper series); `license` says which. Kept local,
+# not redistributed. Parsed through MinerU (PdfParser).
+#
+#   uv run kbase ingest --target documents/manifest-quant-classics.yaml
+
+collection: quant
+
+documents:
+  - doc_key: giles-2008-mlmc-path-simulation
+    path: classics/giles-2008-opre.pdf
+    title: Multilevel Monte Carlo path simulation
+    authors: [Michael B. Giles]
+    year: 2008
+    doc_type: research_paper
+    topic: numerical-monte-carlo
+    source_url: https://people.maths.ox.ac.uk/gilesm/files/OPRE_2008.pdf
+    license: author's copy (Operations Research 56(3), 2008); local copy, not redistributed
+
+  - doc_key: giles-2008-mlmc-milstein
+    path: classics/giles-2008-milstein.pdf
+    title: Improved multilevel Monte Carlo convergence using the Milstein scheme
+    authors: [Michael B. Giles]
+    year: 2008
+    doc_type: research_paper
+    topic: numerical-monte-carlo
+    source_url: https://people.maths.ox.ac.uk/gilesm/files/mcqmc06.pdf
+    license: author's copy (MCQMC 2006, Springer 2008); local copy, not redistributed
+
+  - doc_key: giles-waterhouse-2009-mlqmc
+    path: classics/giles-waterhouse-2009.pdf
+    title: Multilevel quasi-Monte Carlo path simulation
+    authors: [Michael B. Giles, Ben J. Waterhouse]
+    year: 2009
+    doc_type: research_paper
+    topic: numerical-qmc
+    source_url: https://people.maths.ox.ac.uk/gilesm/files/radon.pdf
+    license: author's copy (Radon Series Comp. Appl. Math 8, de Gruyter 2009); local copy, not redistributed
+
+  - doc_key: giles-2009-vibrato
+    path: classics/giles-2009-vibrato.pdf
+    title: Vibrato Monte Carlo sensitivities
+    authors: [Michael B. Giles]
+    year: 2009
+    doc_type: research_paper
+    topic: numerical-aad
+    source_url: https://ora.ox.ac.uk/objects/uuid:dc53ad11-4bd8-480d-9106-7381804c40c2
+    license: Oxford Research Archive copy (MCQMC 2008, Springer 2009); local copy, not redistributed
+
+  - doc_key: giles-glasserman-2005-smoking-adjoints
+    path: classics/giles-glasserman-smoking.pdf
+    title: "Smoking Adjoints: fast evaluation of Greeks in Monte Carlo calculations"
+    authors: [Michael B. Giles, Paul Glasserman]
+    year: 2005
+    doc_type: research_paper
+    topic: numerical-aad
+    source_url: https://ora.ox.ac.uk/objects/uuid:f536b1a8-c988-4bda-9c5f-a322652139fd
+    license: Oxford report 05/15, Oxford Research Archive (Risk, January 2006); local copy, not redistributed
+
+  - doc_key: longstaff-schwartz-2001-lsm
+    path: classics/longstaff-schwartz-2001.pdf
+    title: "Valuing American Options by Simulation: A Simple Least-Squares Approach"
+    authors: [Francis A. Longstaff, Eduardo S. Schwartz]
+    year: 2001
+    doc_type: research_paper
+    topic: numerical-american
+    source_url: https://escholarship.org/uc/item/43n1k4jb
+    license: UCLA eScholarship working paper, open access (Review of Financial Studies 14(1), 2001); local copy, not redistributed
+
+  - doc_key: fang-oosterlee-2008-cos
+    path: classics/fang-oosterlee-2008.pdf
+    title: A novel pricing method for European options based on Fourier-cosine series expansions
+    authors: [Fang Fang, Cornelis W. Oosterlee]
+    year: 2008
+    doc_type: research_paper
+    topic: numerical-fourier
+    source_url: https://mpra.ub.uni-muenchen.de/7700/
+    license: MPRA working paper, open access (SIAM J. Sci. Comput. 31(2), 2008); local copy, not redistributed
+
+  - doc_key: andersen-2008-heston-qe
+    path: classics/andersen-2008-qe.pdf
+    title: Efficient Simulation of the Heston Stochastic Volatility Model
+    authors: [Leif Andersen]
+    year: 2008
+    doc_type: research_paper
+    topic: volatility-heston
+    source_url: https://www.maths.univ-evry.fr/pages_perso/crepey/Finance/andersen%20vol%20sto.pdf
+    license: preprint (2006 version) hosted on a university course page (published J. Comp. Finance 11(3), 2008); local copy, not redistributed
+
+  - doc_key: lord-koekkoek-vandijk-2010-full-truncation
+    path: classics/lord-koekkoek-vandijk-2010.pdf
+    title: A Comparison of Biased Simulation Schemes for Stochastic Volatility Models
+    authors: [Roger Lord, Remmert Koekkoek, Dick van Dijk]
+    year: 2010
+    doc_type: research_paper
+    topic: volatility-heston
+    source_url: https://repub.eur.nl/pub/7738
+    license: Tinbergen Institute discussion paper, open access (Quantitative Finance 10(2), 2010); local copy, not redistributed
+
+  - doc_key: hagan-2002-managing-smile-risk
+    path: classics/hagan-2002-sabr.pdf
+    title: Managing Smile Risk
+    authors: [Patrick S. Hagan, Deep Kumar, Andrew S. Lesniewski, Diana E. Woodward]
+    year: 2002
+    doc_type: research_paper
+    topic: volatility-sabr
+    source_url: https://www.maths.univ-evry.fr/pages_perso/crepey/Finance/SABR.pdf
+    license: preprint hosted on a university course page (Wilmott Magazine, September 2002); local copy, not redistributed
+
+  - doc_key: bayer-friz-gatheral-2016-pricing-rough-vol
+    path: classics/bayer-friz-gatheral-2016.pdf
+    title: Pricing under rough volatility
+    authors: [Christian Bayer, Peter Friz, Jim Gatheral]
+    year: 2016
+    doc_type: research_paper
+    topic: volatility-rough
+    source_url: https://www.wias-berlin.de/preprint/2071/wias_preprints_2071.pdf
+    license: WIAS preprint 2071, open access (Quantitative Finance 16(6), 2016); local copy, not redistributed
+
+  - doc_key: wichura-1988-as241
+    path: classics/wichura-1988-as241.pdf
+    title: "Algorithm AS 241: The Percentage Points of the Normal Distribution"
+    authors: [Michael J. Wichura]
+    year: 1988
+    doc_type: research_paper
+    topic: performance-numerics
+    source_url: https://csg.sph.umich.edu/abecasis/gas_power_calculator/algorithm-as-241-the-percentage-points-of-the-normal-distribution.pdf
+    license: copy hosted on a University of Michigan page (Applied Statistics 37(3), 1988); local copy, not redistributed
+
+  - doc_key: pykhtin-zhu-2007-ccr-guide
+    path: classics/pykhtin-zhu-2007-ccr-guide.pdf
+    title: A Guide to Modelling Counterparty Credit Risk
+    authors: [Michael Pykhtin, Steven Zhu]
+    year: 2007
+    doc_type: research_paper
+    topic: cva-xva
+    source_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1032522
+    license: SSRN free download (GARP Risk Review, July/August 2007); local copy, not redistributed
+
+  - doc_key: ametrano-bianchetti-2013-multicurve-bootstrapping
+    path: classics/ametrano-bianchetti-2013-multicurve.pdf
+    title: Everything You Always Wanted to Know About Multiple Interest Rate Curve Bootstrapping But Were Afraid To Ask
+    authors: [Ferdinando M. Ametrano, Marco Bianchetti]
+    year: 2013
+    doc_type: research_paper
+    topic: market-conventions-sofr
+    source_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2219548
+    license: SSRN free download; local copy, not redistributed

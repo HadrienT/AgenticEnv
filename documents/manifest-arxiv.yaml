@@ -6110,3 +6110,36 @@ documents:
   topic: volatility-sabr
   source_url: https://arxiv.org/abs/2407.20713v1
   license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2204.00312
+  path: arxiv/md/2204.00312.md
+  title: No arbitrage global parametrization for the eSSVI volatility surface
+  authors:
+  - Arianna Mingone
+  year: 2022
+  doc_type: research_paper
+  topic: volatility-local
+  source_url: https://arxiv.org/abs/2204.00312v1
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-2304.02106
+  path: arxiv/md/2304.02106.md
+  title: eSSVI Surface Calibration
+  authors:
+  - Leo Pasquazzi
+  year: 2023
+  doc_type: research_paper
+  topic: volatility-local
+  source_url: https://arxiv.org/abs/2304.02106v3
+  license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1804.04924
+  path: arxiv/md/1804.04924.md
+  title: Robust calibration and arbitrage-free interpolation of SSVI slices
+  authors:
+  - Pierre Cohort
+  - Jacopo Corbetta
+  - Claude Martini
+  - Ismail Laachir
+  year: 2018
+  doc_type: research_paper
+  topic: volatility-local
+  source_url: https://arxiv.org/abs/1804.04924v2
+  license: arXiv preprint; terms on the abs page
