@@ -1,0 +1,87 @@
+# Option-data good practice for quant-modeling's WP 31 (clean option data at ingestion,
+# lot L0 literature review; issue #82): exchange methodology, implied-vol computation,
+# sample filters and the variance-swap replication. None of these is on arXiv (the one
+# that is, Burkovska et al., comes through configs/harvest/quant-modeling-wave5.yaml).
+# Paths are relative to AGX_PATHS_DOCUMENTS_DIR (host: /srv/knowledge/documents); the PDFs
+# are not in the repo. Each is a copy its authors, an exchange or an academic repository
+# publish openly; `license` says which. Kept local, not redistributed. Parsed through
+# MinerU (PdfParser).
+#
+#   uv run kbase ingest --target documents/manifest-quant-option-data.yaml
+
+collection: quant
+
+documents:
+  # --- Market methodology ---
+  - doc_key: cboe-vix-mathematics-methodology
+    path: classics/cboe-vix-mathematics-methodology.pdf
+    title: Cboe Volatility Index Mathematics Methodology
+    authors: [Cboe Global Indices]
+    year: 2026
+    doc_type: documentation
+    topic: options-market-data
+    source_url: https://cdn.cboe.com/resources/indices/Cboe_Volatility_Index_Mathematics_Methodology.pdf
+    license: Cboe public methodology document (the VIX White Paper's successor; strike selection, mid quotes, the two-consecutive-zero-bid stop, forward from parity); local copy, not redistributed
+
+  - doc_key: cboe-vix-index-methodology
+    path: classics/cboe-vix-index-methodology.pdf
+    title: Volatility Index Methodology, Cboe Volatility Index
+    authors: [Cboe Global Indices]
+    year: 2025
+    doc_type: documentation
+    topic: options-market-data
+    source_url: https://cdn.cboe.com/resources/indices/Volatility_Index_Methodology_Cboe_Volatility_Index.pdf
+    license: Cboe public governance document (as of September 2025); local copy, not redistributed
+
+  # --- Implied vol computation ---
+  - doc_key: jaeckel-2015-lets-be-rational
+    path: classics/jaeckel-2015-lets-be-rational.pdf
+    title: Let's Be Rational
+    authors: [Peter Jäckel]
+    year: 2015
+    doc_type: research_paper
+    topic: volatility-implied
+    source_url: http://www.jaeckel.org/LetsBeRational.pdf
+    license: author's copy, version of 25 March 2016 (Wilmott, January 2015); local copy, not redistributed
+
+  # --- Sample filters ---
+  - doc_key: dumas-fleming-whaley-1998-implied-volatility-functions
+    path: classics/dumas-fleming-whaley-1996-nber-w5500.pdf
+    title: "Implied Volatility Functions: Empirical Tests"
+    authors: [Bernard Dumas, Jeff Fleming, Robert E. Whaley]
+    year: 1996
+    doc_type: research_paper
+    topic: options-market-data
+    source_url: https://www.nber.org/papers/w5500
+    license: NBER Working Paper 5500, 1996 (Journal of Finance 53(6), 1998); scanned, read through OCR; local copy, not redistributed
+
+  - doc_key: constantinides-jackwerth-savov-2013-index-option-returns
+    path: classics/constantinides-jackwerth-savov-2013.pdf
+    title: The Puzzle of Index Option Returns
+    authors: [George M. Constantinides, Jens Carsten Jackwerth, Alexi Savov]
+    year: 2013
+    doc_type: research_paper
+    topic: options-market-data
+    source_url: https://kops.uni-konstanz.de/entities/publication/6a1d951f-6051-40be-bba0-a93b02b0762b
+    license: published version (Review of Asset Pricing Studies 3(2), 2013), University of Konstanz repository (KOPS), terms of use; local copy, not redistributed
+
+  # --- Variance swaps (the model-free check) ---
+  - doc_key: carr-madan-1998-volatility-trading
+    path: classics/carr-madan-1998-volatility-trading.pdf
+    title: Towards a Theory of Volatility Trading
+    authors: [Peter Carr, Dilip Madan]
+    year: 1998
+    doc_type: research_paper
+    topic: volatility-derivatives
+    source_url: https://www.next-finance.net/IMG/pdf/Towardsvoltrading.pdf
+    license: authors' working paper of 16 December 1997 (in Jarrow (ed.), Volatility, Risk Books 1998), copy hosted by next-finance.net; local copy, not redistributed
+
+  - doc_key: demeterfi-derman-kamal-zou-1999-volatility-swaps
+    path: classics/demeterfi-derman-kamal-zou-1999.pdf
+    title: More Than You Ever Wanted To Know About Volatility Swaps
+    authors: [Kresimir Demeterfi, Emanuel Derman, Michael Kamal, Joseph Zou]
+    year: 1999
+    doc_type: research_paper
+    topic: volatility-derivatives
+    source_url: http://emanuelderman.com/wp-content/uploads/1999/02/gs-volatility_swaps.pdf
+    license: Goldman Sachs Quantitative Strategies Research Note, March 1999, on Emanuel Derman's site; local copy, not redistributed

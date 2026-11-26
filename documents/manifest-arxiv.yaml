@@ -6143,3 +6143,18 @@ documents:
   topic: volatility-local
   source_url: https://arxiv.org/abs/1804.04924v2
   license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1611.06181
+  path: arxiv/md/1611.06181.md
+  title: 'Calibration to American Options: Numerical Investigation of the de-Americanization'
+  authors:
+  - Olena Burkovska
+  - Maximilian Gaß
+  - Kathrin Glau
+  - Mirco Mahlstedt
+  - Wim Schoutens
+  - Barbara Wohlmuth
+  year: 2016
+  doc_type: research_paper
+  topic: numerical-american
+  source_url: https://arxiv.org/abs/1611.06181v1
+  license: arXiv preprint; terms on the abs page
