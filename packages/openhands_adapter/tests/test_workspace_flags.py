@@ -31,6 +31,11 @@ def _capture_docker_run(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     monkeypatch.setattr(
         AgenticEnvDockerWorkspace, "_wait_for_health", lambda self, timeout=120.0: None
     )
+    # No container binds the port, so whether the test host has it free is irrelevant:
+    # a CI runner that happened to use 39001 failed the gateway test.
+    monkeypatch.setattr(
+        "openhands.workspace.docker.workspace.check_port_available", lambda port: True
+    )
     return calls
 
 
