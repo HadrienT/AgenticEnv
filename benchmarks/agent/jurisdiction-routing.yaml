@@ -1,6 +1,7 @@
 # Questions for benchmarks/agent/jurisdiction_routing.py (WP21 §7). `jurisdictions`:
 # what the first kb.search must filter on (`intl` may be added); empty: the question
-# names none, so no filter or several. `collection: quant`: no regulation search.
+# names none, so no filter or several. `collection: quant`: no regulation or ir search;
+# `collection: ir`: an ir search and no regulation one.
 # `proposal: true`: the answer must say the rule is proposed, not in force.
 # `language: fr`: asked in French; the searches must still be in English.
 cases:
@@ -52,3 +53,21 @@ cases:
     jurisdictions: [us]
     proposal: true
     language: fr
+  # The `ir` collection (retrieval, RAG, parsing, MCP): its questions must reach it, and
+  # quant questions worded like retrieval or machine learning must not.
+  - id: ir-chunking
+    question: "How should long PDF documents with equations be chunked for retrieval-augmented generation?"
+    collection: ir
+  - id: ir-mcp-injection
+    question: "What prompt-injection risks does an MCP server create when it returns third-party text to the agent?"
+    collection: ir
+  - id: ir-lexical-fr
+    question: "La recherche lexicale type BM25 reste-t-elle compétitive face aux embeddings denses pour un agent ?"
+    collection: ir
+    language: fr
+  - id: quant-neural-calibration
+    question: "How can a neural network learn the pricing map to calibrate the rough Bergomi model faster?"
+    collection: quant
+  - id: quant-mlmc-search
+    question: "What is the optimal number of samples per level in multilevel Monte Carlo?"
+    collection: quant

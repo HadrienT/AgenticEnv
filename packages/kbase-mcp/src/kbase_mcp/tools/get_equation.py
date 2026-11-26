@@ -1,17 +1,25 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from corelib.db import session_scope
 from kbase.lookup import get_equation as run_get_equation
+from pydantic import Field
 
 from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
 def get_equation(
-    doc_key: str | None = None,
-    equation_number: str | None = None,
-    chunk_id: str | None = None,
+    doc_key: Annotated[
+        str | None, Field(description="The document's key; goes with equation_number.")
+    ] = None,
+    equation_number: Annotated[
+        str | None,
+        Field(description="The equation's number as the document prints it, e.g. '4.12'."),
+    ] = None,
+    chunk_id: Annotated[
+        str | None, Field(description="Or the chunk_id of a search result holding the equation.")
+    ] = None,
 ) -> dict[str, Any]:
     """One equation, its context and its citation. Give either `chunk_id` alone, or
     `doc_key` + `equation_number` together."""

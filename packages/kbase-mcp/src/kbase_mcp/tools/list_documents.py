@@ -1,20 +1,28 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from corelib.config import get_settings
 from corelib.db import session_scope
 from kbase.lookup import list_documents as run_list_documents
 from kbase.schemas import Collection, Jurisdiction
+from pydantic import Field
 
 from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
 def list_documents(
-    collection: Collection,
-    jurisdiction: Jurisdiction | None = None,
-    topic: str | None = None,
-    doc_type: Literal["standard", "law", "guidance", "proposal"] | None = None,
+    collection: Annotated[Collection, Field(description="The collection to list.")],
+    jurisdiction: Annotated[
+        Jurisdiction | None, Field(description="Regulation only: documents of this jurisdiction.")
+    ] = None,
+    topic: Annotated[
+        str | None, Field(description="Only this topic, as kb.list_topics names it.")
+    ] = None,
+    doc_type: Annotated[
+        Literal["standard", "law", "guidance", "proposal"] | None,
+        Field(description="Regulation only: binding law, guidance, a standard or a proposal."),
+    ] = None,
 ) -> dict[str, Any]:
     """Documents of a collection with doc_key, title, doc_type, topic, jurisdiction and
     validity (WP21 §3). Example: `list_documents(collection="regulation",
