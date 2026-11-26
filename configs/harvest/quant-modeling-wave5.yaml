@@ -1,0 +1,18 @@
+# Fifth arXiv wave for quant-modeling (2026-11-26): the option-data literature review of
+# WP 31 (clean option data at ingestion, lot L0; issue #82). Of the fourteen references
+# the review needs, only one is on arXiv; the others go through the PDF path
+# (documents/manifest-quant-option-data.yaml) or still need a copy by hand.
+#
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave5.yaml --dry-run
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave5.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv.yaml
+name: quant-modeling-wave5
+sort_by: relevance
+queries:
+  # 1611.06181 Burkovska, Glau, Mahlstedt, Wohlmuth, calibration to American options:
+  #            numerical investigation of the de-Americanization method (Quantitative
+  #            Finance 2018). How far a European IV backed out of an American quote
+  #            through a binomial tree can be trusted
+  - topic: numerical-american
+    query: 'id:1611.06181'
+    max_results: 1

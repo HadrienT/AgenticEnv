@@ -1,0 +1,17 @@
+# Sixth arXiv wave for quant-modeling (2026-11-26): the SLV calibration follow-up to
+# Guyon & Henry-Labordère's particle method, whose SSRN preprint comes in through
+# documents/manifest-quant-classics.yaml in the same change (issue #79).
+#
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave6.yaml --dry-run
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave6.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv.yaml
+name: quant-modeling-wave6
+sort_by: relevance
+queries:
+  # 1909.13366 Muguruza, Not so particular about calibration: smile problem resolved
+  #            (2019). Exact, closed-form Monte Carlo LSV calibration in the spirit of
+  #            the particle method, with no kernel or bandwidth to choose; covers rough
+  #            volatility (slv_calibration.hpp)
+  - topic: volatility-local
+    query: 'id:1909.13366'
+    max_results: 1

@@ -1,0 +1,103 @@
+# Seventh arXiv wave for quant-modeling (2026-11-26): recent work (2016 onwards, two
+# preprints from 2014-2015 published later) on pricing numerics and GPU performance,
+# aimed at what the engine has not done yet (WP 19 §12, WP 22, WP 23, WP 25, WP 26).
+# Each id was checked against the arXiv API and absent from the base; kept by the
+# maintainer as a whole. Ids, not keyword queries, so a rerun harvests exactly this list.
+#
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave7.yaml --dry-run
+#   uv run kbase harvest --profile configs/harvest/quant-modeling-wave7.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv.yaml
+name: quant-modeling-wave7
+sort_by: relevance
+queries:
+  # --- Multilevel Monte Carlo beyond the engine's MLMC (WP 26, WP 23) ---
+  # 1802.05016 Giles & Haji-Ali, multilevel nested simulation for risk estimation
+  # 1912.05484 Giles & Haji-Ali, sub-sampling for risk estimation in large portfolios
+  # 1512.01022 Vihola, unbiased estimators and multilevel Monte Carlo (randomised MLMC)
+  # 1405.3757  Haji-Ali, Nobile, Tempone, multi-index Monte Carlo
+  # 2301.04095 Syed & Wang, optimal randomised MLMC for repeatedly nested expectations
+  - topic: numerical-monte-carlo
+    query: 'id:1802.05016 OR id:1912.05484 OR id:1512.01022 OR id:1405.3757 OR id:2301.04095'
+    max_results: 5
+  # 2304.01207 Crépey, Frikha, Louzi, multilevel stochastic approximation of VaR and ES
+  # 2408.06531 Crépey, Frikha, Louzi et al., the adaptive version for VaR
+  # 2105.05356 Bourgey & De Marco, MLMC for VIX options under rough Bergomi
+  # 1710.07492 Giles & Bernal, multilevel estimation for stopped diffusions (continuous barriers)
+  - topic: numerical-monte-carlo
+    query: 'id:2304.01207 OR id:2408.06531 OR id:2105.05356 OR id:1710.07492'
+    max_results: 4
+  # --- Heston schemes and the Feller ratio (WP 26 §9.6) ---
+  # 1704.07321 Cozma & Reisinger, strong order 1/2 of full truncation Euler for CIR
+  # 1706.07375 Cozma & Reisinger, Euler rates for stochastic path-dependent volatility
+  # 2106.10926 Mickel & Neuenkirch, weak order of two Euler schemes for log-Heston
+  - topic: volatility-heston
+    query: 'id:1704.07321 OR id:1706.07375 OR id:2106.10926'
+    max_results: 3
+  # --- QMC: a true Owen scrambling, randomised QMC error (WP 19 §12) ---
+  # 2311.11664 Ahmed, Pharr, Wonka, ART-Owen scrambling (true Owen, not Burley's hash)
+  # 2008.08051 Owen, on dropping the first Sobol' point
+  # 2608.17143 Owen, randomized quasi-Monte Carlo integration (survey)
+  # 2111.12676 Pan & Owen, median-of-means randomised nets
+  - topic: numerical-qmc
+    query: 'id:2311.11664 OR id:2008.08051 OR id:2608.17143 OR id:2111.12676'
+    max_results: 4
+  # 2405.06136 Pan & Owen, skewness of a randomised QMC estimate
+  # 2510.02111 Suzuki, coarse scrambling for Sobol' and Niederreiter sequences
+  # 2504.18677 Jain, Hickernell, Owen et al., confidence intervals for randomised QMC
+  # 2412.07723 Bartuska et al., multilevel randomised QMC for nested integration
+  - topic: numerical-qmc
+    query: 'id:2405.06136 OR id:2510.02111 OR id:2504.18677 OR id:2412.07723'
+    max_results: 4
+  # --- Rough volatility simulation (WP 22) ---
+  # 2007.02113 Zhu, Loeper et al., Markovian approximation of rough Bergomi for Monte Carlo
+  # 2108.05048 Bayer & Breneis, Markovian approximations of Volterra equations
+  # 2203.09298 Gassiat, weak error rates of rough volatility schemes
+  # 2107.07835 Richard, Tan, Yang, discrete-time simulation of rough Heston
+  - topic: volatility-rough
+    query: 'id:2007.02113 OR id:2108.05048 OR id:2203.09298 OR id:2107.07835'
+    max_results: 4
+  # --- SLV calibration after the particle method (slv_calibration.hpp) ---
+  # 1701.06001 Cozma, Mariapragassam, Reisinger, control-variate particle method (LSV + rates)
+  # 2302.00434 Reisinger & Tsianni, convergence of the LSV particle scheme
+  # 1906.06478 Guo, Loeper, Wang, LSV calibration by optimal transport
+  # 2005.02505 Cuchiero, Khosrawi, Teichmann, LSV calibration with a GAN
+  - topic: volatility-local
+    query: 'id:1701.06001 OR id:2302.00434 OR id:1906.06478 OR id:2005.02505'
+    max_results: 4
+  # --- Machine learning for pricing (WP 25) ---
+  # 1804.05394 Becker, Cheridito, Jentzen, deep optimal stopping
+  # 1912.11060 Becker, Cheridito, Jentzen, American-style options with deep learning
+  # 2007.04154 Gierjatowicz et al., robust pricing and hedging via neural SDEs
+  - topic: numerical-ml-pricing
+    query: 'id:1804.05394 OR id:1912.11060 OR id:2007.04154'
+    max_results: 3
+  # 1706.04702 E, Han, Jentzen, deep BSDE for high-dimensional PDEs
+  # 1907.06474 Lapeyre & Lelong, neural network regression for Bermudan options
+  # 2105.00655 Aiolfi et al., learning Bermudans
+  - topic: numerical-ml-pricing
+    query: 'id:1706.04702 OR id:1907.06474 OR id:2105.00655'
+    max_results: 3
+  # --- xVA (WP 23) ---
+  # 2005.02633 Gnoatto, Picarelli, Reisinger, deep xVA solver
+  # 2010.13843 Andersson & Oosterlee, deep learning for CVA of large portfolios
+  - topic: cva-xva
+    query: 'id:2005.02633 OR id:2010.13843'
+    max_results: 2
+  # --- CUDA and performance on the V100s (WP 19) ---
+  # 1804.06826 Jia et al., dissecting the Volta GPU architecture by microbenchmarking
+  # 2008.11326 Yang, 8 steps to 3.7 TFLOP/s on V100: roofline analysis
+  # 1809.09206 Ghane et al., power and energy-efficiency roofline for GPUs
+  - topic: performance-cuda
+    query: 'id:1804.06826 OR id:2008.11326 OR id:1809.09206'
+    max_results: 3
+  # 2004.06278 Widynski, Squares: a fast counter-based RNG (against Philox)
+  # 2302.05170 Liu, Oosterlee et al., the Seven-League scheme on GPU (large time steps)
+  # 2203.06139 Ifrim, Vassilev, Lange, GPU-accelerated AD with Clad
+  - topic: performance-cuda
+    query: 'id:2004.06278 OR id:2302.05170 OR id:2203.06139'
+    max_results: 3
+# LaTeXML's HTML of 1802.05016 leaves an equation unclosed (one 183,000-character
+# block swallows the rest of the paper): it comes through its PDF instead
+# (documents/manifest-arxiv-pdf.yaml), and is excluded here so a rerun does not re-add it.
+exclude_ids:
+  - '1802.05016'
