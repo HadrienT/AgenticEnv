@@ -51,7 +51,10 @@ def _search_description() -> str:
             f"- {name}: {c.description}" for name, c in config.jurisdictions.items()
         )
     except Exception:  # the description must not keep the server from starting
-        lines = "- quant: derivatives pricing and numerics\n- regulation: prudential regulation"
+        lines = (
+            "- quant: derivatives pricing and numerics\n- regulation: prudential regulation\n"
+            "- ir: retrieval, RAG, document parsing and MCP"
+        )
         jurisdictions = ""
     return _SEARCH_DESCRIPTION.format(
         collections=lines, jurisdictions=jurisdictions or "- intl, eu, us, uk"

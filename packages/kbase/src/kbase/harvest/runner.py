@@ -4,6 +4,7 @@ Ingestion is left to `kbase ingest` on the generated manifest (WP18 §2)."""
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,14 @@ _LATEXML_MARKER = "ltx_document"
 _NO_HTML_SUFFIX = ".none"
 
 
+_DISPLAY_EQUATION = re.compile(r"^\$\$\n(.*?)\n\$\$", re.DOTALL | re.MULTILINE)
+
+
+def longest_equation(markdown: str) -> int:
+    """Characters of the longest display equation (`$$ ... $$`) of a converted paper."""
+    return max((len(m.group(1)) for m in _DISPLAY_EQUATION.finditer(markdown)), default=0)
+
+
 @dataclass(frozen=True)
 class HarvestSettings:
     documents_dir: Path
@@ -45,6 +54,12 @@ class HarvestSettings:
     md_dir: str
     page_size: int
     min_text_chars: int
+    # The collection a new manifest is created with (an existing one keeps its own).
+    collection: str = "quant"
+    # A display equation longer than this is LaTeXML debris (an unclosed environment
+    # swallowing the rest of the paper, a TikZ picture as macros): the chunker never
+    # splits equations and the embedder rejects it, so the paper takes the PDF path.
+    max_equation_chars: int = 6000
 
 
 def _fetch_html(client: PoliteClient, arxiv_id: str) -> tuple[str | None, str | None]:
@@ -122,6 +137,17 @@ def harvest(
                 )
                 continue
             conversion = latexml.convert(html, title=entry.title, abstract=entry.abstract)
+            longest = longest_equation(conversion.markdown)
+            if longest > settings.max_equation_chars:
+                papers.append(
+                    PaperResult(
+                        arxiv_id=entry.arxiv_id,
+                        outcome="low_quality",
+                        source=source,
+                        detail=f"equation of {longest} chars",
+                    )
+                )
+                continue
             if conversion.sections == 0 or conversion.text_chars < settings.min_text_chars:
                 papers.append(
                     PaperResult(
@@ -151,7 +177,7 @@ def harvest(
                 PaperResult(arxiv_id=entry.arxiv_id, outcome="failed", detail=exc.message)
             )
 
-    added = 0 if dry_run else append_entries(settings.manifest, entries)
+    added = 0 if dry_run else append_entries(settings.manifest, entries, settings.collection)
     by_outcome = {o: sum(1 for p in papers if p.outcome == o) for o in
                   ("converted", "no_html", "low_quality", "failed")}  # fmt: skip
     return HarvestReport(

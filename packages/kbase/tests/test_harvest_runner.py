@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 import yaml
+from kbase.harvest import latexml
 from kbase.harvest.http import PoliteClient, RawResponse
-from kbase.harvest.runner import HarvestSettings, harvest
+from kbase.harvest.runner import HarvestSettings, harvest, longest_equation
 from kbase.harvest.schemas import HarvestProfile
 from kbase.ingestion import sources
 
@@ -129,6 +131,73 @@ def test_excluded_ids_are_never_harvested(tmp_path: Path) -> None:
     report = harvest(profile, client=client, settings=settings)
     assert [p.arxiv_id for p in report.papers] == ["math/0501001"]
     assert report.skipped_known == 1
+
+
+def test_a_profile_writes_its_own_manifest_in_its_collection(tmp_path: Path) -> None:
+    # The `ir` papers go to their own manifest, created in the `ir` collection, so they
+    # never mix with the quant corpus the agents search for their work.
+    web = _Web({"https://arxiv.org/html/2401.00001": _html("https://arxiv.org/html/2401.00001")})
+    manifest = tmp_path / "repo" / "manifest-arxiv-ir.yaml"
+    settings = HarvestSettings(
+        documents_dir=tmp_path / "docs", manifest=manifest, known_manifests=(manifest,),
+        html_dir="arxiv/html", md_dir="arxiv/md", page_size=100, min_text_chars=50,
+        collection="ir",
+    )  # fmt: skip
+    profile = HarvestProfile.model_validate(
+        {
+            "name": "p",
+            "queries": [{"topic": "retrieval", "query": "abs:x"}],
+            "manifest": "documents/manifest-arxiv-ir.yaml",
+            "collection": "ir",
+        }
+    )
+    client = PoliteClient(
+        user_agent="t", min_interval_s=0, max_attempts=1, timeout_s=1,
+        transport=web, sleep=lambda _s: None,
+    )  # fmt: skip
+    harvest(profile, client=client, settings=settings)
+
+    items = sources.resolve(manifest, settings.documents_dir)
+    assert [(i.meta.doc_key, i.meta.collection) for i in items] == [("arxiv-2401.00001", "ir")]
+
+
+def test_a_profile_collection_must_be_declared() -> None:
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        HarvestProfile.model_validate(
+            {"name": "p", "queries": [{"topic": "t", "query": "abs:x"}], "collection": "nope"}
+        )
+
+
+def test_longest_equation_measures_display_math_only() -> None:
+    md = "# T\n\nText $x$ inline.\n\n$$\na+b\n$$ (1)\n\n$$\n" + "x" * 50 + "\n$$\n"
+    assert longest_equation(md) == 50
+    assert longest_equation("# T\n\nno math\n") == 0
+
+
+def test_a_paper_with_an_oversized_equation_takes_the_pdf_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # LaTeXML left an environment unclosed in 1802.05016: one 183,000-character
+    # "equation" the embedder rejected at ingestion. The harvest now refuses it.
+    real = latexml.convert
+
+    def debris(html: str, *, title: str, abstract: str) -> latexml.Conversion:
+        out = real(html, title=title, abstract=abstract)
+        markdown = out.markdown + "\n$$\n" + "\\lxSVG@begingroup " * 600 + "\n$$\n"
+        return latexml.Conversion(
+            markdown=markdown, sections=out.sections, equations=out.equations + 1,
+            text_chars=out.text_chars, has_abstract=out.has_abstract,
+        )  # fmt: skip
+
+    monkeypatch.setattr(latexml, "convert", debris)
+    web = _Web({"https://arxiv.org/html/2401.00001": _html("https://arxiv.org/html/2401.00001")})
+    report, settings = _run(tmp_path, web)
+
+    paper = next(p for p in report.papers if p.arxiv_id == "2401.00001")  # type: ignore[attr-defined]
+    assert paper.outcome == "low_quality" and "equation of" in (paper.detail or "")
+    assert report.new_entries == 0  # type: ignore[attr-defined]
 
 
 def test_low_quality_conversion_is_rejected(tmp_path: Path) -> None:

@@ -99,6 +99,14 @@ _DEFAULT_COLLECTIONS: dict[str, CollectionConfig] = {
             "(SA-CCR, IMM), CVA, credit risk, margin, liquidity, model risk"
         )
     ),
+    "ir": CollectionConfig(
+        description=(
+            "how to build this base and its tools: retrieval and RAG (embeddings, sparse and "
+            "late interaction, reranking, chunking, query rewriting, agentic search, "
+            "evaluation, citations), PDF and formula parsing, and the Model Context Protocol "
+            "(tool descriptions, tool selection, benchmarks, security)"
+        )
+    ),
 }
 
 
@@ -134,6 +142,7 @@ class HarvestConfig(BaseModel):
     timeout_s: float = 60.0
     page_size: int = 100
     min_text_chars: int = 1500
+    max_equation_chars: int = 6000  # longer: LaTeXML debris, the paper takes the PDF path
     html_dir: str = "arxiv/html"
     md_dir: str = "arxiv/md"
     manifest: str = "documents/manifest-arxiv.yaml"

@@ -1,0 +1,100 @@
+# First wave of the `ir` collection (2026-11-26): what to read to improve this base and
+# its MCP server. Retrieval and RAG, PDF and formula parsing, and the Model Context
+# Protocol. Kept apart from `quant` so the quant agents' searches are not diluted. Each
+# id was checked against the arXiv API; the list was kept as a whole by the maintainer.
+#
+#   uv run kbase harvest --profile configs/harvest/ir-wave1.yaml --dry-run
+#   uv run kbase harvest --profile configs/harvest/ir-wave1.yaml
+#   uv run kbase ingest --target documents/manifest-arxiv-ir.yaml
+name: ir-wave1
+manifest: documents/manifest-arxiv-ir.yaml
+collection: ir
+sort_by: relevance
+queries:
+  # --- Embeddings, sparse and late interaction (our bge-m3 runs dense only) ---
+  # 2402.03216 M3-Embedding: bge-m3's own sparse and multi-vector outputs
+  # 2409.04701 Late chunking: contextual chunk embeddings from the whole document
+  # 2112.01488 ColBERTv2; 2408.16672 Jina-ColBERT-v2
+  # 2405.19504 MUVERA and 2501.17788 WARP: multi-vector retrieval made affordable
+  - topic: ir-embeddings
+    query: 'id:2402.03216 OR id:2409.04701 OR id:2112.01488 OR id:2408.16672 OR id:2405.19504 OR id:2501.17788'
+    max_results: 6
+  # 2109.10086 SPLADE v2; 2205.13147 Matryoshka representations; 2506.05176 Qwen3
+  # Embedding (the WP19 fallback); 2605.10848 Pi-Serini, is lexical enough for agents
+  - topic: ir-embeddings
+    query: 'id:2109.10086 OR id:2205.13147 OR id:2506.05176 OR id:2605.10848'
+    max_results: 4
+  # --- Reranking ---
+  # 2407.12883 BRIGHT, reasoning-intensive retrieval benchmark; 2502.18418 Rank1;
+  # 2505.14432 Rank-K; 2505.16886 don't overthink reranking; 2601.14224 rerank before you
+  # reason (token cost in deep-search agents); 2304.09542 LLMs as rerankers (RankGPT)
+  - topic: ir-reranking
+    query: 'id:2407.12883 OR id:2502.18418 OR id:2505.14432 OR id:2505.16886 OR id:2601.14224 OR id:2304.09542'
+    max_results: 6
+  # --- Query side and agentic search ---
+  # 2212.10496 HyDE; 2303.07678 Query2doc; 2605.05242 direct corpus interaction;
+  # 2603.04384 AgentIR; 2602.05975 SAGE; 2601.11888 Agentic-R
+  - topic: ir-agentic-search
+    query: 'id:2212.10496 OR id:2303.07678 OR id:2605.05242 OR id:2603.04384 OR id:2602.05975 OR id:2601.11888'
+    max_results: 6
+  # 2501.09136 agentic RAG survey; 2401.15884 CRAG; 2310.11511 Self-RAG; 2403.14403
+  # Adaptive-RAG; 2307.03172 lost in the middle; 2407.16833 RAG or long context
+  - topic: ir-agentic-search
+    query: 'id:2501.09136 OR id:2401.15884 OR id:2310.11511 OR id:2403.14403 OR id:2307.03172 OR id:2407.16833'
+    max_results: 6
+  # --- Granularity, chunking and structure ---
+  # 2312.06648 Dense X (propositions); 2410.13070 is semantic chunking worth it;
+  # 2602.16974 chunking taxonomy and evaluation; 2604.12047 PDF parsing and chunking for
+  # financial QA; 2401.18059 RAPTOR
+  - topic: ir-chunking
+    query: 'id:2312.06648 OR id:2410.13070 OR id:2602.16974 OR id:2604.12047 OR id:2401.18059'
+    max_results: 5
+  # 2404.16130 GraphRAG; 2405.14831 HippoRAG; 2410.05779 LightRAG; 2501.15067 CG-RAG
+  # (citation-graph retrieval: the harvest knows each paper's arXiv references)
+  - topic: ir-graph-rag
+    query: 'id:2404.16130 OR id:2405.14831 OR id:2410.05779 OR id:2501.15067'
+    max_results: 4
+  # --- Formulas ---
+  # 2505.15585 MIRB; 2508.04162 SSEmb; 2609.01556 surface-form bias in structural retrieval
+  - topic: ir-math
+    query: 'id:2505.15585 OR id:2508.04162 OR id:2609.01556'
+    max_results: 3
+  # --- PDF parsing (we run MinerU's pipeline backend with forced OCR) ---
+  # 2509.22186 MinerU2.5 (VLM); 2605.24973 MinerU-Popo; 2409.18839 MinerU;
+  # 2412.07626 OmniDocBench; 2604.08538 ParseBench
+  - topic: doc-parsing
+    query: 'id:2509.22186 OR id:2605.24973 OR id:2409.18839 OR id:2412.07626 OR id:2604.08538'
+    max_results: 5
+  # 2510.14528 PaddleOCR-VL; 2502.18443 olmOCR; 2308.13418 Nougat; 2408.09869 Docling;
+  # 2404.15254 UniMERNet (formula recognition)
+  - topic: doc-parsing
+    query: 'id:2510.14528 OR id:2502.18443 OR id:2308.13418 OR id:2408.09869 OR id:2404.15254'
+    max_results: 5
+  # --- Evaluation and citations ---
+  # 2309.15217 RAGAS; 2311.09476 ARES; 2608.03860 SciRet; 2609.38473 reranking and late
+  # interaction in scientific RAG; 2503.19092 LLM judges in IR evaluation
+  - topic: ir-evaluation
+    query: 'id:2309.15217 OR id:2311.09476 OR id:2608.03860 OR id:2609.38473 OR id:2503.19092'
+    max_results: 5
+  # 2305.14627 ALCE; 2510.11394 VeriCite; 2509.20859 sub-sentence citations
+  - topic: ir-citations
+    query: 'id:2305.14627 OR id:2510.11394 OR id:2509.20859'
+    max_results: 3
+  # --- The MCP server itself ---
+  # 2602.14878 MCP tool descriptions are smelly; 2610.14334 which metadata matters for
+  # tool selection; 2308.00675 tool documentation enables zero-shot tool use;
+  # 2508.20453 MCP-Bench
+  - topic: mcp-tools
+    query: 'id:2602.14878 OR id:2610.14334 OR id:2308.00675 OR id:2508.20453'
+    max_results: 4
+  # 2508.14704 MCP-Universe; 2508.01780 LiveMCPBench; 2505.03275 RAG-MCP; 2509.20386
+  # Dynamic ReAct (tool selection among many servers)
+  - topic: mcp-tools
+    query: 'id:2508.14704 OR id:2508.01780 OR id:2505.03275 OR id:2509.20386'
+    max_results: 4
+  # 2503.23278 MCP landscape and threats; 2510.15994 MCP Security Bench; 2603.22489
+  # prompt injection through tool poisoning; 2512.08290 SoK on MCP security. kb.search
+  # hands third-party arXiv and PDF text to the agent: an indirect-injection surface
+  - topic: mcp-security
+    query: 'id:2503.23278 OR id:2510.15994 OR id:2603.22489 OR id:2512.08290'
+    max_results: 4
