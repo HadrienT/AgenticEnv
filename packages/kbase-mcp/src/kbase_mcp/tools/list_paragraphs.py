@@ -1,14 +1,25 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from corelib.db import session_scope
 from kbase.lookup import list_paragraphs as run_list_paragraphs
+from pydantic import Field
 
 from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
-def list_paragraphs(doc_key: str, prefix: str | None = None) -> dict[str, Any]:
+def list_paragraphs(
+    doc_key: Annotated[
+        str, Field(description="A regulatory document's key, e.g. bcbs-mar21 (kb.list_documents).")
+    ],
+    prefix: Annotated[
+        str | None,
+        Field(
+            description="Also return the full text of paragraphs starting with it: MAR21.4, MAR21."
+        ),
+    ] = None,
+) -> dict[str, Any]:
     """Every numbered paragraph of a regulatory document (`MAR21.1`, `MAR21.2`, …) in
     order, with its section path and first line. With `prefix`, also the full text of
     the matching paragraphs: `prefix="MAR21.4"` for one paragraph, `prefix="MAR21"` for

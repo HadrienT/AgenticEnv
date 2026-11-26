@@ -1,15 +1,21 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from corelib.db import session_scope
 from kbase.lookup import get_document as run_get_document
+from pydantic import Field
 
 from kbase_mcp.tools.dispatch import call_args, dispatch
 
 
 def get_document(
-    doc_key: str | None = None, document_version_id: str | None = None
+    doc_key: Annotated[
+        str | None, Field(description="The document's key, as a search result's citation gives it.")
+    ] = None,
+    document_version_id: Annotated[
+        str | None, Field(description="A specific version instead of the latest (rarely needed).")
+    ] = None,
 ) -> dict[str, Any]:
     """Metadata + section tree of one document. Give either `doc_key` (latest version)
     or `document_version_id` (a specific version), never both."""

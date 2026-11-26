@@ -8,7 +8,8 @@ JSON schemas). Tool calls are executed for real against the knowledge base, up t
 
 Scored per question:
 - `routed`: the `kb.search` calls name the `regulation` collection (or not, for a
-  quant question) and, together, the expected jurisdictions (one search per market is
+  quant question; nor `ir`, which only an `ir` question must search) and, together,
+  the expected jurisdictions (one search per market is
   fine; `intl` may be added; for a question that names none, either an unfiltered
   search or at least two jurisdictions);
 - `labelled`: the answer names the jurisdiction of each expected rule (EU/CRR,
@@ -119,8 +120,12 @@ def _routed(case: dict[str, Any], calls: list[dict[str, Any]]) -> bool:
         and c["arguments"].get("jurisdiction")
     ]
     regulatory = [s for s in searches if "regulation" in (s.get("collections") or [])]
+    retrieval = [s for s in searches if "ir" in (s.get("collections") or [])]
     if case.get("collection") == "quant":
-        return not regulatory
+        # The `ir` papers (RAG, MCP) are for building the base, not for a quant answer.
+        return bool(searches) and not regulatory and not retrieval
+    if case.get("collection") == "ir":
+        return bool(retrieval) and not regulatory
     if not regulatory:
         return False
     expected = set(case.get("jurisdictions") or [])
@@ -164,7 +169,7 @@ def _english_queries(calls: list[dict[str, Any]]) -> bool:
 
 
 def _labelled(case: dict[str, Any], answer: str) -> bool:
-    if case.get("collection") == "quant":
+    if case.get("collection") in ("quant", "ir"):
         return True
     wanted = case.get("jurisdictions") or ["intl", "eu", "uk", "us"]
     hits = [j for j in wanted if re.search(LABELS[j], answer)]
