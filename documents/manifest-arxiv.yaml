@@ -6158,3 +6158,13 @@ documents:
   topic: numerical-american
   source_url: https://arxiv.org/abs/1611.06181v1
   license: arXiv preprint; terms on the abs page
+- doc_key: arxiv-1909.13366
+  path: arxiv/md/1909.13366.md
+  title: 'Not so Particular about Calibration: Smile Problem Resolved'
+  authors:
+  - Aitor Muguruza
+  year: 2019
+  doc_type: research_paper
+  topic: volatility-local
+  source_url: https://arxiv.org/abs/1909.13366v1
+  license: arXiv preprint; terms on the abs page

@@ -85,3 +85,64 @@ documents:
     topic: volatility-derivatives
     source_url: http://emanuelderman.com/wp-content/uploads/1999/02/gs-volatility_swaps.pdf
     license: Goldman Sachs Quantitative Strategies Research Note, March 1999, on Emanuel Derman's site; local copy, not redistributed
+
+  # --- Copies supplied by the maintainer (2026-11-26) ---
+  - doc_key: optionmetrics-ivydb-us-reference-manual
+    path: classics/optionmetrics-ivydb-us-reference-manual-v5.pdf
+    title: IvyDB US File and Data Reference Manual, Version 5.0
+    authors: [OptionMetrics LLC]
+    year: 2021
+    doc_type: documentation
+    topic: options-market-data
+    source_url: https://optionmetrics.com/
+    license: proprietary and confidential vendor manual (rev. 01/12/2021), copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: hentschel-2003-errors-implied-volatility
+    path: classics/hentschel-2003-iv-errors.pdf
+    title: Errors in Implied Volatility Estimation
+    authors: [Ludger Hentschel]
+    year: 2003
+    doc_type: research_paper
+    topic: volatility-implied
+    source_url: https://doi.org/10.2307/4126743
+    license: published version (Journal of Financial and Quantitative Analysis 38(4), 2003), copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: andersen-lake-offengenden-2016-american-option-pricing
+    path: classics/andersen-lake-offengenden-2016-american.pdf
+    title: High Performance American Option Pricing
+    authors: [Leif Andersen, Mark Lake, Dimitri Offengenden]
+    year: 2016
+    doc_type: research_paper
+    topic: numerical-american
+    source_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2547027
+    license: SSRN version of January 2020 (Journal of Computational Finance, 2016), downloaded by the maintainer; local copy, not redistributed
+
+  - doc_key: barone-adesi-whaley-1987-american-approximation
+    path: classics/barone-adesi-whaley-1987.pdf
+    title: Efficient Analytic Approximation of American Option Values
+    authors: [Giovanni Barone-Adesi, Robert E. Whaley]
+    year: 1987
+    doc_type: research_paper
+    topic: numerical-american
+    source_url: https://doi.org/10.1111/j.1540-6261.1987.tb02569.x
+    license: published version (Journal of Finance 42(2), 1987), scanned, read through OCR; copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: bakshi-cao-chen-1997-option-pricing-models
+    path: classics/bakshi-cao-chen-1997.pdf
+    title: Empirical Performance of Alternative Option Pricing Models
+    authors: [Gurdip Bakshi, Charles Cao, Zhiwu Chen]
+    year: 1997
+    doc_type: research_paper
+    topic: options-market-data
+    source_url: https://doi.org/10.1111/j.1540-6261.1997.tb02749.x
+    license: published version (Journal of Finance 52(5), 1997), scanned, read through OCR; copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: fengler-2009-arbitrage-free-smoothing
+    path: classics/fengler-2009-arbitrage-free-smoothing.pdf
+    title: Arbitrage-Free Smoothing of the Implied Volatility Surface
+    authors: [Matthias R. Fengler]
+    year: 2009
+    doc_type: research_paper
+    topic: volatility-implied
+    source_url: https://www.ssoar.info/ssoar/handle/document/22137
+    license: SSOAR postprint under the PEER licence (Quantitative Finance 9(4), 2009), personal non-commercial use; local copy, not redistributed

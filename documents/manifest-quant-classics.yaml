@@ -148,3 +148,61 @@ documents:
     topic: market-conventions-sofr
     source_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2219548
     license: SSRN free download; local copy, not redistributed
+
+  # --- Copies supplied by the maintainer (2026-11-26) ---
+  - doc_key: capriotti-2011-fast-greeks-ad
+    path: classics/capriotti-2011-fast-greeks-ad.pdf
+    title: Fast Greeks by Algorithmic Differentiation
+    authors: [Luca Capriotti]
+    year: 2011
+    doc_type: research_paper
+    topic: numerical-aad
+    license: author's preprint of 2 June 2010 (Journal of Computational Finance, 2011), copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: giles-sheridan-methven-2023-approximate-icdf
+    path: classics/giles-sheridan-methven-2023-approx-icdf.pdf
+    title: Approximating Inverse Cumulative Distribution Functions to Produce Approximate Random Variables
+    authors: [Michael B. Giles, Oliver Sheridan-Methven]
+    year: 2023
+    doc_type: research_paper
+    topic: numerical-monte-carlo
+    source_url: https://doi.org/10.1145/3604935
+    license: published version (ACM Transactions on Mathematical Software 49(3), article 26, 2023), copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: hagan-kumar-2013-arbitrage-free-sabr
+    path: classics/hagan-kumar-2013-arbitrage-free-sabr.pdf
+    title: Arbitrage Free SABR
+    authors: [Patrick S. Hagan, Deep Kumar]
+    year: 2013
+    doc_type: research_paper
+    topic: volatility-sabr
+    license: authors' draft of April 2013 (published as Hagan, Kumar, Lesniewski & Woodward, Wilmott 2014), copy supplied by the maintainer; local copy, not redistributed
+
+  - doc_key: guyon-henry-labordere-2011-smile-calibration
+    path: classics/guyon-henry-labordere-2011-smile-calibration.pdf
+    title: The Smile Calibration Problem Solved
+    authors: [Julien Guyon, Pierre Henry-Labordère]
+    year: 2011
+    doc_type: research_paper
+    topic: volatility-local
+    source_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1885032
+    license: SSRN preprint of July 2011 (the particle method published as "Being particular about calibration", Risk, January 2012), downloaded by the maintainer; local copy, not redistributed
+
+  - doc_key: burgard-kjaer-2011-pde-funding
+    path: classics/burgard-kjaer-2011-pde-funding.pdf
+    title: PDE Representations of Derivatives with Bilateral Counterparty Risk and Funding Costs
+    authors: [Christoph Burgard, Mats Kjaer]
+    year: 2011
+    doc_type: research_paper
+    topic: cva-xva
+    source_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1605307
+    license: SSRN version of 11 July 2012 (Journal of Credit Risk, 2011), downloaded by the maintainer; local copy, not redistributed
+
+  - doc_key: piterbarg-2010-funding-beyond-discounting
+    path: classics/piterbarg-2010-funding-beyond-discounting.pdf
+    title: "Funding beyond discounting: collateral agreements and derivatives pricing"
+    authors: [Vladimir Piterbarg]
+    year: 2010
+    doc_type: research_paper
+    topic: cva-xva
+    license: author's copy of January 2010 (Risk, 2010), read through OCR (its text layer is unreadable); copy supplied by the maintainer; local copy, not redistributed
